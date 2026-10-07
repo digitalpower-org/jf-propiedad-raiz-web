@@ -1,0 +1,9 @@
+packages:
+  - 'packages/*'
+
+allowBuilds:
+  '@firebase/util': true
+  '@parcel/watcher': true
+  protobufjs: true
+  sharp: false
+  unrs-resolver: false

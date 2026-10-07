@@ -1,0 +1,17 @@
+# Backend Rules - Express.js + Clean Architecture
+
+## Architecture Layers
+1. Domain: Entities, Value Objects (Zod brandeados), Interface Ports, Error Catalog. Cero dependencias externas.
+2. Application: Use Cases puros.
+3. Infrastructure: Firestore Repositories, Cloudflare R2 Presigned URLs SDK, Pino Logger -> Google Cloud Logging.
+4. Presentation: Express Routes, Handlers, Error Middlewares.
+
+## Express & Error Handling
+- Respuestas exitosas: `{ success: true, data: T, message: string, timestamp: string }`.
+- Respuestas de error: `{ success: false, data: { code: string, details: unknown, requestId: string }, message: string, timestamp: string }`.
+- RequestId generado por Middleware en cada petición.
+
+## Testing Rules
+- Vitest 4 + Supertest.
+- Base de datos de pruebas: SQLite en archivo temporal (NUNCA `:memory:`).
+- Cobertura exigida: 100% de tests aprobados en lógica de negocio y controladores.

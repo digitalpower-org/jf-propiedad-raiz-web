@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: JF Propiedad Raiz API
+  version: 1.0.0
+  description: Contrato API para la plataforma inmobiliaria jfpropiedadraiz.com
+paths:
+  /health:
+    get:
+      summary: Health check del backend
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
