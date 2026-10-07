@@ -1,0 +1,23 @@
+# OpenCode Global System Rules - jfpropiedadraiz
+
+## Core Philosophy
+- Metodología: Spec-Driven Development (SDD) & Clean Architecture.
+- El archivo `docs/openapi.yaml` es la ÚNICA fuente de verdad para contratos API.
+
+## TypeScript Constraints
+- `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`.
+- Cero `any`, `@ts-ignore`, `@ts-expect-error`, o type assertions `as any`.
+- Validación con Zod 4: Parse, don't validate. Un schema por DTO / Value Object.
+
+## Clean Code & Quality Gates
+- Nombres con intención: comunican propósito y nivel de abstracción, no mecanismo.
+- Funciones ≤30 líneas, una sola responsabilidad. PROHIBIDO parámetros booleanos de control de flujo.
+- Comentarios solo para explicar el "por qué", nunca re-explicar el "qué".
+- ≤250 LOC por archivo. El símbolo dominante coincide con el nombre del archivo (ej. `apiError.ts` -> `ApiError`).
+- No re-exportar tipos no creados localmente. Importar cada tipo desde su origen exacto.
+- Sin código muerto, ni barrel files huérfanos.
+
+## Execution Quality Gates (Obligatorios antes de reportar "Listo")
+1. `npx tsc --noEmit`
+2. `npx eslint src/ test/`
+3. `npx vitest run`

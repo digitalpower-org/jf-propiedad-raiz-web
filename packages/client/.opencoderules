@@ -1,0 +1,11 @@
+# Frontend Rules - Next.js 16 + Mantine
+
+## Styling Constraints
+- PROHIBIDO el uso de Tailwind CSS bajo cualquier circunstancia.
+- Utilizar MANTINE UI v7+ junto con CSS Modules (`*.module.css`).
+
+## Architecture & Rendering
+- Framework: Next.js 16 App Router con React 19.
+- Estrategia: SSR / SSG priorizando SEO en fichas de inmuebles (`/inmuebles/[id]`) y páginas indexables.
+- Prohibido introducir APIs o patrones de Next.js que no estén explícitamente justificados en `docs/ARCHITECTURE.md`.
+- Estado: Query Params de Next.js para filtros del buscador, TanStack Query para fetching/cache de Express API, Context API para Auth (Firebase Admin Claims), `useState`/`useReducer` para UI local.
