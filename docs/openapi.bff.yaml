@@ -30,7 +30,72 @@ tags:
     description: 'Ciclo de sesión del BFF: canje de idToken, cierre y sincronización (US1.2, US1.4, US1.6)'
   - name: bff
     description: Superficie pública de proxy al backend (US0.2, AC0.2.1)
+  - name: Internal
+    description: >-
+      Rutas del BFF consumidas **server-to-server** (no por el navegador), autenticadas por
+      secreto/`X-Internal-Key`. No forman parte del flujo público del visitante.
 paths:
+  /api/revalidate:
+    post:
+      tags: [Internal]
+      operationId: revalidate
+      summary: Revalidar rutas de Next.js (ISR) tras una escritura
+      description: |
+        US0.3 / AC0.3.1. **Ruta del BFF (Next.js) invocada server-to-server por Cloud Functions**
+        mediante webhook interno autenticado por secreto: solo el BFF puede ejecutar
+        `revalidatePath`/`revalidateTag`, y Functions es quien lo *invoca* tras cada escritura.
+
+        El navegador **nunca** llama a esta ruta; el consumidor es Functions (mismo plano interno
+        que `X-Internal-Key`, D26). Sin el secreto → 401 (AC0.3.3).
+
+        Tras cada escritura confirmada (inmuebles, servicios, página Nosotros y la tarea de
+        «Nuevo» de US1.11), Functions invoca este endpoint con el secreto y se ejecuta
+        `revalidatePath`/`revalidateTag` de las rutas afectadas **en ambos idiomas** (listados,
+        ficha, portada, servicios, nosotros y sitemap). Si la revalidación falla, la escritura no
+        se revierte; solo se registra (AC0.3.4).
+      security:
+        - X-Internal-Key: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: 'PENDIENTE: definición pendiente en TASKS (AC0.3.1 no especifica el cuerpo; se esperan las rutas/etiquetas afectadas en ambos idiomas).'
+              properties:
+                paths:
+                  type: array
+                  items:
+                    type: string
+                  description: Rutas a revalidar (`revalidatePath`), incluidas sus variantes `/es/...` y `/en/...`.
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: Etiquetas a revalidar (`revalidateTag`).
+      responses:
+        '200':
+          description: 'Revalidación ejecutada (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS.'
+                        properties:
+                          revalidado:
+                            type: boolean
+        '401':
+          description: '401 `UNAUTHORIZED`: `X-Internal-Key` ausente o incorrecto (AC0.3.3).'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
   /api/auth/session:
     post:
       tags: [auth]
@@ -333,6 +398,15 @@ components:
         SameSite=Strict; Path=/`, firma HS256, expiración 65 min (AC1.2.1, AC1.2.4). El BFF
         valida firma y `exp` en middleware y nunca la lee desde JavaScript (AC1.2.5).
         PENDIENTE: TASKS no fija el nombre literal de la cookie.
+    X-Internal-Key:
+      type: apiKey
+      in: header
+      name: X-Internal-Key
+      description: >-
+        Clave interna servidor↔servidor (US0.2, AC0.2.2) para las rutas del tag `Internal`; la
+        exige `POST /api/revalidate`, invocada por Cloud Functions (AC0.3.1, AC0.3.3).
+        Comparación en tiempo constante (AC0.2.3); jamás aparece en el cliente ni en logs
+        (AC0.2.6).
   responses:
     Unauthorized:
       description: '401 `UNAUTHORIZED`: sin cookie, cookie inválida o expirada (AC1.3.1, AC1.6.2), o idToken inválido/expirado/revocado en el canje de sesión (AC1.2.2).'

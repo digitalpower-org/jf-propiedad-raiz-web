@@ -394,37 +394,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/revalidate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Revalidar rutas de Next.js (ISR) tras una escritura
-         * @description US0.3 / AC0.3.1.
-         *
-         *     **NOTA DE UBICACIÓN (D26):** este endpoint pertenece a la aplicación Next.js (BFF), no a
-         *     Functions — Functions es quien lo *invoca*. Se documenta aquí, en la spec interna, por
-         *     decisión del equipo: es una llamada servidor↔servidor con secreto (AC0.3.1) y no forma
-         *     parte del contrato público navegador↔BFF (`./openapi.bff.yaml`).
-         *
-         *     Tras cada escritura confirmada (inmuebles, servicios, página Nosotros y la tarea de
-         *     «Nuevo» de US1.11), Functions invoca este endpoint con un secreto y se ejecuta
-         *     `revalidatePath`/`revalidateTag` de las rutas afectadas **en ambos idiomas** (listados,
-         *     ficha, portada, servicios, nosotros y sitemap). Sin el secreto → 401 (AC0.3.3). Si la
-         *     revalidación falla, la escritura no se revierte; solo se registra (AC0.3.4).
-         */
-        post: operations["revalidate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1650,49 +1619,6 @@ export interface operations {
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
-        };
-    };
-    revalidate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Rutas a revalidar (`revalidatePath`), incluidas sus variantes `/es/...` y `/en/...`. */
-                    paths?: string[];
-                    /** @description Etiquetas a revalidar (`revalidateTag`). */
-                    tags?: string[];
-                };
-            };
-        };
-        responses: {
-            /** @description Revalidación ejecutada (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            revalidado?: boolean;
-                        };
-                    };
-                };
-            };
-            /** @description Secreto ausente o incorrecto (AC0.3.3). */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
         };
     };
 }

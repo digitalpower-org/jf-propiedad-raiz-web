@@ -4,6 +4,37 @@
  */
 
 export interface paths {
+    "/api/revalidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revalidar rutas de Next.js (ISR) tras una escritura
+         * @description US0.3 / AC0.3.1. **Ruta del BFF (Next.js) invocada server-to-server por Cloud Functions**
+         *     mediante webhook interno autenticado por secreto: solo el BFF puede ejecutar
+         *     `revalidatePath`/`revalidateTag`, y Functions es quien lo *invoca* tras cada escritura.
+         *
+         *     El navegador **nunca** llama a esta ruta; el consumidor es Functions (mismo plano interno
+         *     que `X-Internal-Key`, D26). Sin el secreto → 401 (AC0.3.3).
+         *
+         *     Tras cada escritura confirmada (inmuebles, servicios, página Nosotros y la tarea de
+         *     «Nuevo» de US1.11), Functions invoca este endpoint con el secreto y se ejecuta
+         *     `revalidatePath`/`revalidateTag` de las rutas afectadas **en ambos idiomas** (listados,
+         *     ficha, portada, servicios, nosotros y sitemap). Si la revalidación falla, la escritura no
+         *     se revierte; solo se registra (AC0.3.4).
+         */
+        post: operations["revalidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/session": {
         parameters: {
             query?: never;
@@ -286,6 +317,49 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    revalidate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Rutas a revalidar (`revalidatePath`), incluidas sus variantes `/es/...` y `/en/...`. */
+                    paths?: string[];
+                    /** @description Etiquetas a revalidar (`revalidateTag`). */
+                    tags?: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Revalidación ejecutada (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccess"] & {
+                        /** @description PENDIENTE: definición pendiente en TASKS. */
+                        data: {
+                            revalidado?: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description 401 `UNAUTHORIZED`: `X-Internal-Key` ausente o incorrecto (AC0.3.3). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     createSession: {
         parameters: {
             query?: never;
