@@ -148,6 +148,10 @@ vite.config.ts.timestamp-*
 # Turbo Repo
 .turbo
 
+# Editor / agent tooling
+.vscode/
+.omo/
+
 .env
 .env.*
 !.env.example
