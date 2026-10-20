@@ -1,3 +1,4 @@
+# docs/DEVELOPMENT-PLAN.md
 # Plan General de Desarrollo (Macro Tareas, Dependencias y Olas)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
@@ -61,8 +62,8 @@
 
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
-| **MT1.1** | **BFF y seguridad interna** — reverse proxy de Next.js que valida su sesión (cookie), propaga identidad (`X-User-*`) y adjunta `X-Internal-Key`; reenvía el `idToken` al backend solo en el canje (`POST /auth/session`) | US0.2 | MT0.3, MT0.4 |
-| **MT1.2** | **Autenticación end-to-end** — login Google + endpoint interno que valida el `idToken` y la lista blanca `authorized_users` (Firestore) en el backend + cookie de sesión propia del BFF + autorización por `X-User-Role` + guard/renovación + logout + `/auth/me` | US1.1, US1.2, US1.3, US1.4, US1.5, US1.6 | MT1.1, MT0.3 (Firebase Auth, Firestore) |
+| **MT1.1** | **BFF y seguridad interna** — reverse proxy de Next.js que valida su sesión (cookie), propaga identidad (`X-User-*`) y adjunta `X-Internal-Key`; reenvía el `idToken` al backend solo en el canje (`POST /api/auth/session`) | US0.2 | MT0.3, MT0.4 |
+| **MT1.2** | **Autenticación end-to-end** — login Google + endpoint interno que valida el `idToken` y la lista blanca `authorized_users` (Firestore) en el backend + cookie de sesión propia del BFF + autorización por `X-User-Role` + guard/renovación + logout + `/api/auth/me` | US1.1, US1.2, US1.3, US1.4, US1.5, US1.6 | MT1.1, MT0.3 (Firebase Auth, Firestore) |
 | **MT1.3** | **Fundamentos de front compartidos** — cliente HTTP centralizado y gestión estándar de `ApiError` (lo consumen catálogo, consignación y CMS) | US5.4 | MT0.4 |
 | **MT1.4** | **Revalidación y traducción** — revalidación bajo demanda tras escrituras y traducción ES→EN selectiva por campo (`autoTranslate`, activa por defecto, con edición manual del inglés) con puerto `Translator` | US0.3, US0.5 | MT1.1, MT0.3 |
 | **MT1.5** | **Operación base** — datos de ejemplo reproducibles, costos/presupuesto y despliegue temprano | US6.1, US6.2, US6.3 (despliegue base) | MT1.1, MT0.3 |
@@ -147,7 +148,7 @@ El **BFF es código de servidor de Next.js** y se asigna a **Dev 1** aunque viva
 
 | Ruta | Responsable | Contenido |
 | :-- | :-- | :-- |
-| `packages/client/src/app/api/**` | **Dev 1** | Route handlers del BFF: `/auth/session`, `/auth/logout`, `/auth/me`, `/api/bff/*`, `/api/revalidate` |
+| `packages/client/src/app/api/**` | **Dev 1** | Route handlers del BFF: `/api/auth/session`, `/api/auth/logout`, `/api/auth/me`, `/api/bff/*`, `/api/revalidate` |
 | `packages/client/src/server/**` | **Dev 1** | `session/jwt.ts` (el BFF ya no usa Firebase Admin; la verificación del idToken vive en `packages/functions/**`) |
 | `packages/client/middleware.ts` | **Dev 1** | Guard de sesión y propagación `X-User-*` (US1.3) |
 | `packages/client/**` (resto) | **Dev 2** | Componentes React, TanStack Query, SDK cliente de Firebase |
@@ -173,11 +174,11 @@ Reglas:
 | US0.4 | Internacionalización por rutas | MT0.4 | Fase 0 |
 | US0.5 | Traducción ES→EN selectiva por campo + edición manual del EN | MT1.4 | 1 |
 | US1.1 | Control de acceso por lista blanca (verificada por el backend) | MT1.2 | 1 |
-| US1.2 | BFF: `POST /auth/session` | MT1.2 | 1 |
+| US1.2 | BFF: `POST /api/auth/session` | MT1.2 | 1 |
 | US1.3 | BFF: guard + propagación de identidad | MT1.2 | 1 |
-| US1.4 | BFF: `POST /auth/logout` | MT1.2 | 1 |
+| US1.4 | BFF: `POST /api/auth/logout` | MT1.2 | 1 |
 | US1.5 | Front: ciclo de sesión, renovación y protección de `/admin` | MT1.2 | 1 |
-| US1.6 | BFF: `GET /auth/me` | MT1.2 | 1 |
+| US1.6 | BFF: `GET /api/auth/me` | MT1.2 | 1 |
 | US1.7 | Ciclo de vida del inmueble y código secuencial | MT2.1 | 2 |
 | US1.8 | Firmado de URLs presignadas para R2 | MT2.1 | 2 |
 | US1.9 | Confirmación de subida y generación de derivados | MT2.1 | 2 |

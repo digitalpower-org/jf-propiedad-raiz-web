@@ -1,5 +1,6 @@
-# JF Propiedad Raíz — Style Reference
-> Maqueta arquitectónica bañada de sol. La precisión de un plano con la calidez y la luz natural del Valle de Aburrá.
+# JF Propiedad Raíz: Referencia de diseño (DESIGN-SYSTEM)
+
+> **Documento ESTÉTICO no vinculante.** El alcance y los AC vinculantes viven en `docs/TASKS.md`, la fuente de verdad del proyecto. Este archivo es la referencia estética del sitio: colores, tipografía, espaciado, formas y componentes. Cuando este documento se solape con un criterio de aceptación de TASKS, **los AC de TASKS son vinculantes y gana TASKS ante cualquier conflicto**. Nada de lo escrito aquí puede usarse para saltarse un AC.
 
 **Theme:** light
 
@@ -7,21 +8,37 @@ Derivado del sistema de diseño Samara y adaptado a una inmobiliaria local del s
 
 El diseño se siente como un plano arquitectónico impreso sobre papel cálido y premium. La autoridad nace de la contención: mucho espacio negativo y una tipografía display de trazo finísimo (Regola Light) en los titulares, que se sienten amplios y serenos en vez de ruidosos. La paleta está estrictamente controlada: un blanco marfil elegante como fondo, tinta casi negra para el texto, un verde bosque profundo (#277730) para todas las acciones primarias, un verde hoja más claro (#559433) como apoyo secundario, y un único amarillo sol vibrante (#f9ea1b), el mismo del sol del logo, usado con extrema moderación como acento de alta visibilidad. El inmueble es el protagonista: fotografía luminosa, natural, rodeada de vegetación. Radios suaves de 12px en tarjetas y botones aportan un toque humano a la precisión geométrica de la tipografía.
 
+## Relación con TASKS.md (vinculante)
+
+Esta tabla armoniza la guía estética con las decisiones cerradas de TASKS. Cada fila es una regla que este documento acata; la guía nunca debe pedir lo que la columna de la derecha prohíbe:
+
+| Tema | Regla vinculante de TASKS |
+|---|---|
+| Estructura de la portada | Orden cerrado: hero con accesos directos a Venta, Alquiler y Proyectos, franja «Destacadas», vista previa de servicios con CTA hacia `/contacto`, bloque «Nosotros» y, como última sección, los logos de empresas aliadas (AC2.6.1, AC2.6.2, AC2.6.6). |
+| Contenido prohibido en portada | Sin mapa, sin estadísticas inventadas, sin testimonios ni carrusel con librería externa (AC2.6.7). |
+| Mapa | No hay mapa en la ficha ni en ninguna otra página; el mapa interactivo está fuera de alcance (AC2.4.11). |
+| Formularios | El formulario de consignación (`/consigne-su-propiedad`, US3.1) es el único del sitio. La ficha solo lleva su botón de WhatsApp (US2.5, AC2.5.5) y `/contacto` no tiene formulario (AC5.2.3). |
+| Teléfonos y direcciones | El repositorio no contiene teléfonos, direcciones ni correos reales (T2) y no hay literales en el código (AC5.2.3). El número de WhatsApp sale de `NEXT_PUBLIC_WHATSAPP_NUMBER` (AC2.5.3), los datos del footer de `NEXT_PUBLIC_CONTACT_*` (AC5.2.1), y todo enlace se construye con el helper `buildWhatsAppUrl` (T3). |
+| Navegación | Pestañas Venta, Alquiler, Proyectos, Servicios y Nosotros, más selector de idioma (D8, AC2.1.1). Contacto se alcanza desde el footer y los CTAs (AC5.2.2). |
+| Buscador | Sin campo de zona ni sector (D24) y sin control de orden (AC2.2.13). La ubicación se elige como departamento y municipio juntos (D9); el orden es fijo, destacados primero y más recientes después, con una etiqueta discreta que lo indica (AC2.2.7). |
+| Fuera de alcance v1 | Mapa interactivo, páginas por municipio o barrio, filtro o catálogo de sector, blog, testimonios, cifras de confianza en portada, asesores en portada y formulario dentro de la ficha. |
+| Fuentes | Solo `next/font`, subconjunto latino, máximo 2 familias y `font-display: swap` (PERFORMANCE §4, AC7.2.5). La decisión sobre Regola está pendiente (ver Tipografía). |
+
 ## Principios para el sector inmobiliario
 
-Estos principios gobiernan las decisiones del sistema por encima del gusto estético:
+Estos principios gobiernan las decisiones del sistema por encima del gusto estético, siempre sin contradecir un AC de TASKS:
 
 1. **La búsqueda es la protagonista.** El visitante llega a encontrar un inmueble, no a leer sobre la empresa. El buscador va dentro del hero, sobre el pliegue, en móvil y escritorio.
-2. **Confianza antes que espectáculo.** Es una transacción de alto valor y alta confianza. Asesores con nombre y foto real, cifras verificables, testimonios reales y datos de contacto visibles en todo momento.
-3. **Siempre una vía de contacto a la vista.** Ninguna pantalla debe permitir hacer scroll completo sin ver WhatsApp, llamada o formulario. Cada ficha de inmueble tiene su propio formulario y botón de WhatsApp.
-4. **Móvil primero.** La mayoría del tráfico llega por celular: objetivos táctiles grandes (mínimo 44px), filtros operables con el pulgar, botones fijos de llamar/WhatsApp, navegación colapsable.
+2. **Confianza antes que espectáculo.** Es una transacción de alto valor y alta confianza. Esa confianza la construyen el contenido real de `/nosotros`, los datos de contacto siempre visibles y fotografía honesta de los inmuebles. Los bloques de testimonios, cifras de confianza y asesores en portada quedan fuera de alcance v1.
+3. **Siempre una vía de contacto a la vista.** Ninguna pantalla debe permitir hacer scroll completo sin ver el botón de WhatsApp, construido con el helper `buildWhatsAppUrl` (T3) sobre `NEXT_PUBLIC_WHATSAPP_NUMBER`. La ficha tiene un único botón de WhatsApp (US2.5) y el sitio tiene un solo formulario, el de consignación (US3.1).
+4. **Móvil primero.** La mayoría del tráfico llega por celular: objetivos táctiles grandes (mínimo 44px), filtros operables con el pulgar, botón fijo de WhatsApp, navegación colapsable.
 5. **Restricción como lujo.** Una tipografía, una paleta corta, espaciado consistente y generoso. La calidad percibida viene de la disciplina, no de efectos.
 6. **Fotografía como contenido principal.** Imágenes de alta calidad, luz natural, consistentes entre sí. Una foto mala daña más que cualquier decisión de color.
-7. **Vende el lugar, no solo el inmueble.** Páginas por municipio y barrio con contexto (movilidad, servicios, entorno) para posicionar la marca como experta local y capturar búsquedas locales.
+7. **Autoridad local sin páginas de zona.** El posicionamiento en el sur del Valle de Aburrá se construye con el contenido de `/nosotros`, los servicios y el SEO técnico (sitemap en ambos idiomas, AC2.7.3). Las páginas por municipio o barrio y el blog quedan fuera de alcance v1; si se menciona un barrio o sector, va como texto libre dentro de `descripcion` (D24).
 8. **Interacciones sutiles.** Microanimaciones discretas que mejoran la experiencia; nunca abrumadoras ni distractoras.
 9. **Legible para buscadores y asistentes de IA.** Fichas con URL propia, encabezados limpios (H1, H2, H3), datos estructurados (schema) y carga rápida. El contenido clave nunca vive dentro de iframes ni se renderiza solo con scripts pesados.
 
-## Tokens — Colors
+## Tokens: Colors
 
 | Name | Value | Token | Role |
 |------|-------|-------|------|
@@ -46,10 +63,12 @@ Estos principios gobiernan las decisiones del sistema por encima del gusto esté
 - Texto Verde Bosque sobre Amarillo Sol ≈4.5:1: evitarlo; usar Tinta.
 - Estado de error recomendado: `#b3261e` (fuera de la paleta de marca, solo para validación de formularios).
 
-## Tokens — Typography
+## Tokens: Typography
 
-### regola — Fuente firma de todo el sistema. La variante 'light' se usa para titulares grandes y aireados, con una apariencia de confianza serena. Pesos 'book' y 'regular' para cuerpo y UI. Interletrado negativo ajustado en tamaños grandes. · `--font-regola`
-- **Substitute:** Plus Jakarta Sans, Manrope (ambas con soporte completo de acentos y ñ)
+> **Decisión de fuente pendiente:** Regola es una fuente comercial: requiere licencia y self-host para usarse con `next/font`. La alternativa es Plus Jakarta Sans (Google Fonts, que `next/font` igualmente autohospedaja en build). Decidir antes de MT0.4. En cualquier caso se cumple PERFORMANCE §4 / AC7.2.5: solo `next/font`, máximo 2 familias, subconjunto latino y `font-display: swap`.
+
+### regola: fuente firma de todo el sistema. La variante 'light' se usa para titulares grandes y aireados, con una apariencia de confianza serena. Pesos 'book' y 'regular' para cuerpo y UI. Interletrado negativo ajustado en tamaños grandes. `--font-regola`
+- **Substitute:** Plus Jakarta Sans (primera alternativa), Manrope (ambas con soporte completo de acentos y ñ). Máximo 2 familias en todo el sitio (AC7.2.5).
 - **Weights:** 400 (aliased as 'light', 'book', 'regular'); 500 solo para etiquetas pequeñas de UI y botones
 - **Sizes:** 12px, 13px, 14px, 15px, 16px, 18px, 21px, 23px, 29px, 30px, 36px, 43px, 48px, 60px, 96px
 - **Line height:** 0.90, 0.96, 1.00, 1.10, 1.12, 1.14, 1.16, 1.20, 1.25, 1.28, 1.33, 1.49, 1.50, 1.60
@@ -72,13 +91,13 @@ Estos principios gobiernan las decisiones del sistema por encima del gusto esté
 | display | regola | 400 | 96px | 0.9 | -4.51px | `--text-display` |
 
 ### Adaptaciones para español y móvil
-- El español produce titulares más largos que el inglés: usar `display` solo en hero de escritorio y con máximo 4–5 palabras. Para titulares largos, bajar a `heading-lg` o `heading`.
+- El español produce titulares más largos que el inglés: usar `display` solo en hero de escritorio y con máximo 4 a 5 palabras. Para titulares largos, bajar a `heading-lg` o `heading`.
 - Escala responsiva recomendada en móvil (<640px): display→48px, heading-lg→40px, heading→36px, heading-sm→30px, subheading→26px. Mantener el tracking proporcional (≈ -0.04em en display).
 - Precios: `heading-sm` o `body-lg` con `font-variant-numeric: tabular-nums lining-nums`. Formato colombiano con punto como separador de miles: `$ 450.000.000`. Precios de arriendo con sufijo en caption: `$ 2.800.000 / mes`.
-- Teléfonos agrupados como en la marca: `302 467 93 80`.
+- Teléfonos: no se versiona ningún número real en el repo (T2) y no hay literales en el código (AC5.2.3). El valor visible se lee de `NEXT_PUBLIC_WHATSAPP_NUMBER` o `NEXT_PUBLIC_CONTACT_*`; si se formatea, agrupar en bloques de 3, 3 y 4 dígitos.
 - Unidades en caption: `m²`, `hab.`, `baños`, `parq.`, `estrato`.
 
-## Tokens — Spacing & Shapes
+## Tokens: Spacing & Shapes
 
 **Density:** comfortable
 
@@ -130,7 +149,7 @@ Estos principios gobiernan las decisiones del sistema por encima del gusto esté
 ### Layout
 
 - **Page max-width:** 1280px
-- **Gutter móvil:** 16px a cada lado, sin scroll horizontal
+- **Gutter móvil:** 16px a cada lado, sin scroll horizontal (AC2.1.8)
 - **Grillas:** listado de inmuebles 3 columnas (escritorio ≥1024px), 2 (tablet), 1 (móvil)
 
 ## Components
@@ -138,7 +157,7 @@ Estos principios gobiernan las decisiones del sistema por encima del gusto esté
 ### Primary Button
 **Role:** Llamada a la acción principal (Ver inmueble, Agendar visita, Buscar).
 
-Background: #277730 (Verde Bosque). Text: #ffffff (Blanco Puro). Padding: 14px (mínimo 44px de alto táctil). Radius: 12px. Font: regola, 14–15px, peso 500. Hover/active: #1f6227 (Verde Profundo). Focus: anillo de 2px #277730 con offset de 2px.
+Background: #277730 (Verde Bosque). Text: #ffffff (Blanco Puro). Padding: 14px (mínimo 44px de alto táctil). Radius: 12px. Font: regola, 14 a 15px, peso 500. Hover/active: #1f6227 (Verde Profundo). Focus: anillo de 2px #277730 con offset de 2px.
 
 ### Accent CTA Button (Amarillo Sol)
 **Role:** CTA de alta visibilidad sobre bandas verdes, el hero oscuro o el footer (Hablemos por WhatsApp, Cotiza tu inmueble). Uno por pantalla como máximo.
@@ -151,37 +170,37 @@ Background: #f9ea1b (Amarillo Sol). Text: #111611 (Tinta). Padding: ~8px 18px (1
 Background: #ddddd1 (Piedra Clara). Text: #111611 (Tinta). Radius: 12px. Padding: 14px. Hover: fondo #d3d3d3 o borde 1px Verde Bosque.
 
 ### Pill Ghost Button
-**Role:** Acción sutil o enlace con forma de botón (Ver ubicación, Compartir).
+**Role:** Acción sutil o enlace con forma de botón (Compartir, Ver en 360°).
 
 Background: rgba(0, 0, 0, 0.04). Text: #111611 (Tinta). Radius: 24px. Padding variable.
 
 ### WhatsApp Button
-**Role:** Contacto inmediato; el canal principal de conversión en el mercado local. Presente en header (escritorio), barra fija inferior (móvil), cada ficha y footer.
+**Role:** Contacto inmediato; el canal principal de conversión en el mercado local. Presente en header (escritorio), barra fija inferior (móvil), la ficha y footer.
 
-Fijo/flotante: Background #277730, ícono y texto blancos, Radius 24px (pill), altura 48px, shadow `--shadow-sm`. En fichas: variante primaria de ancho completo con el texto "Escribir por WhatsApp". El número se muestra en texto además del ícono (302 467 93 80). El mensaje precargado incluye el código y título del inmueble.
+Fijo/flotante: Background #277730, ícono y texto blancos, Radius 24px (pill), altura 48px, shadow `--shadow-sm`. En la ficha: el único botón de WhatsApp de la página, con el texto «Preguntar por este inmueble» (AC2.5.1). El número nunca aparece como literal: sale de `NEXT_PUBLIC_WHATSAPP_NUMBER` y todo enlace lo construye el helper `buildWhatsAppUrl` (T3, AC2.5.3). El mensaje precargado incluye el código y el título del inmueble, en el idioma de la página (AC2.5.2).
 
 ### Property Card (Tarjeta de inmueble)
 **Role:** Unidad principal del sitio; se repite en listados, destacados y relacionados.
 
-Background: #efefe6 (Arena Suave) o #ffffff sobre bandas Piedra Clara. Radius: 12px. Shadow: `rgba(0, 0, 0, 0.12) 0px 0.5px 2px 0px`; hover `rgba(0, 0, 0, 0.08) 0px 2px 10px 0px` con elevación de 2px. Padding de contenido: 18–24px.
+Background: #efefe6 (Arena Suave) o #ffffff sobre bandas Piedra Clara. Radius: 12px. Shadow: `rgba(0, 0, 0, 0.12) 0px 0.5px 2px 0px`; hover `rgba(0, 0, 0, 0.08) 0px 2px 10px 0px` con elevación de 2px. Padding de contenido: 18 a 24px.
 
 Estructura de arriba hacia abajo:
-1. **Imagen** en proporción 4:3 (esquinas superiores 12px), con carrusel discreto en hover/swipe, `loading="lazy"` y dimensiones explícitas.
-2. **Insignia** superpuesta arriba a la izquierda: tipo de negocio (Venta / Arriendo) en pill blanco con texto Tinta; "Nuevo" o "Destacado" en pill Amarillo Sol con texto Tinta (máximo una insignia amarilla por tarjeta).
+1. **Imagen** en proporción 4:3 (esquinas superiores 12px), con carrusel discreto en hover/swipe, `loading="lazy"` y dimensiones explícitas. Equivale al derivado de 640 del listado (AC2.2.11).
+2. **Insignia** superpuesta arriba a la izquierda: tipo de negocio (Venta o Alquiler) en pill blanco con texto Tinta; "Nuevo" (cuando `nuevo = true`, AC2.2.11) o "Destacado" en pill Amarillo Sol con texto Tinta (máximo una insignia amarilla por tarjeta).
 3. **Precio** en `body-lg` o `heading-sm`, peso 400, numerales tabulares. Administración (si aplica) en caption Grafito.
-4. **Título/ubicación** en body-sm: tipo de inmueble + barrio, municipio.
-5. **Fila de datos** con íconos lineales Verde Bosque 20px y texto caption: área m², habitaciones, baños, parqueaderos.
+4. **Código y título/ubicación** en body-sm: código del inmueble, tipo de inmueble y municipio (AC2.2.11).
+5. **Fila de datos** con íconos lineales Verde Bosque 20px y texto caption: área m², dormitorios, baños y estrato (AC2.2.11).
 6. **Acción**: enlace "Ver inmueble" en Verde Bosque o botón de WhatsApp compacto. Toda la tarjeta es clicable.
 
 ### Warm Sand Card (Tarjeta Piedra)
-**Role:** Variante más cálida y prominente para bloques de servicio, testimonios y asesores.
+**Role:** Variante más cálida y prominente para bloques de servicio y contenido destacado.
 
 Background: #ddddd1 (Piedra Clara) o #efefe6. Radius: 18px. Shadow: `rgba(0, 0, 0, 0.12) 0px 0.5px 2px 0px`. Padding: 36px.
 
 ### Search Bar (Buscador del hero)
 **Role:** Componente central del sitio; ancla del hero.
 
-Contenedor flotante, Background #ffffff, Radius 18px, Shadow `--shadow-search`, Padding 12–18px. Campos en una fila (escritorio) o apilados (móvil): Negocio (Comprar / Arrendar), Tipo de inmueble (Apartamento, Casa, Lote, Local, Oficina), Municipio/Zona (Envigado, Sabaneta, Itagüí, La Estrella, Caldas, El Poblado), Presupuesto, y botón primario "Buscar". Filtros avanzados (habitaciones, baños, parqueaderos, área, estrato) en un panel desplegable "Más filtros". Resultados con ordenamiento y contador de inmuebles encontrados.
+Contenedor flotante, Background #ffffff, Radius 18px, Shadow `--shadow-search`, Padding 12 a 18px. Campos en una fila (escritorio) o apilados (móvil): Tipo de inmueble (Apartamento, Casa, Lote, Local, Oficina), Ubicación (departamento y municipio juntos, D9), Rango de precio, y botón primario "Buscar". La operación no es un campo del buscador: está fija en la pestaña (venta, alquiler o proyectos). **Sin campo de zona o sector (D24) y sin control de orden (AC2.2.13).** Filtros avanzados en un panel desplegable "Más filtros": los de base de datos (tipo, ubicación, precio) y los de frontend (dormitorios, baños, área construida, área de lote, estrato, parqueaderos, amenidades), según D9. Contador de resultados con el orden fijo «Destacados primero · Más recientes» (AC2.2.7) y sin menú de ordenamiento.
 
 ### Filter Chip
 **Role:** Filtros rápidos y selección múltiple (habitaciones, características).
@@ -189,9 +208,9 @@ Contenedor flotante, Background #ffffff, Radius 18px, Shadow `--shadow-search`, 
 Reposo: Background rgba(0,0,0,0.04), Text Tinta, Radius 24px, Padding 8px 14px. Seleccionado: Background #e7efe3 (Bruma Verde), borde 1px #277730, Text #277730.
 
 ### Text Input Field
-**Role:** Campo estándar de formulario (nombre, teléfono, correo, mensaje).
+**Role:** Campo estándar de formulario. El único formulario del sitio es el de consignación (US3.1).
 
-Background: rgba(0, 0, 0, 0.03). Border: 1px solid rgba(0, 0, 0, 0.1). Radius: 12px. Padding: 15px. Text: #111611 (Tinta). Focus: borde 1px #277730 y anillo de 2px rgba(39,119,48,0.25). Error: borde #b3261e con mensaje en caption debajo. Etiquetas siempre visibles (no solo placeholder). Formularios cortos: nombre, teléfono, mensaje; el correo es opcional.
+Background: rgba(0, 0, 0, 0.03). Border: 1px solid rgba(0, 0, 0, 0.1). Radius: 12px. Padding: 15px. Text: #111611 (Tinta). Focus: borde 1px #277730 y anillo de 2px rgba(39,119,48,0.25). Error: borde #b3261e con mensaje en caption debajo. Etiquetas siempre visibles (no solo placeholder). Campos según AC3.1.1: obligatorios nombre, teléfono, email, tipo de inmueble, ubicación y consentimiento; el resto es opcional.
 
 ### Hero Banner
 **Role:** Introducción de la página principal.
@@ -199,7 +218,7 @@ Background: rgba(0, 0, 0, 0.03). Border: 1px solid rgba(0, 0, 0, 0.1). Radius: 1
 Opción A (recomendada): fotografía a sangre completa de un inmueble o paisaje del sur del Valle de Aburrá, con degradado sutil oscuro en la parte inferior para legibilidad, titular blanco en `display`/`heading-lg`, y el Search Bar flotando sobre el borde inferior.
 Opción B: banda en #277730 con titular blanco, CTA Amarillo Sol y buscador debajo; transiciona al fondo Marfil Elegante al hacer scroll.
 
-El sol del logo puede insinuarse como un círculo Amarillo Sol suave de gran tamaño tras el titular, como único elemento gráfico decorativo permitido.
+El hero de la portada incluye accesos directos a Venta, Alquiler y Proyectos (AC2.6.1). El sol del logo puede insinuarse como un círculo Amarillo Sol suave de gran tamaño tras el titular, como único elemento gráfico decorativo permitido.
 
 ### Inline-Render Headline
 **Role:** Componente firma que mezcla texto grande con pequeñas miniaturas de inmuebles.
@@ -207,21 +226,29 @@ El sol del logo puede insinuarse como un círculo Amarillo Sol suave de gran tam
 Usa `display` o `heading-lg` con pequeñas fotos o renders redondeados (12px) de casas, apartamentos o fachadas intercaladas en el flujo del texto. Ejemplo: "Tu próximo [foto de sala] hogar en el sur [foto de fachada] del Valle." Usar solo en el hero o una sección destacada.
 
 ### Municipality / Zone Card
+> **Fuera de alcance v1:** no existen páginas de zona o municipio (D24, FUERA DE ALCANCE). La especificación se conserva por si el alcance cambia en el futuro.
+
 **Role:** Navegación por zona (Envigado, Sabaneta, Itagüí, La Estrella, Caldas, El Poblado).
 
-Imagen a sangre dentro de tarjeta de 18px, nombre del municipio en `heading-sm` blanco sobre degradado oscuro, contador de inmuebles disponibles en caption, y enlace a la página de zona. Las páginas de zona incluyen descripción local, inmuebles disponibles y un mapa.
+Imagen a sangre dentro de tarjeta de 18px, nombre del municipio en `heading-sm` blanco sobre degradado oscuro, contador de inmuebles disponibles en caption. Las páginas de zona incluirían descripción local e inmuebles disponibles, **nunca un mapa** (AC2.4.11).
 
 ### Advisor Card (Asesor)
+> **Fuera de alcance v1:** los asesores no aparecen en la portada (orden cerrado de AC2.6.2).
+
 **Role:** Humanizar la marca y generar confianza.
 
 Fotografía real y profesional (nunca de archivo), nombre, cargo, zonas que atiende, y botones de WhatsApp y llamada. Background Arena Suave, radius 12px.
 
 ### Trust Strip (Cifras de confianza)
+> **Fuera de alcance v1 en portada:** AC2.6.7 prohíbe estadísticas inventadas y AC2.6.2 cierra el orden de la portada.
+
 **Role:** Prueba social sobria bajo el hero o antes del CTA final.
 
-Fila de 3–4 cifras reales en `heading` (inmuebles gestionados, años de experiencia, familias acompañadas, municipios atendidos) con caption Grafito. Solo cifras verificables.
+Fila de 3 a 4 cifras reales en `heading` (inmuebles gestionados, años de experiencia, familias acompañadas, municipios atendidos) con caption Grafito. Solo cifras verificables.
 
 ### Testimonial Card
+> **Fuera de alcance v1:** AC2.6.7 prohíbe testimonios en la portada.
+
 **Role:** Prueba social con personas reales.
 
 Warm Sand Card con cita en body-lg, nombre, zona y tipo de operación. Preferir testimonios reales de clientes, idealmente con foto o video autorizados.
@@ -229,31 +256,33 @@ Warm Sand Card con cita en body-lg, nombre, zona y tipo de operación. Preferir 
 ### Detail Page Gallery & Sticky Contact
 **Role:** Ficha de inmueble.
 
-Galería con una imagen principal grande y 4 miniaturas (radius 12px), visor en pantalla completa. Columna lateral fija (escritorio) o barra inferior fija (móvil) con precio, botón primario "Agendar visita", botón de WhatsApp y teléfono. Debajo: tabla de características, descripción, ubicación en mapa, e inmuebles similares. Los datos usan numerales tabulares.
+Galería con una imagen principal grande y 4 miniaturas (radius 12px), visor en pantalla completa (AC2.4.5). Columna lateral fija (escritorio) o barra inferior fija (móvil) con precio, botón primario y el único botón de WhatsApp («Preguntar por este inmueble», US2.5). Debajo: tabla de características, descripción en texto plano (nunca `dangerouslySetInnerHTML`, AC2.4.11), puntos de interés con íconos (AC2.4.4) e inmuebles similares. **No hay mapa** (AC2.4.11). Los datos usan numerales tabulares.
 
 ### Footer
 **Role:** Cierre del sitio con contacto y navegación.
 
-Background #277730 (Verde Bosque), texto blanco, enlaces con subrayado al hover, CTA Amarillo Sol (WhatsApp). Incluye logo, teléfono 302 467 93 80, sitio www.jfpropiedadraiz.com, municipios atendidos, enlaces legales y redes sociales. Radio de 0 en el borde superior del footer a sangre completa.
+Background #277730 (Verde Bosque), texto blanco, enlaces con subrayado al hover, CTA Amarillo Sol (WhatsApp). Incluye logo, datos de contacto leídos de `NEXT_PUBLIC_CONTACT_*` (sin teléfonos, direcciones ni correos literales, AC5.2.1/AC5.2.3/T2), el sitio desde `NEXT_PUBLIC_SITE_URL`, enlaces legales, selector de idioma (AC0.4.3) y redes sociales si existen. Radio de 0 en el borde superior del footer a sangre completa.
 
 ## Do's and Don'ts
 
 ### Do
-- Usar `regola-light` con tracking negativo ajustado en todos los titulares sobre 30px.
+- Usar `regola-light` con tracking negativo ajustado en todos los titulares sobre 30px (o la familia resultante de la decisión pendiente de Tipografía).
 - Fijar el fondo principal en #fbfbf6 (Marfil Elegante), nunca #ffffff en áreas grandes.
 - Reservar #277730 (Verde Bosque) para elementos interactivos primarios: CTAs, enlaces, íconos activos, footer.
 - Usar #559433 (Verde Hoja) como apoyo: hovers, gráficos y detalles, siempre respetando sus límites de contraste.
 - Usar #f9ea1b (Amarillo Sol) como puntuación: una vez por pantalla, con texto Tinta.
 - Aplicar un radio de 12px a casi todos los botones, campos y tarjetas.
-- Dejar generoso espacio en blanco (96px–120px) entre secciones principales (64px en móvil).
+- Dejar generoso espacio en blanco (96px a 120px) entre secciones principales (64px en móvil).
 - Usar sombras sutiles y cortas, como `rgba(0, 0, 0, 0.12) 0px 0.5px 2px 0px`, para elevar con delicadeza.
 - Mezclar tipografía grande y aireada con fotografía de inmuebles de alta calidad bañada de luz natural.
-- Mostrar siempre un camino de contacto (WhatsApp, llamada, formulario) en cada pantalla.
+- Mostrar siempre un camino de contacto a la vista: el botón de WhatsApp construido con `buildWhatsAppUrl`. El formulario de consignación vive solo en `/consigne-su-propiedad`.
 - Mostrar precios con formato colombiano, numerales tabulares y la moneda explícita (COP) cuando haya ambigüedad.
 - Escribir en español claro y cercano (tuteo o usted, según defina la marca), directo, sin frases genéricas.
 - Mantener la jerarquía de encabezados (un H1, luego H2/H3) y alt text descriptivo en cada imagen.
+- Consultar `docs/TASKS.md` ante cualquier duda de alcance: los AC son vinculantes y este documento es solo referencia estética.
 
 ### Don't
+- No contradecir un AC de TASKS: si esta guía y TASKS discrepan, manda TASKS (banner superior).
 - No usar blanco puro (#ffffff) para grandes áreas de fondo.
 - No usar pesos tipográficos bold o pesados en titulares; usar tamaño y peso ligero.
 - No usar esquinas de 0px en componentes primarios como botones y tarjetas (el borde recto solo en bandas a sangre completa).
@@ -265,7 +294,9 @@ Background #277730 (Verde Bosque), texto blanco, enlaces con subrayado al hover,
 - No usar fotos de archivo genéricas de personas, ni imágenes oscuras, saturadas o con filtros fuertes.
 - No ocultar el buscador detrás de texto institucional ni obligar a registrarse para ver inmuebles.
 - No usar carruseles automáticos que se mueven solos ni ventanas emergentes que bloqueen el contenido.
-- No mostrar cifras, testimonios ni inmuebles falsos o de relleno en producción.
+- No mostrar cifras, testimonios ni inmuebles falsos o de relleno en producción (AC2.6.7).
+- No escribir teléfonos, direcciones o correos literales en el código (T2, AC5.2.3); leer siempre de variables de entorno.
+- No añadir mapa, blog, páginas de sector ni control de orden en el buscador (AC2.4.11, AC2.6.7, D24, AC2.2.13).
 
 ## Elevation
 
@@ -288,25 +319,24 @@ El lenguaje visual es una dicotomía entre aspiración cálida y objetividad lim
 
 ## Layout
 
-El diseño se construye sobre un contenedor centrado de ancho máximo ~1280px, con generoso espacio blanco a los lados. La página abre con un hero a sangre completa (fotografía o banda verde) con el buscador, y continúa con una pila vertical de secciones sobre el fondo Marfil Elegante. Las separaciones de sección se definen con grandes espacios verticales (96–120px) y alternancia sutil de fondo Marfil/Piedra Clara en lugar de divisores visuales, creando un ritmo calmado y sin prisa. El contenido se organiza en columnas centradas simples para narrativa y en grillas de 2 o 3 columnas para inmuebles y servicios.
+El diseño se construye sobre un contenedor centrado de ancho máximo ~1280px, con generoso espacio blanco a los lados. La página abre con un hero a sangre completa (fotografía o banda verde) con el buscador, y continúa con una pila vertical de secciones sobre el fondo Marfil Elegante. Las separaciones de sección se definen con grandes espacios verticales (96 a 120px) y alternancia sutil de fondo Marfil/Piedra Clara en lugar de divisores visuales, creando un ritmo calmado y sin prisa. El contenido se organiza en columnas centradas simples para narrativa y en grillas de 2 o 3 columnas para inmuebles y servicios.
 
-### Estructura recomendada de la página principal
-1. Header: logo, navegación (Comprar, Arrendar, Vender o publicar tu inmueble, Zonas, Nosotros, Contacto), botón WhatsApp.
-2. Hero con titular y buscador.
-3. Inmuebles destacados (3–6 tarjetas).
-4. Zonas que atendemos (tarjetas de municipio).
-5. Servicios (comprar, arrendar, vender, administración, avalúos) en tarjetas Piedra.
-6. Cifras de confianza.
-7. Asesores.
-8. Testimonios.
-9. Formulario "Publica tu inmueble con nosotros" o "Cuéntanos qué buscas".
-10. Footer verde.
+### Estructura de la página principal (orden cerrado por AC2.6)
+1. Header: logo, navegación (Venta, Alquiler, Proyectos, Servicios, Nosotros, Contacto), selector de idioma y botón WhatsApp.
+2. Hero con titular, accesos directos a Venta, Alquiler y Proyectos (AC2.6.1) y buscador.
+3. Franja «Destacadas» con inmuebles `destacada = true` y `status = ACTIVE` (AC2.6.2, AC2.6.3).
+4. Vista previa de servicios con CTA hacia `/contacto` (AC2.6.2).
+5. Bloque «Nosotros» con el `extracto` de la página Nosotros y enlace «Conocer más» hacia `/nosotros` (AC2.6.2, AC2.6.4).
+6. Logos de empresas aliadas, como última sección (AC2.6.6).
+7. Footer verde.
+
+La portada **no** incluye testimonios, cifras de confianza, asesores, tarjetas de zona ni formulario (AC2.6.7 y orden cerrado de AC2.6.2). Si no hay destacados, servicios o extracto, la franja o el bloque correspondiente no se renderiza (AC2.6.5).
 
 ### Navegación
-Máximo tres clics hasta cualquier inmueble. Menú móvil colapsable con buscador accesible y botón fijo inferior de WhatsApp/llamar.
+Máximo tres clics hasta cualquier inmueble. El menú principal son pestañas independientes (`/venta`, `/alquiler`, `/proyectos`, `/servicios`, `/nosotros`) más el selector de idioma en header y footer (D8, AC2.1.1, AC0.4.3). Menú móvil colapsable con buscador accesible y botón fijo inferior de WhatsApp.
 
 ### Páginas clave
-Inicio, Listado/Resultados (con filtros y mapa), Ficha de inmueble, Páginas por municipio y barrio, Vende/Arrienda con nosotros, Nosotros/Equipo, Contacto, Blog/Guías locales (opcional, con foco SEO), Páginas legales (política de tratamiento de datos, términos).
+Portada, Venta, Alquiler y Proyectos (pestañas independientes), listado/resultados con filtros, ficha en `/propiedad/[slug]` (sin mapa), Servicios y detalle de servicio, Nosotros, Consigne su propiedad (único formulario del sitio), Contacto (página informativa con datos de contacto, botón de WhatsApp y enlace a «Consigne su propiedad», sin formulario) y páginas legales (aviso de privacidad, política de tratamiento de datos, términos). **Fuera de alcance v1:** páginas por municipio o barrio, blog y cualquier mapa interactivo.
 
 ## Agent Prompt Guide
 
@@ -320,18 +350,19 @@ Inicio, Listado/Resultados (con filtros y mapa), Ficha de inmueble, Páginas por
 - **Border**: `rgba(0, 0, 0, 0.1)`
 
 ### Example Component Prompts
-1. **Primary Button:** "Crea un botón con el texto 'Agendar visita'. Fondo #277730, texto blanco, radio de 12px, padding de 14px y altura mínima de 44px. Fuente regola (o Plus Jakarta Sans) de 15px, peso 500. En hover, fondo #1f6227."
+1. **Primary Button:** "Crea un botón con el texto 'Agendar visita'. Fondo #277730, texto blanco, radio de 12px, padding de 14px y altura mínima de 44px. Fuente según la decisión pendiente de Tipografía (regola o Plus Jakarta Sans, máximo 2 familias vía next/font) de 15px, peso 500. En hover, fondo #1f6227."
 2. **Display Headline:** "Crea un titular 'Tu hogar en el sur del Valle' con la fuente regola a 96px, peso 400 (light), color #111611, line-height 0.9 y letter-spacing -4.51px. En móvil, 48px."
-3. **Property Card:** "Crea una tarjeta de inmueble con fondo #efefe6, radio de 12px y sombra `rgba(0,0,0,0.12) 0px 0.5px 2px 0px`. Imagen 4:3 arriba con insignia 'Venta' en pill blanco. Precio '$ 450.000.000' en 23px con numerales tabulares. Debajo, ubicación 'Apartamento en Envigado, Zona Centro' en 16px y una fila de íconos lineales verdes (#277730) con '85 m²', '3 hab.', '2 baños', '1 parq.'. Enlace 'Ver inmueble' en #277730."
-4. **Search Hero:** "Genera un hero a sangre completa con una fotografía de un apartamento luminoso, degradado inferior oscuro, titular blanco en 60px, y un buscador flotante blanco con radio de 18px y sombra `rgba(0,0,0,0.08) 0px 8px 30px 0px`, con los campos Negocio, Tipo, Municipio, Presupuesto y un botón primario 'Buscar' (#277730)."
-5. **Footer:** "Crea un footer con fondo #277730, texto blanco, el teléfono '302 467 93 80', el sitio 'www.jfpropiedadraiz.com', la lista de municipios atendidos y un botón con fondo #f9ea1b, texto #111611 y radio de 12px que diga 'Hablemos por WhatsApp'."
+3. **Property Card:** "Crea una tarjeta de inmueble con fondo #efefe6, radio de 12px y sombra `rgba(0,0,0,0.12) 0px 0.5px 2px 0px`. Imagen 4:3 arriba con insignia 'Venta' en pill blanco. Precio '$ 450.000.000' en 23px con numerales tabulares. Debajo, código del inmueble y ubicación 'Apartamento en Envigado' en 16px y una fila de íconos lineales verdes (#277730) con '85 m²', '3 hab.', '2 baños' y 'Estrato 4'. Enlace 'Ver inmueble' en #277730."
+4. **Search Hero:** "Genera un hero a sangre completa con una fotografía de un apartamento luminoso, degradado inferior oscuro, titular blanco en 60px, accesos directos a Venta, Alquiler y Proyectos, y un buscador flotante blanco con radio de 18px y sombra `rgba(0,0,0,0.08) 0px 8px 30px 0px`, con los campos Tipo, Ubicación (departamento y municipio), Presupuesto y un botón primario 'Buscar' (#277730). Sin campo de zona ni control de orden."
+5. **Footer:** "Crea un footer con fondo #277730, texto blanco, los datos de contacto leídos de NEXT_PUBLIC_CONTACT_* (sin teléfonos ni direcciones literales), el sitio desde NEXT_PUBLIC_SITE_URL, el selector de idioma, los enlaces legales y un botón con fondo #f9ea1b, texto #111611 y radio de 12px que diga 'Hablemos por WhatsApp'."
 6. **Filter Chip:** "Crea chips de filtro (1, 2, 3, 4+ habitaciones) en pill de 24px; reposo con fondo rgba(0,0,0,0.04); seleccionado con fondo #e7efe3, borde 1px #277730 y texto #277730."
 
 ## Referencias
 
-- **Samara** — Sistema base: arquitectura tipográfica, espaciado, radios, sombras y filosofía de contención.
-- **Nakada Design (sección de inmobiliaria)** — Principios de conversión para inmobiliarias de alto nivel: búsqueda avanzada, atención al detalle, interacciones sutiles, captura de contactos y SEO local.
-- **Infina** — Referencia de producto indicada por el cliente; el contenido del sitio no pudo leerse en la consulta, por lo que sus principios no están reflejados literalmente y las pautas de búsqueda, confianza y captura de leads provienen de buenas prácticas generales del sector.
+- **Samara**: sistema base; arquitectura tipográfica, espaciado, radios, sombras y filosofía de contención.
+- **Nakada Design (sección de inmobiliaria)**: principios de conversión para inmobiliarias de alto nivel; búsqueda avanzada, atención al detalle, interacciones sutiles y SEO local.
+- **Infina**: referencia de producto indicada por el cliente; el contenido del sitio no pudo leerse en la consulta, por lo que sus principios no están reflejados literalmente y las pautas de búsqueda, confianza y captura provienen de buenas prácticas generales del sector.
+- **docs/TASKS.md**: fuente de verdad del alcance y de los AC vinculantes; este documento se armoniza contra ella.
 
 ## Quick Start
 
@@ -339,12 +370,12 @@ Inicio, Listado/Resultados (con filtros y mapa), Ficha de inmueble, Páginas por
 
 ```css
 :root {
-  /* Colors — Brand */
+  /* Colors - Brand */
   --color-verde-bosque: #277730;
   --color-verde-hoja: #559433;
   --color-amarillo-sol: #f9ea1b;
 
-  /* Colors — Neutrals & Surfaces */
+  /* Colors - Neutrals & Surfaces */
   --color-tinta: #111611;
   --color-blanco-puro: #ffffff;
   --color-marfil-elegante: #fbfbf6;
@@ -357,10 +388,10 @@ Inicio, Listado/Resultados (con filtros y mapa), Ficha de inmueble, Páginas por
   --color-grafito: #666666;
   --color-error: #b3261e;
 
-  /* Typography — Font Families */
+  /* Typography - Font Families */
   --font-regola: 'regola', 'Plus Jakarta Sans', 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* Typography — Scale */
+  /* Typography - Scale */
   --text-caption-sm: 12px;
   --leading-caption-sm: 1.5;
   --tracking-caption-sm: -0.48px;
@@ -392,7 +423,7 @@ Inicio, Listado/Resultados (con filtros y mapa), Ficha de inmueble, Páginas por
   --leading-display: 0.9;
   --tracking-display: -4.51px;
 
-  /* Typography — Weights */
+  /* Typography - Weights */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
 

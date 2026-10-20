@@ -1,20 +1,30 @@
 {
   "name": "jf-propiedad-raiz-web",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "Plataforma web inmobiliaria para JF Propiedad Raíz (Valle de Aburrá). Next.js + Firebase + Cloudflare R2.",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devEngines": {
     "packageManager": {
-      "name": "pnpm",
-      "version": "^11.10.0",
+      "name": "npm",
+      "version": "^10.9.2",
       "onFail": "download"
     }
   },
-  "type": "module"
+  "devDependencies": {
+    "@lhci/cli": "^0.15.0",
+    "prettier": "^3.0.0"
+  },
+  "packageManager": "npm@10.9.2"
 }

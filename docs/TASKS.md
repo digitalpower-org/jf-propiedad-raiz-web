@@ -1,3 +1,4 @@
+# docs/TASKS.md
 # Roadmap de Tareas e Historias de Usuario (Spec-Driven Development)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`   
@@ -166,7 +167,7 @@
 - **Responsable:** \[ Dev 1 \] · **Prioridad:** MUST · **Estado:** \[ \]  
 - **Descripción:** la autorización se resuelve con una **lista blanca** en la colección `authorized_users` de Firestore (`email`, `role`, `active`, `createdAt`). Firebase Auth solo aporta la identidad (Google); **no** se usan blocking functions (requieren Identity Platform/Blaze). El **backend** verifica el idToken y consulta la lista blanca (a petición del BFF, US1.2) y de ella toma el rol. Quitar a un admin = `active = false`; el corte surte efecto al expirar la cookie vigente (≤ 65 min; no se exige invalidación inmediata).  
 - **Criterios de aceptación:**  
-  - AC1.1.1 **Dado** un correo que no está en la lista blanca **Cuando** completa el login con Google **Entonces** el backend deniega y el BFF responde 403 `PERMISSION_DENIED` en `POST /auth/session` sin emitir cookie. `[agente]`  
+  - AC1.1.1 **Dado** un correo que no está en la lista blanca **Cuando** completa el login con Google **Entonces** el backend deniega y el BFF responde 403 `PERMISSION_DENIED` en `POST /api/auth/session` sin emitir cookie. `[agente]`  
   - AC1.1.2 **Dado** un correo presente en `authorized_users` con `active = true` **Cuando** inicia sesión con Google por primera vez **Entonces** el backend autoriza y el BFF emite la sesión con normalidad. `[agente]`  
   - AC1.1.3 **Dado** un correo ausente en `authorized_users` o con `active = false` **Cuando** intenta iniciar sesión **Entonces** el backend deniega y el BFF responde 403 `PERMISSION_DENIED` sin emitir cookie. `[agente]`  
   - AC1.1.4 **Dado** un inicio de sesión válido **Entonces** no se inyecta ningún custom claim en Firebase Auth; el rol lo resuelve el backend desde la lista blanca y el BFF lo incluye al emitir su sesión (US1.2). `[agente]`
@@ -175,13 +176,13 @@
   - AC1.1.7 **Dado** un rechazo de la lista blanca **Entonces** se loguea con `uid`/`email` del intento y **nunca** con tokens completos. `[agente]`
   - AC1.1.8 **\[Debe NOT\]** No hay inicio de sesión con correo y contraseña ni registro público, no se usan blocking functions y la lista de administradores **no** vive en una variable de entorno ni en Firebase Auth (vive en `authorized_users`). `[agente]`
 
-### US1.2 — BFF: POST /auth/session (Canje de idToken por Sesión Propia)
+### US1.2 — BFF: POST /api/auth/session (Canje de idToken por Sesión Propia)
 
 - **Descripción:** el BFF recibe el idToken de Firebase una sola vez y lo **reenvía al backend** por el endpoint interno (`X-Internal-Key`); el backend lo verifica y comprueba la lista blanca `authorized_users`, y devuelve la identidad. Con esa confirmación, el BFF emite una cookie HttpOnly con un JWT propio. Rutas sugeridas: `packages/client/src/app/api/auth/session/route.ts` (+ `server/session/jwt.ts`); la verificación vive en el backend (`packages/functions/**`).
 
 - **Responsable:** \[ Dev 1 \] · **Prioridad:** MUST · **Estado:** \[ \]  
 - **Criterios de aceptación:**  
-  - AC1.2.1 **Dado** `POST /auth/session` con `Authorization: Bearer <idToken>` **Cuando** el idToken es válido **Entonces** el BFF responde 200 y establece una cookie `HttpOnly; Secure; SameSite=Strict; Path=/` con un JWT propio `{ sub, email, role, iat, exp }` (exp = 65 min). `[agente]`  
+  - AC1.2.1 **Dado** `POST /api/auth/session` con `Authorization: Bearer <idToken>` **Cuando** el idToken es válido **Entonces** el BFF responde 200 y establece una cookie `HttpOnly; Secure; SameSite=Strict; Path=/` con un JWT propio `{ sub, email, role, iat, exp }` (exp = 65 min). `[agente]`  
   - AC1.2.2 **Dado** un idToken inválido, expirado o revocado **Cuando** el backend lo verifica **Entonces** el BFF responde 401 `UNAUTHORIZED` y no establece cookie. `[agente]`  
   - AC1.2.3 **Dado** el idToken recibido **Entonces** el BFF lo reenvía al backend (endpoint interno con `X-Internal-Key`) y es el **backend** quien lo verifica con Firebase Admin (`verifyIdToken(idToken, true)`) y comprueba que su `email` esté en `authorized_users` con `active = true` antes de que el BFF emita la sesión. `[agente]`  
   - AC1.2.4 **Dado** el JWT emitido **Entonces** se firma con `HS256` usando un secreto de servidor (variable de entorno) que nunca llega al cliente. `[agente]`  
@@ -202,13 +203,13 @@
   - AC1.3.4 **Dado** que el navegador intenta llamar a Functions directamente **Entonces** la petición falla (sin `X-Internal-Key` válida responde 401). `[agente]`
   - AC1.3.5 **\[Debe NOT\]** El BFF no confía en cabeceras `X-User-*` que vengan del cliente: siempre las sobrescribe con los datos de su propia sesión. `[agente]`
 
-### US1.4 — BFF: POST /auth/logout (Cierre de Sesión Bidireccional)
+### US1.4 — BFF: POST /api/auth/logout (Cierre de Sesión Bidireccional)
 
 - **Responsable:** \[ Fullstack \] · **Prioridad:** MUST · **Estado:** \[ \]
 - **Descripción:** el logout limpia la sesión de Firebase en el cliente y borra la cookie del BFF; ambos pasos son obligatorios.
 - **Criterios de aceptación:**
-  - AC1.4.1 **Dado** `POST /auth/logout` **Entonces** el BFF borra la cookie de sesión (`Max-Age=0`, mismo `Path`/`Domain`/`Secure`/`SameSite`) y responde 204. `[agente]`
-  - AC1.4.2 **Dado** el flujo de logout **Entonces** el cliente ejecuta `signOut(auth)` (Firebase limpia su refresh token) y llama a `POST /auth/logout`. `[agente]`
+  - AC1.4.1 **Dado** `POST /api/auth/logout` **Entonces** el BFF borra la cookie de sesión (`Max-Age=0`, mismo `Path`/`Domain`/`Secure`/`SameSite`) y responde 204. `[agente]`
+  - AC1.4.2 **Dado** el flujo de logout **Entonces** el cliente ejecuta `signOut(auth)` (Firebase limpia su refresh token) y llama a `POST /api/auth/logout`. `[agente]`
   - AC1.4.3 **Dado** que solo se hace `signOut()` sin llamar al BFF **Entonces** el navegador seguiría enviando la cookie antigua hasta su expiración (comportamiento prohibido). `[agente]`
   - AC1.4.4 **Dado** un logout exitoso **Entonces** el front redirige a la home pública (`/`). `[agente]`
   - AC1.4.5 **\[Debe NOT\]** No existe un logout solo en cliente que deje la cookie viva. `[agente]`
@@ -219,23 +220,23 @@
 - **Descripción:** el cliente gestiona la sesión con el SDK de Firebase (`onAuthStateChanged`, `onIdTokenChanged`, `signInWithPopup`, `signOut`) y renueva la cookie del BFF. Las rutas `/admin/**` están protegidas.
 - **Criterios de aceptación:**
   - AC1.5.1 **Dado** `/admin/**` sin sesión **Cuando** entro **Entonces** se redirige a `/admin/login` y nunca se sirve HTML de admin con 200. `[agente]`
-  - AC1.5.2 **Dado** un login con Google válido **Cuando** el front obtiene el idToken **Entonces** llama a `POST /auth/session` y, al recibir 200, aterriza en `/admin`. `[agente]`
+  - AC1.5.2 **Dado** un login con Google válido **Cuando** el front obtiene el idToken **Entonces** llama a `POST /api/auth/session` y, al recibir 200, aterriza en `/admin`. `[agente]`
   - AC1.5.3 **Dado** el idToken tras el canje **Entonces** el front blanquea la variable en memoria y **no** llama `signOut()` ni limpia la persistencia del SDK (necesaria para el refresh). `[agente]`
-  - AC1.5.4 **Dado** un 401 del BFF (cookie expirada) **Entonces** el front obtiene un idToken vigente (`getIdToken()`) y repite `POST /auth/session` (renovación reactiva), con **un único intento (single-flight)**: las demás peticiones concurrentes esperan a que esa renovación termine, sin lanzar llamadas paralelas; **si la renovación falla, aplica AC5.4.7.** `[agente]`
+  - AC1.5.4 **Dado** un 401 del BFF (cookie expirada) **Entonces** el front obtiene un idToken vigente (`getIdToken()`) y repite `POST /api/auth/session` (renovación reactiva), con **un único intento (single-flight)**: las demás peticiones concurrentes esperan a que esa renovación termine, sin lanzar llamadas paralelas; **si la renovación falla, aplica AC5.4.7.** `[agente]`
   - AC1.5.5 **Dado** `onIdTokenChanged` **Entonces** el front re-sincroniza la sesión del BFF (~cada hora) sin intervención del usuario. `[agente]`
   - AC1.5.6 **Dado** un usuario autenticado con Google **Entonces** el rol de su sesión del BFF es `admin` (v1: rol único; no hay distinción de permisos). `[agente]`
   - AC1.5.7 **Dado** el cierre de sesión **Entonces** el front ejecuta el flujo de US1.4 y redirige a `/`. `[agente]`
   - AC1.5.8 **\[Debe NOT\]** El ID token no se guarda en `localStorage` ni en cookies, y la sola presencia de la cookie no autoriza por sí misma (la puerta real es el backend vía US1.3). `[agente]`
 
-### US1.6 — BFF: GET /auth/me (Sincronización de Estado)
+### US1.6 — BFF: GET /api/auth/me (Sincronización de Estado)
 
 - **Responsable:** \[ Dev 1 \] · **Prioridad:** SHOULD · **Estado:** \[ \]
 - **Descripción:** endpoint que confirma la sesión del BFF y devuelve la identidad, para resolver el caso de cookie viva con la sesión de Firebase perdida (IndexedDB borrado).
 - **Criterios de aceptación:**
-  - AC1.6.1 **Dado** `GET /auth/me` con cookie válida **Entonces** responde 200 con `{ uid, email, role }` (sin tokens). `[agente]`
-  - AC1.6.2 **Dado** `GET /auth/me` sin cookie o con cookie inválida **Entonces** responde 401 `UNAUTHORIZED`. `[agente]`
-  - AC1.6.3 **Dado** cookie válida pero sesión de Firebase perdida **Cuando** el front llama a `/auth/me` **Entonces** el front sincroniza su estado y decide si renovar o cerrar sesión. `[agente]`
-  - AC1.6.4 **\[Debe NOT\]** `/auth/me` no devuelve el JWT, el idToken ni el refresh token. `[agente]`
+  - AC1.6.1 **Dado** `GET /api/auth/me` con cookie válida **Entonces** responde 200 con `{ uid, email, role }` (sin tokens). `[agente]`
+  - AC1.6.2 **Dado** `GET /api/auth/me` sin cookie o con cookie inválida **Entonces** responde 401 `UNAUTHORIZED`. `[agente]`
+  - AC1.6.3 **Dado** cookie válida pero sesión de Firebase perdida **Cuando** el front llama a `/api/auth/me` **Entonces** el front sincroniza su estado y decide si renovar o cerrar sesión. `[agente]`
+  - AC1.6.4 **\[Debe NOT\]** `/api/auth/me` no devuelve el JWT, el idToken ni el refresh token. `[agente]`
 
 ### US1.7 — Ciclo de Vida del Inmueble y Código Secuencial
 
@@ -311,7 +312,8 @@
 - **Descripción:** contrato del listado público y de la consulta de portada. Las igualdades (`operacion`, `status = ACTIVE`, `tipo`, ubicación `departamento` + `municipio` y `destacada`) y el rango de `precio` se resuelven en una sola consulta nativa de Firestore, ordenada por `createdAt` descendente con desempate por `id`. `destacada` se envía con un único valor (`true` o `false`, nunca ambos): la portada pide `true` y las pestañas hacen dos consultas, primero `true` y después `false`, para mostrar los destacados primero. La paginación es nativa por cursor y no hay filtrado posterior en Functions.  
 - **Criterios de aceptación:**  
   - AC1.10.1 **Dado** `GET /api/v1/properties` con `operacion` (obligatorio), `destacada` (obligatorio: `true` o `false`, nunca ambos), `tipo`, `departamento` y `municipio` (juntos o ninguno), `precioMin`, `precioMax`, `cursor` y `limit` (12 por defecto, máx. 50\) **Entonces** responde `{ items, nextCursor }` solo con inmuebles `ACTIVE`, ordenados por `createdAt` descendente con desempate por `id`. `[agente]`  
-  - AC1.10.2 **Dado** un rango de precio **Entonces** se resuelve en la propia consulta de Firestore (`>=` y `<=` sobre `precio`, con `orderBy createdAt desc`) y la paginación usa un cursor `{ createdAt, id }` (`startAfter`), sin duplicados ni huecos, incluso con `createdAt` iguales. `[agente]`  
+  - AC1.10.2 **Dado** un rango de precio **Entonces** se resuelve en la propia consulta de Firestore (`>=` y `<=` sobre `precio`, con `orderBy createdAt desc`) y la paginación usa un cursor `{ createdAt, id }` (`startAfter`), sin duplicados ni huecos, incluso con `createdAt` iguales. `[agente]`
+    - **PENDIENTE — validar en el emulador (US1.10):** Firestore exige que el **primer `orderBy`** sea sobre el **mismo campo** del filtro de rango (`>=`/`<=`); por eso esta consulta (`precio` + `orderBy(createdAt)`) puede rechazarse o exigir ordenar primero por `precio`, lo que chocaría con AC1.10.7. Los 8 presets de D28 y sus 8 índices se mantienen **tal como están**; el orden exacto de la consulta con rango se confirma en el emulador antes de cerrar US1.10. **No rediseñar presets.**  
   - AC1.10.3 **Dado** `precioMin` mayor que `precioMax` **Entonces** responde 422 `VALIDATION_ERROR`. `[agente]`  
   - AC1.10.4 **Dado** las combinaciones de filtros soportadas **Entonces** existe una única tabla en `./ARCHITECTURE.md`, un índice compuesto por combinación en `firestore.indexes.json` (igualdades, luego `precio` y por último `createdAt desc, id desc`) y la lista de los 8 presets en `shared-types` (el cliente la reexporta desde `src/lib/filters.ts`), las tres consistentes entre sí. `[agente]`  
   - AC1.10.5 **Dado** una combinación no soportada **Entonces** responde 422 `VALIDATION_ERROR`, nunca `FAILED_PRECONDITION` ni 500\. `[agente]`  
@@ -389,9 +391,9 @@
 ### US2.3 — Scroll Infinito del Listado
 
 - **Responsable:** \[ Dev 2 \] · **Prioridad:** SHOULD · **Estado:** \[ \]  
-- **Descripción:** carga progresiva por cursor, de 12 en 12 (`useInfiniteQuery`), en cada pestaña. Primero se agota la serie `destacada = true` (destacados) y después se continúa con `destacada = false` (resto), sin mezclar ambos valores en una misma consulta.  
+- **Descripción:** carga progresiva por cursor, de 12 en 12 (`useInfiniteQuery`), en cada pestaña. Primero se agota la serie `destacada = true` (destacados) y después se continúa con `destacada = false` (resto), sin mezclar ambos valores en una misma consulta; al cambiar de serie, la nueva consulta arranca sin cursor (`startAfter` solo es válido dentro de su propia serie).  
 - **Criterios de aceptación:**  
-  - AC2.3.1 **Dado** más de 12 inmuebles **Entonces** se muestran 12 y, al acercarme al final de la lista, se cargan los 12 siguientes, sin duplicados ni huecos (incluso con `createdAt` iguales); al agotarse los destacados, la siguiente página continúa con los no destacados. `[agente]`  
+  - AC2.3.1 **Dado** más de 12 inmuebles **Entonces** se muestran 12 y, al acercarme al final de la lista, se cargan los 12 siguientes, sin duplicados ni huecos (incluso con `createdAt` iguales); al agotarse los destacados, la siguiente página continúa con los no destacados **en una consulta nueva (`destacada = false`) que no arrastra el cursor de la serie anterior: `startAfter` solo aplica dentro de su propia serie y cada serie empieza sin cursor**. `[agente]`  
   - AC2.3.2 **Dado** 12 o menos **Entonces** no hay petición adicional ni control de carga. `[agente]`  
   - AC2.3.3 **Dado** que se carga la página siguiente **Entonces** se muestran tarjetas `Skeleton` al final de la lista, sin spinner. `[agente]`  
   - AC2.3.4 **Dado** el disparador de carga **Entonces** es un botón «Cargar más», accesible por teclado, que también se activa solo al entrar al viewport. `[agente]`  

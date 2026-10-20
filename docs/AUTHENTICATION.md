@@ -1,3 +1,4 @@
+# docs/AUTHENTICATION.md
 # Autenticación y control de acceso
 
 > **Fuente de verdad** del diseño de autenticación y sesión para el catálogo inmobiliario.
@@ -36,7 +37,7 @@
    │   Next.js)   │        (2) idToken              │  sign-in)     │
    └──────┬───────┘                                 └───────────────┘
           │
-          │ (3) POST /auth/session  Authorization: Bearer <idToken>
+          │ (3) POST /api/auth/session  Authorization: Bearer <idToken>
           │     + resto de peticiones con cookie HttpOnly
           ▼
    ┌───────────────────────────┐
@@ -77,7 +78,7 @@
 | **Firebase App Hosting** | Alojamiento front + BFF | Sirve la app Next.js (frontend y BFF en el **mismo origen**, lo que simplifica cookies `SameSite=Strict`). |
 | **Backend (Firebase Functions — monolito `api`)** | API REST (Clean Architecture) | **Valida los idTokens de Firebase (login/refresh) y la lista blanca** en su endpoint interno de sesión; **autoriza** las rutas de administrador. En las rutas de negocio valida `X-Internal-Key` y confía en `X-User-*` propagadas por el BFF. |
 | **Lista blanca (`authorized_users`)** | Guardia de autorización en el **backend** | Colección de Firestore `authorized_users` (`email`, `role`, `active`, `createdAt`). Es la fuente de la autorización, consultada por el backend. |
-| **`POST /auth/session` (BFF)** | Puerta de acceso | El BFF pide al backend validar el idToken y la lista blanca; solo si el backend confirma, el BFF emite la cookie de sesión. Responde 403 `PERMISSION_DENIED` cuando el backend deniega. |
+| **`POST /api/auth/session` (BFF)** | Puerta de acceso | El BFF pide al backend validar el idToken y la lista blanca; solo si el backend confirma, el BFF emite la cookie de sesión. Responde 403 `PERMISSION_DENIED` cuando el backend deniega. |
 | **Firebase Auth** | Proveedor de identidad | Único proveedor para admins: Google. No se pre-crean cuentas ni se usan blocking functions (requieren Identity Platform / plan Blaze). Cualquier cuenta de Google puede completar el sign-in; el acceso lo decide el **backend**. |
 | **Firestore (NoSQL)** | Persistencia de negocio | Catálogo inmobiliario (propiedades, tipos, estados, imágenes...) y la lista blanca `authorized_users`. **No** se registran sesiones aquí en v1. |
 | **Shared-types** | Tipos compartidos | Contratos tipados entre `client`, `bff` y `functions`. |
@@ -120,7 +121,7 @@ Consecuencias:
 3. Firebase Auth muestra el selector de Google.
      - Google acepta el login -> Firebase emite idToken (el alta de identidad no se bloquea)
 4. Cliente: const idToken = await user.getIdToken()
-5. Cliente: POST /auth/session  (Authorization: Bearer <idToken>)
+5. Cliente: POST /api/auth/session  (Authorization: Bearer <idToken>)
      -> INMEDIATAMENTE después, el front blanquea la variable que contenía el idToken
 6. BFF: reenvía el idToken al BACKEND por el endpoint interno (X-Internal-Key)
 7. Backend: verifyIdToken(idToken, true) + comprueba el correo en authorized_users (active = true)
@@ -139,7 +140,7 @@ Consecuencias:
 
 **Decisión de transporte (front → BFF, una sola vez):**
 
-- El idToken se envía al BFF en la cabecera **`Authorization: Bearer <idToken>`** en `POST /auth/session`.
+- El idToken se envía al BFF en la cabecera **`Authorization: Bearer <idToken>`** en `POST /api/auth/session`.
 - El idToken **no** se persiste en `localStorage` ni en cookies. Vive en memoria solo durante el canje.
 
 ---
@@ -160,8 +161,8 @@ Los **ID tokens** de Firebase expiran típicamente a la **1 hora**. El propio **
 
 La cookie se emite con **65 min** de validez: un margen pequeño sobre la vida del idToken de Firebase (~1 h) para que la renovación (reactiva o proactiva) reemita la cookie antes de que expire. Como la cookie es `HttpOnly`, el front no puede leer su expiración. Dos estrategias combinables:
 
-- **Reactiva (mínimo para v1):** ante un **401** del BFF, el front llama `getIdToken()` (obtiene uno vigente) y repite `POST /auth/session`. El BFF reenvía el idToken al backend para **revalidarlo** y re-emite la cookie. Funciona incluso tras recargar, porque la sesión de Firebase persiste.
-- **Proactiva:** el BFF devuelve `{ expiresAt }` en la respuesta de `/auth/session` y el front agenda la re-sincronización; **o** el front se suscribe a `onIdTokenChanged` y re-sincroniza con `/auth/session` (que revalida el idToken en el backend) en cada emisión de token (~cada hora).
+- **Reactiva (mínimo para v1):** ante un **401** del BFF, el front llama `getIdToken()` (obtiene uno vigente) y repite `POST /api/auth/session`. El BFF reenvía el idToken al backend para **revalidarlo** y re-emite la cookie. Funciona incluso tras recargar, porque la sesión de Firebase persiste.
+- **Proactiva:** el BFF devuelve `{ expiresAt }` en la respuesta de `/api/auth/session` y el front agenda la re-sincronización; **o** el front se suscribe a `onIdTokenChanged` y re-sincroniza con `/api/auth/session` (que revalida el idToken en el backend) en cada emisión de token (~cada hora).
 
 **Recomendación:** reactiva + `onIdTokenChanged`. Simple, robusto y sin sesiones eternas.
 
@@ -172,7 +173,7 @@ La cookie se emite con **65 min** de validez: un margen pequeño sobre la vida d
 
 ### 8.4 Edge case: cookie válida pero sesión Firebase perdida
 
-Si el SDK pierde su sesión (p. ej. IndexedDB borrado) pero la cookie del BFF sigue viva, el front puede creer que está deslogueado mientras el BFF acepta la cookie. Se resuelve con un endpoint **`GET /auth/me`** en el BFF: confirma la sesión y permite al front sincronizar el estado.
+Si el SDK pierde su sesión (p. ej. IndexedDB borrado) pero la cookie del BFF sigue viva, el front puede creer que está deslogueado mientras el BFF acepta la cookie. Se resuelve con un endpoint **`GET /api/auth/me`** en el BFF: confirma la sesión y permite al front sincronizar el estado.
 
 ---
 
@@ -183,7 +184,7 @@ El logout es **bidireccional**: hay que limpiar la sesión de Firebase **y** la 
 ```
 1. Admin pulsa "Cerrar sesión"
 2. Cliente: await signOut(auth)     (Firebase Auth limpia sesión local + refresh token)
-3. Cliente: POST /auth/logout
+3. Cliente: POST /api/auth/logout
 4. BFF: borra la cookie de sesión (Max-Age=0 / expires=epoch, mismo Path/Domain/Secure/SameSite)
 5. Respuesta 204 -> redirigir a / (público)
 ```
@@ -196,7 +197,7 @@ El logout es **bidireccional**: hay que limpiar la sesión de Firebase **y** la 
 
 ### 10.1 Establecimiento de sesión (login y refresh)
 
-Para `POST /auth/session`, el BFF **no** valida el idToken por sí mismo: llama a un **endpoint interno** del backend.
+Para `POST /api/auth/session`, el BFF **no** valida el idToken por sí mismo: llama a un **endpoint interno** del backend.
 
 - **Endpoint:** `POST /internal/auth/verify` (nombre sujeto a confirmación; forma parte de `./openapi.backend.yaml`, D26).
 - **Autenticación:** `X-Internal-Key` (igual que el resto del tráfico BFF↔backend). **Nunca** se expone al navegador.
@@ -292,7 +293,7 @@ Ejemplo de responsabilidades del middleware:
 ## 14. Puntos abiertos
 
 - **Gestión del monorepo:** definir cómo se consume `shared-types` desde `client` y `functions`.
-- **`/auth/me`:** implementar para sincronizar estado cuando la cookie y la sesión de Firebase divergen.
+- **`/api/auth/me`:** implementar para sincronizar estado cuando la cookie y la sesión de Firebase divergen.
 - **Rotación de secretos:** definir política de rotación de `X-Internal-Key` y del secreto de firma del JWT del BFF.
 - **Endpoint interno de sesión:** confirmar el nombre exacto (`POST /internal/auth/verify`) y su contrato en `./openapi.backend.yaml`.
 
@@ -303,7 +304,7 @@ Ejemplo de responsabilidades del middleware:
 El diseño usa un **BFF** como única frontera entre el navegador y el backend, con **dos sesiones separadas**:
 
 - **Login:** Google; el **backend** verifica el idToken y la **lista blanca** (`authorized_users`, `active`); si autoriza, el **BFF** emite su **JWT propio** en cookie HttpOnly. Sin blocking functions.
-- **Refresh:** delegado al **SDK de Firebase** (`onIdTokenChanged`); el front repite `POST /auth/session`, el **backend** revalida el idToken y el BFF renueva la cookie (reactiva por 401 o proactiva por `expiresAt`/`onIdTokenChanged`). Sin sesiones perpetuas.
+- **Refresh:** delegado al **SDK de Firebase** (`onIdTokenChanged`); el front repite `POST /api/auth/session`, el **backend** revalida el idToken y el BFF renueva la cookie (reactiva por 401 o proactiva por `expiresAt`/`onIdTokenChanged`). Sin sesiones perpetuas.
 - **Backend:** valida los idTokens (login/refresh), **autoriza** las rutas de administrador, y en las rutas de negocio se protege con **`X-Internal-Key`** + identidad propagada en `X-User-*`; sin sesiones en Firestore; la lista blanca vive en `authorized_users`.
 - **Logout:** `signOut()` en cliente + **borrado explícito de la cookie** en el BFF.
 

@@ -1,8 +1,9 @@
+# docs/DEFINITION-OF-DONE.md
 # Definition of Done (DoD)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
 **Versión:** 1.0 · 19 de octubre de 2026  
-**Base:** MT0.1 de `./DEVELOPMENT-PLAN.md` · `./TASKS.md` · presupuestos en `./PERFORMANCE.md` · proceso de verificación en `./QA.md` (pendiente)  
+**Base:** MT0.1 de `./DEVELOPMENT-PLAN.md` · `./TASKS.md` · presupuestos en `./PERFORMANCE.md` · proceso de verificación en `./QA.md`  
 **Alcance:** define **cuándo** una historia, macro tarea, ola o release se considera *terminada*. No repite los criterios de aceptación (viven en `./TASKS.md`) ni el procedimiento de verificación (vivirá en `./QA.md`). **No incluye estimaciones.**
 
 ---
@@ -15,7 +16,7 @@ Tres piezas complementarias, sin solapamiento:
 | :---- | :---- | :---- |
 | **AC** (`Dado / Cuando / Entonces`) | ¿Qué debe cumplir **esta** historia? | `./TASKS.md` |
 | **DoD** | ¿Qué exige **toda** historia / MT / ola / release para estar terminada? | este documento |
-| **QA** | ¿Con qué herramientas y gates se **verifica**? | `./QA.md` (pendiente) |
+| **QA** | ¿Con qué herramientas y gates se **verifica**? | `./QA.md` |
 
 - Un AC se marca como `[agente]` (verificable sin persona) o `[manual]` (requiere persona); el DoD **no** repite los AC, solo exige que **todos** se cumplan.
 - El DoD es **acumulativo por nivel**: cerrar una US exige el §2; cerrar una MT exige el §3 **y** el §2 de cada US; cerrar una ola/release exige el §4 además de lo anterior.
@@ -52,7 +53,7 @@ Una US está **Done** cuando **todo** lo siguiente se cumple.
 
 ### 2.3 Pruebas
 - [ ] Tests unitarios e de integración de lo nuevo, según `./QA.md`.
-- [ ] **Cobertura:** ≥ **80 %** en lógica de dominio (backend `packages/functions` y `packages/shared-types`). La **UI no exige umbral** de cobertura; se protege con **E2E de los flujos críticos**.
+- [ ] **Cobertura:** ≥ **80 %** en `packages/functions` (lógica de dominio del backend). `packages/shared-types` es solo `.d.ts`: no aplica cobertura y se exige `tsc --noEmit` con **0 errores**. La **UI no exige umbral** de cobertura; se protege con **E2E de los flujos críticos**.
 - [ ] Sin tests deshabilitados (`.skip`, `xit`, `test.todo`) sin justificación registrada.
 
 ### 2.4 Contrato
@@ -153,7 +154,7 @@ Una MT está **Done** cuando:
 | Build | `tsc` / Next build / Functions build | 0 errores |
 | Lint / format | ESLint + Prettier | 0 errores |
 | Tipos | TS `strict` | sin `any` / ignores |
-| Tests unit / integración | Vitest (según `./QA.md`) | cobertura **backend ≥ 80 %** |
+| Tests unit / integración | Vitest (según `./QA.md`) | cobertura **`packages/functions` ≥ 80 %**; `shared-types`: `tsc --noEmit` 0 errores |
 | E2E | Playwright (según `./QA.md`) | flujos críticos por MT y por ola |
 | Contrato | validación OpenAPI | specs y `shared-types` coherentes |
 | Seguridad | grep de secretos + revisión BFF/backend | sin secretos; validación de identidad y autorización en el backend |

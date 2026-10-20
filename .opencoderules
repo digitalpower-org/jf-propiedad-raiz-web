@@ -2,7 +2,7 @@
 
 ## Core Philosophy
 - Metodología: Spec-Driven Development (SDD) & Clean Architecture.
-- El archivo `docs/openapi.yaml` es la ÚNICA fuente de verdad para contratos API.
+- Contratos API: `docs/openapi.backend.yaml` es la fuente de verdad interna (BFF ↔ Cloud Functions) y `docs/openapi.bff.yaml` es la fuente de verdad pública (navegador ↔ BFF); decisión D26.
 
 ## TypeScript Constraints
 - `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`.

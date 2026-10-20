@@ -1,3 +1,4 @@
+# docs/PERFORMANCE.md
 # Presupuestos de Rendimiento y de Datos (Mobile First)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
