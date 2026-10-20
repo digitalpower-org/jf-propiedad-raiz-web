@@ -6,6 +6,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "engines": {
+    "node": "24"
+  },
   "scripts": {
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write .",
@@ -18,7 +21,7 @@
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": "^10.9.2",
+      "version": "^11.19.0",
       "onFail": "download"
     }
   },
@@ -26,5 +29,5 @@
     "@lhci/cli": "^0.15.0",
     "prettier": "^3.0.0"
   },
-  "packageManager": "npm@10.9.2"
+  "packageManager": "npm@11.19.0"
 }
