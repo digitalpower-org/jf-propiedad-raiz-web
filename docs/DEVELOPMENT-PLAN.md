@@ -2,7 +2,7 @@
 # Plan General de Desarrollo (Macro Tareas, Dependencias y Olas)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
-**Versión:** 1.2 · 20 de octubre de 2026 (auditoría 2: seed partido y reubicado, legales a Ola 2, esqueleto desplegable MT0.5, seed de catálogo MT2.4, MT1.4→MT2.1, MT6.1 antes de MT6.2, helper WhatsApp a `shared-types`, `src/proxy.ts` de Next 16; verificado acíclico y 48/48 US)  
+**Versión:** 1.3 · 20 de octubre de 2026 (auditoría 3: parches P2/P5/P9 — trazabilidad de US7.4 al panel, MT6.2 sin dependencias COULD, sitemap completo cerrado en MT5.1; verificado acíclico y 48/48 US)  
 **Base:** `./TASKS.md` (decisiones D1–D29), `./PERFORMANCE.md` (presupuestos) y `./AUTHENTICATION.md`  
 **Arquitectura:** Monorepo (`packages/shared-types`, `packages/functions`, `packages/client`) · Next.js (BFF) + Firebase (Functions/Firestore/Auth/App Hosting) + Cloudflare R2 + Resend  
 **Alcance:** orden de ejecución, prelación y dependencias. **No incluye estimaciones.** No sustituye al detalle de historias: la fuente de alcance y aceptación sigue siendo `./TASKS.md`.
@@ -94,7 +94,7 @@
 
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
-| **MT4.1** | **CMS de inmuebles y media** — CRUD de inmuebles, uploader de fotos con reordenamiento/portada, videos y panorámicas 360°. Bajo el guard de sesión de `/admin` (DoD §2.6/US1.5, MT1.2) y reutiliza los componentes públicos de tarjeta/ficha en las vistas previas (AC4.1.9, MT2.3) | US4.1, US4.2, US4.3, US7.5 | MT2.1, MT1.4, MT1.3, MT1.2, MT2.3 |
+| **MT4.1** | **CMS de inmuebles y media** — CRUD de inmuebles, uploader de fotos con reordenamiento/portada, videos y panorámicas 360°. Bajo el guard de sesión de `/admin` (DoD §2.6/US1.5, MT1.2) y reutiliza los componentes públicos de tarjeta/ficha en las vistas previas (AC4.1.9, MT2.3). Cubre también la parte de **US7.4 aplicable al panel** (TanStack Query, debounce, timeouts) | US4.1, US4.2, US4.3, US7.4 (panel), US7.5 | MT2.1, MT1.4, MT1.3, MT1.2, MT2.3 |
 | **MT4.2** | **CMS de contenido** — gestión de Servicios y de la página «Nosotros». Bajo el guard de sesión de `/admin` (MT1.2) y reutiliza el flujo de fotos de US4.2 (AC4.4.6), por eso depende de MT4.1 | US4.4, US4.5, US7.1 (panel), US7.5 (listas y borradores) | MT1.4, MT1.3, MT1.2, MT4.1 |
 
 ### OLA 5 — Contenido público y contacto
@@ -109,7 +109,7 @@
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
 | **MT6.1** | **Cierre de despliegue y documentación** — índices, README, `ADMIN-GUIDE.md`, `apphosting.yaml` y despliegue final. Documenta el CMS (AC6.3.4: subir fotos, portada, inmuebles, servicios, Nosotros → MT4.1/MT4.2) y verifica que el BFF y la revalidación alcanzan la app (AC6.3.6 → MT1.1/MT1.4). **Aquí se cierra AC6.2.2** (índices = combinaciones documentadas), cuando los índices de US1.10/MT2.2 ya existen. **Despliega el producto completo**, por eso depende de todas las MT de producto (`MT2.3`, `MT3.1`, `MT5.1`) además del CMS. **Precede a MT6.2**: no se endurece ni se miden presupuestos sobre algo no desplegado | US6.3 (resto) | MT1.5, MT2.2, MT2.3, MT3.1, MT4.1, MT4.2, MT5.1, MT0.3 |
-| **MT6.2** | **Hardening y QA final** — repaso de `[Debe NOT]`, cobertura, accesibilidad y regresión; **cierre de los gates de rendimiento móvil (US7.2/US7.6)**: Lighthouse móvil y presupuesto de bundles que fallan la build. Corre **después** de MT6.1 (el producto ya está desplegado) y depende de **todas las MUST/SHOULD**, no de las diferibles (MT5.2 y MT6.3) | US7.2, US7.6 (transversal a todas las MUST/SHOULD) | MT6.1, MT5.2 (si se hace), todas las MUST/SHOULD |
+| **MT6.2** | **Hardening y QA final** — repaso de `[Debe NOT]`, cobertura, accesibilidad y regresión; **cierre de los gates de rendimiento móvil (US7.2/US7.6)**: Lighthouse móvil y presupuesto de bundles que fallan la build. Corre **después** de MT6.1 (el producto ya está desplegado) y depende de **todas las MUST/SHOULD**, **no** de las diferibles (MT5.2 y MT6.3 quedan fuera de su conjunto de dependencias) | US7.2, US7.6 (transversal a todas las MUST/SHOULD) | MT6.1 + todas las MUST/SHOULD (excluye MT5.2 y MT6.3) |
 | **MT6.3** | **Autorización por roles (COULD, diferible)** — **extiende** el rol único `admin` de MT1.2 a roles/permisos múltiples (p. ej. editor vs. admin) vía `X-User-Role`. En v1 MT1.2 ya resuelve un rol único; lo diferible es la distinción de permisos, no la autorización básica | US1.12 (extensión de MT1.2) | MT1.2 |
 
 ---
@@ -160,11 +160,11 @@ OLA 5
 OLA 6
   MT1.5 ──> MT6.1            MT2.2 ──> MT6.1        MT2.3 ──> MT6.1   MT3.1 ──> MT6.1
   MT4.1 ──> MT6.1            MT4.2 ──> MT6.1        MT5.1 ──> MT6.1
-  MT6.1 ──> MT6.2            (todas las MUST/SHOULD ──> MT6.2)
+  MT6.1 ──> MT6.2            (todas las MUST/SHOULD ──> MT6.2, excl. MT5.2/MT6.3)
   MT1.2 ──> MT6.3
 ```
 
-**Resumen de aristas directas por MT (idéntico a las tablas):** MT0.2←MT0.1 · MT0.3←MT0.1 · MT0.4←MT0.2 · MT0.5←{MT0.3,MT0.4} · MT1.1←{MT0.3,MT0.4,MT0.5} · MT1.2←{MT1.1,MT0.3} · MT1.3←{MT0.4} · MT1.4←{MT1.1,MT0.3} · MT1.5←{MT0.5,MT1.1,MT1.4} · MT2.1←{MT1.1,MT1.2,MT1.4,MT0.3} · MT2.2←{MT2.1,MT1.2,MT1.4,MT0.3} · MT2.4←{MT2.1,MT2.2} · MT2.3←{MT2.2,MT2.4,MT1.3,MT0.4} · MT3.2←{MT0.4,MT1.4} · MT3.1←{MT1.1,MT1.3,MT3.2,MT0.4,MT0.3} · MT4.1←{MT2.1,MT1.4,MT1.3,MT1.2,MT2.3} · MT4.2←{MT1.4,MT1.3,MT1.2,MT4.1} · MT5.1←{MT2.2,MT2.4,MT2.3,MT0.4} · MT5.2←{MT4.2} · MT6.1←{MT1.5,MT2.2,MT2.3,MT3.1,MT4.1,MT4.2,MT5.1,MT0.3} · MT6.2←{MT6.1 + todas las MUST/SHOULD} · MT6.3←{MT1.2}.
+**Resumen de aristas directas por MT (idéntico a las tablas):** MT0.2←MT0.1 · MT0.3←MT0.1 · MT0.4←MT0.2 · MT0.5←{MT0.3,MT0.4} · MT1.1←{MT0.3,MT0.4,MT0.5} · MT1.2←{MT1.1,MT0.3} · MT1.3←{MT0.4} · MT1.4←{MT1.1,MT0.3} · MT1.5←{MT0.5,MT1.1,MT1.4} · MT2.1←{MT1.1,MT1.2,MT1.4,MT0.3} · MT2.2←{MT2.1,MT1.2,MT1.4,MT0.3} · MT2.4←{MT2.1,MT2.2} · MT2.3←{MT2.2,MT2.4,MT1.3,MT0.4} · MT3.2←{MT0.4,MT1.4} · MT3.1←{MT1.1,MT1.3,MT3.2,MT0.4,MT0.3} · MT4.1←{MT2.1,MT1.4,MT1.3,MT1.2,MT2.3} · MT4.2←{MT1.4,MT1.3,MT1.2,MT4.1} · MT5.1←{MT2.2,MT2.4,MT2.3,MT0.4} · MT5.2←{MT4.2} · MT6.1←{MT1.5,MT2.2,MT2.3,MT3.1,MT4.1,MT4.2,MT5.1,MT0.3} · MT6.2←{MT6.1 + todas las MUST/SHOULD, excl. MT5.2/MT6.3} · MT6.3←{MT1.2}.
 
 > Aristas **omitidas por transitividad** (no se repiten en cada MT destino; ya se alcanzan por otra ruta declarada): `MT0.3→MT1.2` (por MT1.1), `MT0.3→MT1.4` (por MT1.1), `MT0.3→MT2.1`/`MT0.3→MT3.1` (por MT1.1), `MT0.4→MT5.1` (por MT2.3), `MT1.1→MT4.1` (por MT2.1), `MT2.1→MT4.2` (por MT4.1), `MT1.2→MT5.1` (por la cadena MT2.1→MT2.2→MT2.3→MT5.1), `MT1.4→MT6.1` (por MT2.2), `MT0.5→MT6.1` (por MT1.5). Las aristas que **sí** se declaran directas aunque exista una ruta más larga lo hacen porque el AC que las exige nombra el artefacto concreto: `MT1.2→MT2.1`/`MT4.1`/`MT4.2` (rol y guard de `/admin`), `MT2.2→MT6.1` (cierre de AC6.2.2).
 >
@@ -287,7 +287,7 @@ Reglas:
 | US7.1 | Interfaz Mobile First | MT2.3, MT4.2, MT5.1 | 2 / 4 / 5 |
 | US7.2 | Presupuesto de rendimiento y de datos | MT6.2 | 6 |
 | US7.3 | Imágenes y multimedia bajo demanda | MT2.3 | 2 |
-| US7.4 | API y caché eficientes para datos móviles | MT2.2 / MT2.3 | 2 |
+| US7.4 | API y caché eficientes para datos móviles | MT2.2 (backend) / MT2.3 (público) / MT4.1 y MT4.2 (panel) | 2 / 2 / 4 |
 | US7.5 | Panel de administración y subidas con datos móviles | MT4.1 / MT4.2 | 4 |
 | US7.6 | Calidad mobile first en pruebas y CI | MT0.4 / MT6.2 | Fase 0 / 6 |
 
