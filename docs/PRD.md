@@ -34,7 +34,7 @@ El sitio no vende, no cotiza ni cobra en línea. Su función es mostrar el catá
 
 - Hasta **5 administradores** (US4.1). Inicio de sesión **solo con Google**; no hay correo y contraseña ni registro público.
 - El acceso lo decide la colección `authorized_users` de Firestore (`email`, `role`, `active`, `createdAt`), verificada por el **backend** en el canje de sesión (US1.1, D27). Quitar a alguien es `active = false`; el corte surte efecto al expirar la cookie vigente, con una ventana de hasta **65 minutos** (D29).
-- La sesión del BFF es una cookie HttpOnly con JWT propio (HS256, expiración 65 min). En la v1 el único rol es `admin` (US1.12, roles múltiples, es COULD).
+- La sesión del BFF es la cookie `__session` (HttpOnly, D33) con JWT propio (HS256, expiración 65 min). En la v1 el único rol es `admin` (US1.12, roles múltiples, es COULD).
 - Gestiona inmuebles (crear, editar, activar, ocultar, eliminar con soft delete), fotos con reordenamiento y portada, videos y panorámicas, servicios y la página Nosotros; el panel es usable desde celular (verificado a 375 px).
 - La interfaz del panel está **solo en español**; el contenido en inglés de los inmuebles es editable a mano y la traducción automática ES→EN se controla por campo con interruptores (activada por defecto).
 
@@ -68,7 +68,7 @@ Prioridades según TASKS: **MUST** bloquea el lanzamiento · **SHOULD** se esper
 | US | Resumen | Prioridad |
 | :---- | :---- | :---- |
 | US0.1 Contrato de API, respuesta estándar y catálogo de códigos | Envoltura `{ success, data, message }`, errores `{ success: false, data: { code, details, requestId }, message }` y una única tabla de códigos en `shared-types` (validación = 422) | MUST |
-| US0.2 BFF de Next.js y seguridad de la llamada al backend | El navegador solo consume `/api/bff/*`; el BFF envía `X-Internal-Key` y la IP del cliente; Functions rechaza sin clave y no emite CORS | MUST |
+| US0.2 BFF de Next.js y seguridad de la llamada al backend | El navegador solo consume la superficie pública del BFF (`/api/*`, D31); el BFF envía `X-Internal-Key` y la IP del cliente; Functions rechaza sin clave y no emite CORS | MUST |
 | US0.3 Revalidación bajo demanda | Tras cada escritura, Functions avisa a Next.js (`revalidatePath`/`revalidateTag`) en ambos idiomas; si la revalidación falla, la escritura no se revierte | MUST |
 | US0.4 Internacionalización por rutas | Rutas `/es` y `/en` con tabla fija, redirección por `Accept-Language`, selectores que conservan slug y filtros, `messages/*.json` con claves idénticas, fallback al español y `noindex` si falta traducción obligatoria | MUST |
 | US0.5 Traducción del contenido ES→EN | El backend traduce por lote solo los campos con `autoTranslate` activo cuyo `es` cambió o cuyo `en` está vacío; puerto `Translator` con Google Cloud Translation; estados «Actualizada» y «Pendiente»; nunca en peticiones públicas | SHOULD |
@@ -153,14 +153,14 @@ Prioridades según TASKS: **MUST** bloquea el lanzamiento · **SHOULD** se esper
 
 ---
 
-## 5. Decisiones de producto vinculantes (D1 a D29)
+## 5. Decisiones de producto vinculantes (D1 a D31)
 
 Resumen de la tabla de decisiones de `docs/TASKS.md`. Son vinculantes para el producto; la redacción completa está en TASKS.
 
 | # | Tema | Decisión |
 | :---- | :---- | :---- |
 | D1 | Backend | Firebase Functions en `packages/functions`; sin contenedor API, sin Dockerfile ni `/healthz` |
-| D2 | Acceso desde el navegador | BFF en rutas de Next.js (`/api/bff/*`) que reenvía a Functions con `X-Internal-Key`; el navegador nunca llama a Functions y el BFF no valida idTokens de Firebase |
+| D2 | Acceso desde el navegador | BFF en rutas de Next.js de la superficie pública (`/api/*`, D31) que reenvía a Functions con `X-Internal-Key`; el navegador nunca llama a Functions y el BFF no valida idTokens de Firebase |
 | D3 | Fotos | Cloudflare R2 con subida presignada a `pending/` y paso de confirmación; derivados WebP en el backend; sin Firebase Storage |
 | D4 | Correo | Resend |
 | D5 | Consignación | Un correo HTML a Juan Fernando con enlace de WhatsApp preformateado y «Recibo» al solicitante; si falla el correo a Juan, aviso en pantalla y botón de WhatsApp como acción del usuario; sin notificación automática a WhatsApp |
@@ -188,6 +188,13 @@ Resumen de la tabla de decisiones de `docs/TASKS.md`. Son vinculantes para el pr
 | D27 | Validación de identidad y autorización | El **backend** valida el idToken en login/refresh y comprueba `authorized_users`, y autoriza las rutas de administrador; el **BFF** emite y valida su JWT de sesión y propaga la identidad, sin Firebase Admin |
 | D28 | Filtros y presets | Base fija: `status = ACTIVE`, operación de la pestaña y `destacada` con un solo valor; opcionales: precio (2), tipo (3) y ubicación (4); los 8 presets son `1`, `1+2`, `1+3`, `1+4`, `1+2+3`, `1+2+4`, `1+3+4` y `1+2+3+4`; la portada pide `destacada=true` y las pestañas piden `true` y después `false` |
 | D29 | Revocación de sesión | No se exige invalidación inmediata al deshabilitar un admin; se acepta la ventana de hasta 65 min del JWT del BFF |
+| D30 | Plano interno del backend | Las operaciones entre planos (verificación de sesión) viven bajo `/internal/*`, sin versionar y nunca alcanzables desde el navegador; `/api/v1/*` queda reservado a los recursos de dominio, que siempre reciben la identidad propagada. Es una garantía, no una convención: ninguna ruta pública la alcanza |
+| D31 | Superficie pública del BFF | Rutas explícitas bajo `/api/*` (sin `/bff/` y sin catch-all): el router de Next.js es la allowlist (*fail-closed*). El mapeo a la ruta interna y la política de sesión se **derivan** de `./openapi.bff.yaml` hacia un único módulo generado, `packages/client/src/server/routes.ts`; las excepciones a la convención `/api/<x>` → `/api/v1/<x>` se declaran en la operación con `x-bff-internal-path` |
+| D32 | Autoridad de autenticación del BFF | La cookie se valida en el **route handler** mediante un envoltorio guiado por `routes.ts` (D31), no en el Proxy: `public` no lee cookie, `session` exige cookie válida y entrega la identidad, `internal` exige `X-Internal-Key`. El Proxy solo cierra la superficie (404/405) y no autentica. La identidad se construye desde el JWT verificado y las cabeceras `X-User-*` del cliente se descartan y reescriben; el `X-Internal-Key` es el mismo secreto en ambos sentidos |
+| D33 | Nombre de la cookie de sesión | La cookie del BFF es **`__session`** (convención de Firebase, que además es el único nombre que Firebase Hosting reenvía a Functions); `HttpOnly; Secure; SameSite=Strict; Path=/`, sin `Domain`. El identificador del esquema OpenAPI sigue siendo `session` |
+| D34 | Vigencia del JWT de sesión | Vigente = firma HS256 (alg fijado, comparación en tiempo constante) + `iss`/`aud` + claims obligatorios + `iat`/`exp` con ±60 s de tolerancia + TTL exacto de 3900 s; sin `nbf`, sin ventana absoluta y sin denylist (D29). Cualquier fallo → 401 uniforme. Rotación del secreto con solape ≥ 65 min |
+| D35 | Ubicación de `buildWhatsAppUrl` | El helper de WhatsApp vive en `packages/client/src/lib/whatsapp.ts` (runtime, función pura), no en `shared-types`, que es solo tipos. `functions` no lo necesita |
+| D36 | Implementación de i18n | `next-intl` 4.14.9 en `@jf/client`, sin middleware (el Proxy sigue reservado a `/api` por D32): rutas localizadas en `src/i18n/routes.ts`, diccionarios `messages/{es,en}.json` con paridad de claves, `/` resuelto en `app/route.ts` por `Accept-Language` (307) y `dynamicParams = false` (404 para idiomas no soportados). Carga por `import()` de un solo idioma tras `server-only`, así el navegador solo recibe el diccionario activo (AC7.2.4). `setRequestLocale` en cada layout y página (render paralelo en Next 16). Zona horaria `America/Bogota` |
 
 **Regla de repositorio (no es una decisión D):** el monorepo usa **npm únicamente** como gestor de paquetes (npm workspaces sobre `packages/shared-types`, `packages/functions` y `packages/client`); no se reintroduce pnpm.
 
@@ -224,6 +231,8 @@ Criterios negativos que, si se incumplen, rechazan una historia (además de la l
 | Renderizado | ISR con revalidación bajo demanda en ambos idiomas (US0.3); las visitas normales a páginas revalidadas no ejecutan Functions (AC7.4.5) |
 | Accesibilidad y móvil | Mobile First como caso base (320 a 414 px), verificación a 375 px antes que escritorio (Épica 7) |
 | Idioma y moneda | Contenido público en `es-CO` y `en`; panel solo en español; precios en COP enteros sin conversión (US0.4) |
+
+> **Lectura pública de «Nosotros»:** el contrato define `GET /api/v1/about` (interno) y `GET /api/about` (BFF, sin sesión, AC0.2.7), que sirven el documento único `pages/nosotros` al bloque «Nosotros» de la portada (solo el `extracto`, AC2.6.4) y a la página `/nosotros` (AC5.6.1). El BFF la consume en el servidor al construir o revalidar la página (AC7.4.5), así que la visita normal no ejecuta Functions.
 
 ---
 
