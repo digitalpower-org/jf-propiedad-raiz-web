@@ -35,7 +35,7 @@ Aplica a **todas** las rutas públicas de US0.4: `/es`, `/es/venta`, `/es/alquil
 | CLS (Cumulative Layout Shift) | **≤ 0,1** | AC7.2.1 |
 | TBT (Total Blocking Time) | **≤ 300 ms** | AC7.2.1 |
 
-Cumplimiento en CI: obligatorio en **todas** las rutas públicas de §2. El gate se activa en **MT6.2** (ver §8); hasta entonces las mediciones son referencia y no bloquean.
+Cumplimiento en CI: obligatorio en **todas** las rutas públicas de §2 cuando el gate se active en **MT6.2** (ver §8). La cobertura de `lighthouserc.json` es **incremental**: empieza por `/es` y `/en` en MT0.4 y cada MT añade sus rutas al crear la superficie; el conjunto completo debe estar cubierto **antes** de activar el gate. Hasta MT6.2 las assertions están en **`warn`**: las mediciones son referencia y no bloquean CI.
 
 ---
 
@@ -133,7 +133,18 @@ Ninguno antes de una interacción explícita del usuario: no hay Google Analytic
 | Presupuesto de bundles | script de análisis de bundles (MT0.4) | se superan los límites de §3 | AC7.2.8, AC7.6.3 |
 | E2E móvil | Playwright, proyecto táctil 375 × 667 por defecto | cualquier e2e del proyecto móvil falla | AC7.6.1, AC7.6.3 |
 
-La configuración (`lighthouserc.json`, proyecto Playwright móvil, script de bundles) se monta en **MT0.4**; los gates se activan en **MT6.2** para todas las rutas de AC7.2.1. El `lighthouserc.json` actual solo mide `/es` y `/en`; MT6.2 lo amplía a listado, ficha, servicios, Nosotros, contacto y legales.
+La configuración (`lighthouserc.json`, proyecto Playwright móvil, script de bundles) se monta en **MT0.4**. La cobertura de Lighthouse es **incremental** y se cierra **antes** de activar el gate bloqueante en **MT6.2**:
+
+| Momento | Rutas que se añaden a `lighthouserc.json` |
+| :---- | :---- |
+| MT0.4 | `/es`, `/en` |
+| MT2.3 | `/es/venta`, `/es/alquiler`, `/es/proyectos`, `/es/propiedad/[slug]` (slug del seed de US6.1) y sus equivalentes `/en/...` |
+| MT3.2 | legales (`aviso-de-privacidad`, `politica-de-tratamiento-de-datos`, `terminos`) y sus equivalentes `/en/...` |
+| MT3.1 | `/es/consigne-su-propiedad` y `/en/consigne-su-propiedad` |
+| MT5.1 | `/es/servicios`, `/es/servicios/[slug]`, `/es/nosotros`, `/es/contacto` y sus equivalentes `/en/...` |
+| MT6.2 | No añade rutas: verifica el set completo de AC7.2.1; las assertions pasan de `warn` a `error` y el gate se añade a CI |
+
+Hasta MT6.2, `npm run lhci` es manual, las assertions están en `warn` y no bloquean CI.
 
 ---
 

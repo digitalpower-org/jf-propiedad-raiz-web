@@ -53,7 +53,7 @@ Regla: si un AC dice *qué*, el DoD dice *cuándo cuenta como hecho* y este docu
 | Vitest + cobertura (ambos paquetes) | ✅ `npm run test` → exit 0 (**26 tests** en `@jf/client`: 19 de i18n + 7 del matcher del Proxy; **2** en `@jf/functions`: health); `test:coverage` por workspace → exit 0 | hoy |
 | Playwright (móvil por defecto 375 × 667) | ✅ config + spec placeholder en `packages/client/e2e/` (no forma parte de gates) | hoy |
 | `@axe-core/playwright` | ✅ instalado en `@jf/client` | hoy (specs a escribir en cada MT) |
-| `@lhci/cli` | ✅ instalado en la raíz; `lighthouserc.json` creado (perfil móvil, umbrales de §5.2; **hoy solo mide `/es` y `/en`**, MT6.2 lo amplía a todas las rutas de AC7.2.1); `npm run lhci` es **manual e informativo** | hoy el comando / MT6.2 el gate |
+| `@lhci/cli` | ✅ instalado en la raíz; `lighthouserc.json` creado (perfil móvil, umbrales de §5.2; **cobertura incremental**: hoy `/es` y `/en`; cada MT añade sus rutas y el set completo de AC7.2.1 se cierra antes del gate de MT6.2). Assertions en `warn` hasta MT6.2; `npm run lhci` es **manual e informativo** | hoy el comando / MT6.2 el gate |
 | Análisis de bundles | ✅ `npm run analyze:bundle` (JS/CSS gzip de las rutas construidas, presupuesto de `PERFORMANCE.md` §3); informativo hasta MT6.2 (`--enforce` lo vuelve bloqueante) | hoy el comando / MT6.2 el gate |
 | CI (GitHub Actions) | ✅ `.github/workflows/ci.yml` ejecuta los 7 gates de §5.1 en orden, en un único job (gate 4 ejecuta i18n + matcher del Proxy; 5 sigue sin umbral y 7 en vacío: ver nota en §5.1) | hoy |
 | Emuladores (config) | ✅ `firebase.json` | script `npm run emulators` pendiente |
@@ -219,7 +219,7 @@ npm run build
 npm run test:e2e
 ```
 
-Los gates de **rendimiento** (Lighthouse móvil `npm run lhci` y presupuesto de bundles `npm run analyze:bundle`) se activan en **MT6.2** con los valores de `PERFORMANCE.md` §2/§3 y fallan la build si se incumplen (AC7.2.8, AC7.6.3). Mientras tanto son informativos y **no forman parte** de los 7 gates de §5.1.
+Los gates de **rendimiento** (Lighthouse móvil `npm run lhci` y presupuesto de bundles `npm run analyze:bundle`) se activan en **MT6.2** con los valores de `PERFORMANCE.md` §2/§3 y fallan la build si se incumplen (AC7.2.8, AC7.6.3). La cobertura de Lighthouse es **incremental**: cada MT añade sus rutas y el set completo de AC7.2.1 se cierra antes de activar el gate; hasta MT6.2 las assertions están en `warn`. Mientras tanto son informativos y **no forman parte** de los 7 gates de §5.1.
 
 ```bash
 # Requisitos: build hecha (el comando arranca `next start` él mismo)
@@ -229,7 +229,7 @@ npm run build -w @jf/client
 npm run analyze:bundle
 npm run analyze:bundle -- --route=es --enforce
 
-# Lighthouse móvil (2 rutas, 1 pasada). Necesita Chrome: si no está en el PATH,
+# Lighthouse móvil (rutas configuradas, 1 pasada). Necesita Chrome: si no está en el PATH,
 # exporta CHROME_PATH (p. ej. el binario de Playwright o /usr/bin/google-chrome-stable).
 npm run lhci
 ```
