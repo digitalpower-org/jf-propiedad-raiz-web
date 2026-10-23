@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: JF Propiedad Raíz — API pública (navegador ↔ BFF)
-  version: 1.0.0
+  version: 2.0.0
   description: |
     **Contrato PÚBLICO (D26):** del navegador al BFF de Next.js (`packages/client`).
 
@@ -9,15 +9,41 @@ info:
       `/api/*` de este contrato, y el BFF reenvía a Functions con `X-Internal-Key` y la
       identidad de la sesión en `X-User-*` (D2, AC0.2.1, US1.3). Ese contrato interno vive en
       `./openapi.backend.yaml` y **no se expone al navegador**.
-    - Autenticación: cookie de sesión HttpOnly emitida por el BFF tras canjear el idToken de
-      Firebase (US1.2); el BFF valida firma y `exp` de su propio JWT en middleware (US1.3) y no
-      usa Firebase Admin (D27).
+    - **Superficie explícita (D31):** cada operación tiene su propia ruta; **no hay *catch-all***.
+      El router de Next.js **es** la allowlist: lo no declarado no existe (*fail-closed*). El
+      prefijo público es `/api/` (sin el segmento `/bff/`) y **por convención** la ruta pública
+      `/api/<x>` reenvía a la interna `/api/v1/<x>`. Las excepciones a esa convención se declaran
+      **explícitamente** en la operación con la extensión `x-bff-internal-path`: una ruta interna
+      literal (p. ej. `POST /api/auth/session` → `POST /internal/auth/verify`, D30) o `null`
+      cuando la ruta se resuelve en el BFF y no se reenvía (`GET /api/auth/me`,
+      `POST /api/auth/logout`, `POST /api/revalidate`). La **ausencia** de la extensión significa
+      «aplicar la convención».
+    - **Plano interno (D30):** las operaciones entre planos del backend viven bajo `/internal/*`
+      (`POST /internal/auth/verify`), no se versionan y **no son alcanzables** desde esta
+      superficie. El prefijo `/internal/` es una **garantía**, no una convención.
+    - **Rutas no declaradas y métodos no permitidos:** el Proxy del BFF
+      (`packages/client/src/proxy.ts`) responde **404 `NOT_FOUND`** con la envoltura estándar
+      cuando la ruta `/api/*` no está declarada en este contrato, y **405
+      `METHOD_NOT_ALLOWED`** —con la cabecera `Allow`— cuando la ruta existe pero el método
+      HTTP no está permitido. Ninguna de las dos llega al router de Next.js, de modo que el
+      cliente **siempre** recibe la envoltura estándar, nunca HTML ni un cuerpo vacío.
+    - **Política de sesión:** qué rutas exigen cookie de sesión vive en
+      `packages/client/src/server/routes.ts` (catálogo único, D31). Aquí se refleja con
+      `security: session` (rutas con sesión) o `security: []` (rutas públicas). La validación
+      la ejecuta el envoltorio del route handler (D32), no el Proxy.
+    - Autenticación: cookie `__session` (HttpOnly, D33) emitida por el BFF tras canjear el idToken de
+      Firebase (US1.2); el BFF valida la firma, los claims y los tiempos de su propio JWT
+      en el envoltorio del handler (D34, AC1.3.8) y no usa Firebase Admin (D27).
     - Envoltura de éxito (AC0.1.1) y de error (AC0.1.2) iguales que en la spec interna; catálogo
       de códigos en `components.schemas.ErrorCode` (AC0.1.3). El cliente HTTP centralizado
       convierte `{ success: false, ... }` en `ApiError` (US5.4).
     - Excepción documentada: `POST /api/auth/logout` responde **204 sin cuerpo** (AC1.4.1).
-    - Las operaciones que TASKS no define por completo llevan la nota
+    - Los cuerpos y formas de respuesta que TASKS no define por completo llevan la nota
       `PENDIENTE: definición pendiente en TASKS`.
+
+    **Cambio de la v2:** la superficie pública pasa de `/api/bff/*` a `/api/*` con rutas
+    explícitas (D31). Los cuerpos y respuestas no cambian: el BFF reenvía la respuesta del
+    backend **sin transformarla** (AC0.1.1 / AC0.2.1).
 servers:
   - url: http://localhost:3000
     description: Next.js en desarrollo (BFF integrado en `packages/client`)
@@ -28,13 +54,1012 @@ security:
 tags:
   - name: auth
     description: 'Ciclo de sesión del BFF: canje de idToken, cierre y sincronización (US1.2, US1.4, US1.6)'
-  - name: bff
-    description: Superficie pública de proxy al backend (US0.2, AC0.2.1)
+  - name: properties
+    description: 'Catálogo público de inmuebles y ciclo de vida en el panel (US1.7, US1.10, US4.1)'
+  - name: media
+    description: 'Subida de imágenes a R2 por URL presignada (US1.8, US1.9, US4.2)'
+  - name: consignments
+    description: 'Solicitud «Consigne su propiedad» (US3.1–US3.4)'
+  - name: services
+    description: 'Servicios públicos y su ciclo de vida en el panel (US5.1, US4.4)'
+  - name: about
+    description: 'Página Nosotros (US4.5, D25)'
   - name: Internal
     description: >-
       Rutas del BFF consumidas **server-to-server** (no por el navegador), autenticadas por
       secreto/`X-Internal-Key`. No forman parte del flujo público del visitante.
 paths:
+  /api/auth/session:
+    post:
+      tags: [auth]
+      operationId: createSession
+      summary: Canjear el idToken de Firebase por la sesión propia del BFF
+      description: |
+        US1.2 / AC1.2.1. El front envía el idToken en `Authorization: Bearer` una sola vez; el
+        BFF lo reenvía al backend por `POST /internal/auth/verify` con `X-Internal-Key` (D26,
+        D30), y solo si el backend confirma identidad y lista blanca (US1.1, AC1.2.3) el BFF
+        responde 200 y establece la cookie `__session` (`HttpOnly; Secure; SameSite=Strict;
+        Path=/`) con su propio JWT `{ sub, email, role, iss, aud, iat, exp }` (`exp − iat = 3900 s`,
+        HS256 con secreto de servidor, AC1.2.4, D34). El idToken no se persiste ni queda en la
+        cookie (AC1.2.5, AC1.2.6).
+
+        - idToken inválido/expirado/revocado → 401 `UNAUTHORIZED` sin cookie (AC1.2.2).
+        - Fuera de la lista blanca → 403 `PERMISSION_DENIED` sin cookie (AC1.1.1, AC1.1.3).
+        - La sesión es stateless; no hay registro de sesiones en el servidor (AC1.2.8, AC1.2.9).
+      security: []
+      x-bff-internal-path: /internal/auth/verify
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            pattern: '^Bearer .+$'
+          description: 'idToken de Firebase (`Bearer <idToken>`), memoria solo durante el canje (AC1.2.6).'
+      responses:
+        '200':
+          description: >-
+            Sesión emitida; la cabecera `Set-Cookie` transporta la cookie HttpOnly `__session`
+            (AC1.2.1).
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: 'Cookie `__session`: `HttpOnly; Secure; SameSite=Strict; Path=/`, JWT propio, 65 min (AC1.2.1).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS (US1.2 define la cookie, no el cuerpo de la respuesta 200).'
+                        properties:
+                          role:
+                            $ref: '#/components/schemas/Rol'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/auth/logout:
+    post:
+      tags: [auth]
+      operationId: deleteSession
+      summary: Cerrar la sesión (borrado de cookie en el BFF)
+      description: |
+        US1.4 / AC1.4.1. Borra la cookie `__session` (`Max-Age=0` con el mismo
+        `Path`/`Domain`/`Secure`/`SameSite`) y responde **204 sin cuerpo** (excepción a la
+        envoltura AC0.1.1). El logout es bidireccional: el front además ejecuta
+        `signOut(auth)` (AC1.4.2); hacer solo `signOut()` dejaría la cookie viva hasta su
+        expiración (AC1.4.3, comportamiento prohibido).
+
+        La ruta **no exige cookie válida**: aunque la sesión ya haya expirado, el cierre debe
+        borrar la cookie y responder 204 (por eso `security: []`).
+      security: []
+      x-bff-internal-path: null
+      responses:
+        '204':
+          description: Cookie `__session` borrada; sin cuerpo (AC1.4.1).
+        '500':
+          description: 'Fallo interno del BFF (sin envoltura: la respuesta no tiene cuerpo en el camino de éxito).'
+  /api/auth/me:
+    get:
+      tags: [auth]
+      operationId: getSession
+      summary: Confirmar la sesión y devolver la identidad
+      description: |
+        US1.6 / AC1.6.1. Con cookie válida responde 200 con `{ uid, email, role }` y **sin
+        tokens** (AC1.6.4): sin el JWT, sin el idToken ni el refresh token. Permite al front
+        sincronizar estado cuando la cookie sigue viva pero la sesión de Firebase se perdió
+        (AC1.6.3).
+      x-bff-internal-path: null
+      responses:
+        '200':
+          description: Identidad de la sesión del BFF.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SessionIdentity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/properties:
+    get:
+      tags: [properties]
+      operationId: listProperties
+      summary: Listado público de inmuebles con filtros y paginación por cursor
+      description: |
+        US1.10 / AC1.10.1. Ruta pública (sin sesión): el BFF reenvía a
+        `GET /api/v1/properties` con `X-Internal-Key` y, si hay cookie, `X-User-*` (AC0.2.1).
+        Devuelve solo inmuebles `ACTIVE`, ordenados por `createdAt` descendente con desempate por
+        `id` (D17, D19). `destacada` se envía siempre con un único valor (`true` o `false`,
+        nunca ambos, D28): la portada pide `true` y las pestañas hacen dos consultas, primero
+        `true` y después `false` (AC2.3.1). `departamento` y `municipio` van juntos o no se
+        envían (D24). Una combinación fuera de los 8 presets responde 422 `VALIDATION_ERROR`
+        (AC1.10.5).
+      security: []
+      parameters:
+        - name: operacion
+          in: query
+          required: true
+          schema:
+            $ref: './openapi.backend.yaml#/components/schemas/Operacion'
+          description: Operación fija de la pestaña (D8, D28).
+        - name: destacada
+          in: query
+          required: true
+          schema:
+            type: boolean
+          description: Un único valor `true` o `false`, nunca ambos (D28, AC1.10.1).
+        - name: tipo
+          in: query
+          required: false
+          schema:
+            $ref: './openapi.backend.yaml#/components/schemas/TipoInmueble'
+          description: Igualdad opcional de preset 3 (D28).
+        - name: departamento
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 'Junto con `municipio` (preset 4); juntos o ninguno (D24, AC1.10.1).'
+        - name: municipio
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 'Junto con `departamento` (preset 4); juntos o ninguno (D24, AC1.10.1).'
+        - name: precioMin
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: 'Rango de precio COP (preset 2); `precioMin` ≤ `precioMax`, si no 422 (AC1.10.3).'
+        - name: precioMax
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: 'Rango de precio COP (preset 2); `precioMin` ≤ `precioMax`, si no 422 (AC1.10.3).'
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor opaque `{ createdAt, id }` de la serie (D17, AC1.10.2); solo aplica dentro de su propia serie.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+            minimum: 1
+            maximum: 50
+          description: 'Tamaño de página: 12 por defecto, máx. 50 (AC1.10.1, D19).'
+      responses:
+        '200':
+          description: Página de tarjetas con cursor siguiente.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/PropertyListData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [properties]
+      operationId: createProperty
+      summary: Crear un inmueble (estado inicial HIDDEN)
+      description: |
+        US1.7 / AC1.7.1 y US4.1 / AC4.1.2. Ruta **con sesión**: el BFF exige cookie válida
+        (AC1.3.1) y reenvía a `POST /api/v1/properties` con `X-Internal-Key` y
+        `X-User-Id`/`X-User-Email`/`X-User-Role` tomados de su propia sesión, sobrescribiendo
+        cualquier `X-User-*` del navegador (AC1.3.5). El backend autoriza con `X-User-Role:
+        admin` (D27) y es quien asigna el `codigo` `JF-XXXX` secuencial (D6), `nuevo = true` y
+        `createdAt`; el cliente no puede enviarlos (AC1.7.2). Tras la escritura, Functions
+        dispara la revalidación (AC0.3.1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi.backend.yaml#/components/schemas/PropertyInput'
+      responses:
+        '201':
+          description: 'Inmueble creado en `HIDDEN` con su `codigo` asignado (AC1.7.1, AC4.1.2).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS (cuerpo de la respuesta de creación no especificado).'
+                        properties:
+                          id:
+                            type: string
+                          codigo:
+                            type: string
+                            description: 'Código secuencial `JF-XXXX` (D6).'
+                          slug:
+                            type: string
+                          status:
+                            $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/properties/featured:
+    get:
+      tags: [properties]
+      operationId: getFeaturedProperties
+      summary: Destacadas de la portada
+      description: |
+        US1.10 / AC1.10.6. Ruta pública (sin sesión): el BFF reenvía a
+        `GET /api/v1/properties/featured`. Devuelve hasta 12 inmuebles `ACTIVE` con
+        `destacada = true`, ordenados por `fechaPublicacion` descendente. No admite parámetros
+        de filtro.
+      security: []
+      responses:
+        '200':
+          description: Hasta 12 tarjetas de portada.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        required: [items]
+                        properties:
+                          items:
+                            type: array
+                            maxItems: 12
+                            items:
+                              $ref: './openapi.backend.yaml#/components/schemas/PropertyCard'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/properties/{idOrSlug}:
+    parameters:
+      - $ref: '#/components/parameters/IdOrSlug'
+    get:
+      tags: [properties]
+      operationId: getProperty
+      summary: Ficha pública de un inmueble
+      description: |
+        US2.4. Ruta pública (sin sesión): el BFF reenvía a `GET /api/v1/properties/{idOrSlug}`.
+        Un `idOrSlug` inexistente, `HIDDEN` o `DELETED` → 404 `PROPERTY_NOT_FOUND` (AC1.7.7).
+      security: []
+      responses:
+        '200':
+          description: Ficha del inmueble.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/PropertyDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [properties]
+      operationId: updateProperty
+      summary: Editar un inmueble
+      description: |
+        US4.1 / AC4.1.4. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `PUT /api/v1/properties/{idOrSlug}` con la identidad de su propia sesión (AC1.3.2). El
+        backend traduce solo los campos con `autoTranslate` activo, persiste el `en` escrito a
+        mano (US0.5) y revalida (AC0.3.1). Un `updatedAt` desactualizado → 409 `CONFLICT`
+        (AC1.7.8); el frontend no descarta lo escrito.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi.backend.yaml#/components/schemas/PropertyInput'
+      responses:
+        '200':
+          description: Inmueble actualizado.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [properties]
+      operationId: deleteProperty
+      summary: Eliminar un inmueble (soft delete)
+      description: |
+        US4.1 / AC4.1.7. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `DELETE /api/v1/properties/{idOrSlug}`. «Eliminar» es **siempre soft delete** y el
+        frontend pide confirmación antes de llamar (AC4.1.7); el inmueble deja de ser público.
+      responses:
+        '200':
+          description: Inmueble eliminado (soft delete).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/properties/{idOrSlug}/activate:
+    parameters:
+      - $ref: '#/components/parameters/IdOrSlug'
+    post:
+      tags: [properties]
+      operationId: activateProperty
+      summary: Activar un inmueble (pasarlo a ACTIVE)
+      description: |
+        US4.1 / AC4.1.6. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/properties/{idOrSlug}/activate`. Un inmueble **sin fotos no se puede
+        activar** (AC4.2.8) y el backend responde 422 `VALIDATION_ERROR` con el detalle. Tras la
+        activación, Functions revalida (AC0.3.1) y el inmueble aparece en listados y ficha sin
+        `next build` (AC0.3.2).
+      responses:
+        '200':
+          description: Inmueble activado.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/properties/{idOrSlug}/hide:
+    parameters:
+      - $ref: '#/components/parameters/IdOrSlug'
+    post:
+      tags: [properties]
+      operationId: hideProperty
+      summary: Ocultar un inmueble (pasarlo a HIDDEN)
+      description: |
+        US4.1 / AC4.1.7. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/properties/{idOrSlug}/hide`. El inmueble deja de ser público y el backend
+        revalida (AC0.3.1).
+      responses:
+        '200':
+          description: Inmueble oculto.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/media/presigned-url:
+    post:
+      tags: [media]
+      operationId: presignMediaUpload
+      summary: Firmar una URL PUT presignada en R2 (prefijo pending/)
+      description: |
+        US1.8 / AC1.8.1. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/media/presigned-url`. El backend valida el rol (`X-User-Role: admin`) y
+        devuelve una Presigned PUT URL que expira en 15 minutos. La clave del objeto la genera
+        el servidor bajo `pending/` (`pending/<uuid>.<ext>`); el cliente no elige la ruta
+        (AC1.8.2). Un MIME fuera de `image/jpeg`, `image/png` o `image/webp` se rechaza antes de
+        firmar con 422 `UNSUPPORTED_MEDIA` (AC1.8.3).
+
+        El **binario no pasa por el BFF**: el navegador hace el `PUT` directamente contra R2 con
+        la URL firmada y nunca ve credenciales de R2 (AC1.8.5). Antes de subir, el navegador
+        pre-reduce la imagen a 2048 px como máximo y recomprime (AC4.2.9, US7.5.1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, mimeType]
+              properties:
+                nombre:
+                  type: string
+                  description: 'Nombre original del archivo (solo se usa para la extensión; la clave la genera el servidor, AC1.8.2).'
+                mimeType:
+                  type: string
+                  enum: [image/jpeg, image/png, image/webp]
+                  description: 'Tipo MIME declarado; fuera de esta lista → 422 `UNSUPPORTED_MEDIA` (AC1.8.3).'
+      responses:
+        '200':
+          description: 'URL PUT presignada (vence en 15 min, AC1.8.1).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS (nombres exactos de los campos de respuesta no especificados en US1.8).'
+                        properties:
+                          url:
+                            type: string
+                            description: URL PUT presignada hacia R2.
+                          key:
+                            type: string
+                            description: 'Clave generada por el servidor bajo `pending/` (AC1.8.2).'
+                          expiresInSeconds:
+                            type: integer
+                            example: 900
+                            description: Validez de la URL presignada en segundos (15 min, AC1.8.1).
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/media/confirm:
+    post:
+      tags: [media]
+      operationId: confirmMediaUpload
+      summary: Confirmar subida, validar por cabecera y generar derivados WebP
+      description: |
+        US1.9 / AC1.9.1. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/media/confirm`. El archivo ya está subido a `pending/`; el backend valida
+        por cabecera (tipo → peso → dimensiones mínimas → tope de píxeles → proporción, en ese
+        orden, AC1.9.6), genera los derivados WebP y elimina el original (AC1.9.1). Códigos:
+        `UNSUPPORTED_MEDIA` (contenido no permitido) · `IMAGE_TOO_LARGE` (peso o píxeles) ·
+        `IMAGE_TOO_SMALL` (lado mayor < 800 px) · `VALIDATION_ERROR` (clave inexistente o fuera
+        de `pending/`, panorámica que no es 2:1). Un fallo de derivados responde 500 `INTERNAL`
+        sin dejar derivados parciales y el cliente puede reintentar hasta 3 veces con la misma
+        clave (AC1.9.14, AC1.9.15).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key, recurso]
+              properties:
+                key:
+                  type: string
+                  description: 'Clave del objeto en `pending/` devuelta por la URL presignada (AC1.9.2).'
+                recurso:
+                  type: string
+                  enum: [foto, panorama]
+                  description: 'Destino del archivo: foto o panorámica 360° (AC1.9.1, US4.3.3).'
+      responses:
+        '200':
+          description: 'Derivados generados; el original se elimina después de guardarlos todos (AC1.9.1).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS (US1.9 dice «las claves de sus derivados» sin nombrar los campos del cuerpo).'
+                        properties:
+                          derivados:
+                            type: array
+                            description: Claves de los derivados WebP generados en R2.
+                            items:
+                              type: object
+                              required: [clave, ancho]
+                              properties:
+                                clave:
+                                  type: string
+                                ancho:
+                                  type: integer
+                                  description: 'Lado mayor en px del derivado (320/640/1280/2048 o tamaño completo, US1.9).'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/consignments:
+    post:
+      tags: [consignments]
+      operationId: createConsignment
+      summary: Enviar solicitud «Consigne su propiedad» por correo
+      description: |
+        US3.1–US3.4. Ruta **pública** (sin sesión): el BFF reenvía a
+        `POST /api/v1/consignments` con `X-Internal-Key` y `X-Client-IP` (AC0.2.5). El backend
+        valida la solicitud y envía dos correos vía Resend: uno a Juan Fernando y un «Recibo»
+        al solicitante (US3.2). No se persiste ningún dato (D11, AC3.1.7). Defensas: campo
+        oculto `sitio` (honeypot) con valor → éxito sin envío (AC3.4.1); 6.º envío en un minuto
+        desde la misma IP → 429 `RATE_LIMITED` (AC3.4.2). Fallo del correo a Juan → 502
+        `EMAIL_DELIVERY_FAILED` (AC3.2.4). `consent` ausente o falso → 422 `CONSENT_REQUIRED`
+        sin enviar nada (AC3.3.2).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi.backend.yaml#/components/schemas/ConsignmentInput'
+      responses:
+        '200':
+          description: 'Solicitud aceptada y correos enviados (o suprimidos por honeypot, AC3.4.1).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS (US3.1/US3.2 no especifican el cuerpo de la respuesta de éxito).'
+                        properties:
+                          enviado:
+                            type: boolean
+                            description: 'Falso cuando el honeypot `sitio` bloquea el envío (AC3.4.1).'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '502':
+          $ref: '#/components/responses/EmailDeliveryFailed'
+  /api/services:
+    get:
+      tags: [services]
+      operationId: listServices
+      summary: 'Listado de servicios (público: solo ACTIVE, orden `orden`)'
+      description: |
+        US5.1 / AC5.1.1. Ruta pública (sin sesión): el BFF reenvía a `GET /api/v1/services`.
+        Un servicio inexistente, `HIDDEN` o `DELETED` no aparece (AC5.1.3).
+      security: []
+      responses:
+        '200':
+          description: Servicios ordenados por `orden`.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        required: [items]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: './openapi.backend.yaml#/components/schemas/ServiceCard'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [services]
+      operationId: createService
+      summary: Crear un servicio (estado inicial HIDDEN)
+      description: |
+        US4.4 / AC4.4.1. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/services` con la identidad de su propia sesión (AC1.3.2). El backend
+        asigna el `slug` único y el estado inicial `HIDDEN`, y revalida tras la escritura
+        (AC0.3.1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi.backend.yaml#/components/schemas/ServiceInput'
+      responses:
+        '201':
+          description: 'Servicio creado en `HIDDEN` con `slug` único (AC4.4.1).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS.'
+                        properties:
+                          id:
+                            type: string
+                          slug:
+                            type: string
+                          status:
+                            $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/services/{idOrSlug}:
+    parameters:
+      - $ref: '#/components/parameters/IdOrSlug'
+    get:
+      tags: [services]
+      operationId: getService
+      summary: Detalle público de un servicio
+      description: |
+        US5.1 / AC5.1.2. Ruta pública (sin sesión): el BFF reenvía a
+        `GET /api/v1/services/{idOrSlug}`. Un `idOrSlug` inexistente, `HIDDEN` o `DELETED` →
+        404 `SERVICE_NOT_FOUND` (AC5.1.3).
+      security: []
+      responses:
+        '200':
+          description: Detalle del servicio.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/ServiceDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [services]
+      operationId: updateService
+      summary: Editar un servicio
+      description: |
+        US4.4 / AC4.4.2. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `PUT /api/v1/services/{idOrSlug}` con la identidad de su propia sesión (AC1.3.2). El
+        backend traduce solo los campos con traducción automática activa y revalida (AC0.3.1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi.backend.yaml#/components/schemas/ServiceInput'
+      responses:
+        '200':
+          description: Servicio actualizado.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [services]
+      operationId: deleteService
+      summary: Eliminar un servicio (soft delete)
+      description: |
+        US4.4 / AC4.4.2. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `DELETE /api/v1/services/{idOrSlug}`. «Eliminar» es **siempre soft delete** y el frontend
+        pide confirmación antes de llamar.
+      responses:
+        '200':
+          description: Servicio eliminado (soft delete).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/services/{idOrSlug}/activate:
+    parameters:
+      - $ref: '#/components/parameters/IdOrSlug'
+    post:
+      tags: [services]
+      operationId: activateService
+      summary: Activar un servicio
+      description: |
+        US4.4 / AC4.4.2. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/services/{idOrSlug}/activate`. Tras la activación, Functions revalida
+        (AC0.3.1).
+      responses:
+        '200':
+          description: Servicio activado.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/services/{idOrSlug}/hide:
+    parameters:
+      - $ref: '#/components/parameters/IdOrSlug'
+    post:
+      tags: [services]
+      operationId: hideService
+      summary: Ocultar un servicio
+      description: |
+        US4.4 / AC4.4.2. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/services/{idOrSlug}/hide`. El servicio deja de ser público y el backend
+        revalida (AC0.3.1).
+      responses:
+        '200':
+          description: Servicio oculto.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/EstadoPropiedad'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/services/reorder:
+    post:
+      tags: [services]
+      operationId: reorderServices
+      summary: Reordenar el listado de servicios
+      description: |
+        US4.4 / AC4.4.3. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `POST /api/v1/services/reorder`. El campo `orden` persiste y define el orden público.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orden]
+              properties:
+                orden:
+                  type: array
+                  description: 'Ids de los servicios en su nuevo orden público (AC4.4.3).'
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: 'Orden persistido (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS.'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/about:
+    get:
+      tags: [about]
+      operationId: getAbout
+      summary: Documento de la página Nosotros (lectura pública)
+      description: |
+        US2.6 / US5.6 / D25 / AC0.2.7. Ruta pública (sin sesión): el BFF reenvía a
+        `GET /api/v1/about`. Alimenta el bloque «Nosotros» de la portada (AC2.6.4, solo el
+        `extracto`) y la página `/nosotros` (AC5.6.1). La página se construye y revalida en el
+        servidor (AC7.4.5), así que la visita normal no ejecuta Functions.
+      security: []
+      responses:
+        '200':
+          description: Documento único `pages/nosotros`.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: './openapi.backend.yaml#/components/schemas/AboutDocument'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [about]
+      operationId: updateAbout
+      summary: Guardar la página Nosotros (documento único pages/nosotros)
+      description: |
+        US4.5 / D25. Ruta **con sesión**: el BFF exige cookie válida (AC1.3.1) y reenvía a
+        `PUT /api/v1/about` con la identidad de su propia sesión (AC1.3.2). Al guardar:
+        traducción selectiva (US0.5), escritura y revalidación (AC0.3.1); `extracto` > 500
+        caracteres → 422 `VALIDATION_ERROR` (AC4.5.3); `updatedAt` desactualizado → 409
+        `CONFLICT` (AC4.5.5).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi.backend.yaml#/components/schemas/AboutInput'
+      responses:
+        '200':
+          description: 'Documento guardado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: 'PENDIENTE: definición pendiente en TASKS.'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /api/revalidate:
     post:
       tags: [Internal]
@@ -46,7 +1071,7 @@ paths:
         `revalidatePath`/`revalidateTag`, y Functions es quien lo *invoca* tras cada escritura.
 
         El navegador **nunca** llama a esta ruta; el consumidor es Functions (mismo plano interno
-        que `X-Internal-Key`, D26). Sin el secreto → 401 (AC0.3.3).
+        que `X-Internal-Key`, D26, D30). Sin el secreto → 401 (AC0.3.3).
 
         Tras cada escritura confirmada (inmuebles, servicios, página Nosotros y la tarea de
         «Nuevo» de US1.11), Functions invoca este endpoint con el secreto y se ejecuta
@@ -55,6 +1080,7 @@ paths:
         se revierte; solo se registra (AC0.3.4).
       security:
         - X-Internal-Key: []
+      x-bff-internal-path: null
       requestBody:
         required: true
         content:
@@ -96,308 +1122,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
-  /api/auth/session:
-    post:
-      tags: [auth]
-      operationId: createSession
-      summary: Canjear el idToken de Firebase por la sesión propia del BFF
-      description: |
-        US1.2 / AC1.2.1. El front envía el idToken en `Authorization: Bearer` una sola vez; el
-        BFF lo reenvía al backend por `POST /internal/auth/verify` con `X-Internal-Key` (D26), y
-        solo si el backend confirma identidad y lista blanca (US1.1, AC1.2.3) el BFF responde
-        200 y establece una cookie `HttpOnly; Secure; SameSite=Strict; Path=/` con su propio
-        JWT `{ sub, email, role, iat, exp }` (exp = 65 min, HS256 con secreto de servidor,
-        AC1.2.4). El idToken no se persiste ni queda en la cookie (AC1.2.5, AC1.2.6).
-
-        - idToken inválido/expirado/revocado → 401 `UNAUTHORIZED` sin cookie (AC1.2.2).
-        - Fuera de la lista blanca → 403 `PERMISSION_DENIED` sin cookie (AC1.1.1, AC1.1.3).
-        - La sesión es stateless; no hay registro de sesiones en el servidor (AC1.2.8, AC1.2.9).
-      security: []
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-            pattern: '^Bearer .+$'
-          description: 'idToken de Firebase (`Bearer <idToken>`), memoria solo durante el canje (AC1.2.6).'
-      responses:
-        '200':
-          description: >-
-            Sesión emitida; la cabecera `Set-Cookie` transporta la cookie HttpOnly de sesión
-            (AC1.2.1).
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-              description: 'Cookie de sesión: `HttpOnly; Secure; SameSite=Strict; Path=/`, JWT propio, 65 min (AC1.2.1).'
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccess'
-                  - type: object
-                    required: [data]
-                    properties:
-                      data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS (US1.2 define la cookie, no el cuerpo de la respuesta 200).'
-                        properties:
-                          role:
-                            $ref: '#/components/schemas/Rol'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalError'
-  /api/auth/logout:
-    post:
-      tags: [auth]
-      operationId: deleteSession
-      summary: Cerrar la sesión (borrado de cookie en el BFF)
-      description: |
-        US1.4 / AC1.4.1. Borra la cookie de sesión (`Max-Age=0` con el mismo
-        `Path`/`Domain`/`Secure`/`SameSite`) y responde **204 sin cuerpo** (excepción a la
-        envoltura AC0.1.1). El logout es bidireccional: el front además ejecuta
-        `signOut(auth)` (AC1.4.2); hacer solo `signOut()` dejaría la cookie viva hasta su
-        expiración (AC1.4.3, comportamiento prohibido).
-      responses:
-        '204':
-          description: Cookie de sesión borrada; sin cuerpo (AC1.4.1).
-        '500':
-          description: 'Fallo interno del BFF (sin envoltura: la respuesta no tiene cuerpo en el camino de éxito).'
-  /api/auth/me:
-    get:
-      tags: [auth]
-      operationId: getSession
-      summary: Confirmar la sesión y devolver la identidad
-      description: |
-        US1.6 / AC1.6.1. Con cookie válida responde 200 con `{ uid, email, role }` y **sin
-        tokens** (AC1.6.4): sin el JWT, sin el idToken ni el refresh token. Permite al front
-        sincronizar estado cuando la cookie sigue viva pero la sesión de Firebase se perdió
-        (AC1.6.3).
-      responses:
-        '200':
-          description: Identidad de la sesión del BFF.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccess'
-                  - type: object
-                    required: [data]
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/SessionIdentity'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-  /api/bff/{path}:
-    get:
-      tags: [bff]
-      operationId: proxyGet
-      summary: Proxy público GET a Functions (lecturas)
-      description: |
-        US0.2 / AC0.2.1. Superficie genérica `/api/bff/*`: el BFF reenvía la petición a
-        Functions con `X-Internal-Key` (AC0.2.2) y, si hay cookie de sesión válida, propaga
-        `X-User-Id`/`X-User-Email`/`X-User-Role` con los datos de **su propia sesión**,
-        sobrescribiendo cualquier cabecera `X-User-*` del cliente (US1.3, AC1.3.2, AC1.3.5).
-        En peticiones públicas reenvía además `X-Client-IP` (AC0.2.5).
-
-        - Rutas privadas sin cookie o con cookie inválida/expirada → 401 `UNAUTHORIZED` sin
-          llegar a Functions (AC1.3.1).
-        - La respuesta del backend pasa sin transformar, con la misma envoltura (AC0.1.1 /
-          AC0.1.2) y el mismo catálogo de códigos (AC0.1.3).
-
-        PENDIENTE: definición pendiente en TASKS. US0.2 / AC0.2.1 solo fijan el prefijo
-        `/api/bff/*`; las rutas concretas bajo el prefijo (lecturas públicas del catálogo,
-        escrituras del panel, media, consignación) se resuelven en implementación.
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-          description: >-
-            Resto del camino bajo `/api/bff/` (p. ej. `properties`, `services`). TASKS no
-            enumera rutas concretas; el segmento puede contener barras según el router del BFF.
-      responses:
-        '200':
-          description: Respuesta del backend reenviada sin transformar (envoltura AC0.1.1).
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccess'
-                  - type: object
-                    required: [data]
-                    properties:
-                      data:
-                        description: 'Carga útil de la operación concreta del backend; no se transforma en el BFF.'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '429':
-          $ref: '#/components/responses/RateLimited'
-        '500':
-          $ref: '#/components/responses/InternalError'
-        '502':
-          $ref: '#/components/responses/EmailDeliveryFailed'
-    post:
-      tags: [bff]
-      operationId: proxyPost
-      summary: Proxy público POST a Functions (acciones)
-      description: |
-        US0.2 / AC0.2.1 y US1.3. Igual que el proxy GET: identidad de la sesión del BFF en
-        `X-User-*`, `X-Internal-Key` desde variable de entorno y sin confiar nunca en
-        `X-User-*` del navegador (AC1.3.5). En una ruta de escritura, la ausencia de identidad
-        hace que el backend responda 401 (AC0.2.4).
-
-        PENDIENTE: definición pendiente en TASKS (rutas concretas bajo `/api/bff/*` no
-        enumeradas).
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              description: 'PENDIENTE: definición pendiente en TASKS (cuerpo según la operación concreta del backend).'
-      responses:
-        '200':
-          description: Respuesta del backend reenviada sin transformar (envoltura AC0.1.1).
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccess'
-                  - type: object
-                    required: [data]
-                    properties:
-                      data:
-                        description: 'Carga útil de la operación concreta del backend; no se transforma en el BFF.'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '429':
-          $ref: '#/components/responses/RateLimited'
-        '500':
-          $ref: '#/components/responses/InternalError'
-        '502':
-          $ref: '#/components/responses/EmailDeliveryFailed'
-    put:
-      tags: [bff]
-      operationId: proxyPut
-      summary: Proxy público PUT a Functions
-      description: |
-        US0.2 / AC0.2.1 y US1.3. Misma propagación de identidad que el proxy POST
-        (`X-User-*` de la sesión del BFF, `X-Internal-Key`).
-
-        PENDIENTE: definición pendiente en TASKS (rutas concretas bajo `/api/bff/*` no
-        enumeradas).
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              description: 'PENDIENTE: definición pendiente en TASKS (cuerpo según la operación concreta del backend).'
-      responses:
-        '200':
-          description: Respuesta del backend reenviada sin transformar (envoltura AC0.1.1).
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccess'
-                  - type: object
-                    required: [data]
-                    properties:
-                      data:
-                        description: 'Carga útil de la operación concreta del backend; no se transforma en el BFF.'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalError'
-    delete:
-      tags: [bff]
-      operationId: proxyDelete
-      summary: Proxy público DELETE a Functions
-      description: |
-        US0.2 / AC0.2.1 y US1.3. Misma propagación de identidad que el proxy POST; «eliminar»
-        es siempre soft delete confirmado (AC4.1.7).
-
-        PENDIENTE: definición pendiente en TASKS (rutas concretas bajo `/api/bff/*` no
-        enumeradas).
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Respuesta del backend reenviada sin transformar (envoltura AC0.1.1).
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccess'
-                  - type: object
-                    required: [data]
-                    properties:
-                      data:
-                        description: 'Carga útil de la operación concreta del backend; no se transforma en el BFF.'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
 components:
   securitySchemes:
     session:
       type: apiKey
       in: cookie
-      name: session
+      name: __session
       description: >-
-        Cookie HttpOnly con el JWT propio del BFF (US1.2.1): `HttpOnly; Secure;
-        SameSite=Strict; Path=/`, firma HS256, expiración 65 min (AC1.2.1, AC1.2.4). El BFF
-        valida firma y `exp` en middleware y nunca la lee desde JavaScript (AC1.2.5).
-        PENDIENTE: TASKS no fija el nombre literal de la cookie.
+        Cookie `__session`, HttpOnly, con el JWT propio del BFF (D33, US1.2.1):
+        `HttpOnly; Secure; SameSite=Strict; Path=/`, sin `Domain`, firma HS256, expiración
+        65 min (AC1.2.1, AC1.2.4). El BFF valida firma, claims y tiempos según D34
+        (AC1.3.8) en el envoltorio del handler y nunca la lee desde JavaScript (AC1.2.5). El
+        identificador del esquema es `session`; el nombre literal de la cookie es `__session`
+        (D33).
     X-Internal-Key:
       type: apiKey
       in: header
@@ -407,6 +1144,16 @@ components:
         exige `POST /api/revalidate`, invocada por Cloud Functions (AC0.3.1, AC0.3.3).
         Comparación en tiempo constante (AC0.2.3); jamás aparece en el cliente ni en logs
         (AC0.2.6).
+  parameters:
+    IdOrSlug:
+      name: idOrSlug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: >-
+        Identificador o slug del recurso. El BFF lo reenvía **sin transformar** a la ruta interna
+        equivalente; un valor inexistente → 404 (`PROPERTY_NOT_FOUND` o `SERVICE_NOT_FOUND`).
   responses:
     Unauthorized:
       description: '401 `UNAUTHORIZED`: sin cookie, cookie inválida o expirada (AC1.3.1, AC1.6.2), o idToken inválido/expirado/revocado en el canje de sesión (AC1.2.2).'
@@ -422,6 +1169,23 @@ components:
             $ref: '#/components/schemas/ApiError'
     NotFound:
       description: '404 `PROPERTY_NOT_FOUND` o `SERVICE_NOT_FOUND` reenviado desde el backend (AC1.7.7, AC4.4.4).'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    RouteNotFound:
+      description: >-
+        404 `NOT_FOUND`: la ruta solicitada no está declarada en la superficie pública del BFF
+        (D31). Lo decide el Proxy (`packages/client/src/proxy.ts`) antes de que la petición
+        llegue al router de Next.js, de modo que nunca se devuelve HTML.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    MethodNotAllowed:
+      description: >-
+        405 `METHOD_NOT_ALLOWED`: la ruta existe en la superficie pública pero el método HTTP
+        no está permitido. La cabecera `Allow` lista los métodos aceptados.
       content:
         application/json:
           schema:
@@ -513,8 +1277,10 @@ components:
         | `IMAGE_TOO_SMALL` | 422 |
         | `UNAUTHORIZED` | 401 |
         | `PERMISSION_DENIED` | 403 |
+        | `NOT_FOUND` | 404 |
         | `PROPERTY_NOT_FOUND` | 404 |
         | `SERVICE_NOT_FOUND` | 404 |
+        | `METHOD_NOT_ALLOWED` | 405 |
         | `CONFLICT` | 409 |
         | `RATE_LIMITED` | 429 |
         | `EMAIL_DELIVERY_FAILED` | 502 |
@@ -527,8 +1293,10 @@ components:
         - IMAGE_TOO_SMALL
         - UNAUTHORIZED
         - PERMISSION_DENIED
+        - NOT_FOUND
         - PROPERTY_NOT_FOUND
         - SERVICE_NOT_FOUND
+        - METHOD_NOT_ALLOWED
         - CONFLICT
         - RATE_LIMITED
         - EMAIL_DELIVERY_FAILED

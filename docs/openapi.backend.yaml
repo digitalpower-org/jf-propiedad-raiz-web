@@ -1026,6 +1026,34 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
   /api/v1/about:
+    get:
+      tags: [about]
+      operationId: getAbout
+      summary: Documento de la página Nosotros (lectura pública)
+      description: |
+        US2.6 / US5.6 / D25. Lectura del documento único `pages/nosotros`. Alimenta el bloque
+        «Nosotros» de la portada (AC2.6.4, solo el `extracto`) y la página `/nosotros`
+        (AC5.6.1). Sin sesión: el BFF la consume en el servidor al construir o revalidar la
+        página (AC7.4.5), de modo que la visita normal no ejecuta Functions. Si el documento
+        todavía no existe se sirve el seed (US4.5); PENDIENTE: el comportamiento ante documento
+        ausente no está fijado en TASKS.
+      responses:
+        '200':
+          description: Documento único `pages/nosotros`.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AboutDocument'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
     put:
       tags: [about]
       operationId: updateAbout
@@ -1217,8 +1245,10 @@ components:
         | `IMAGE_TOO_SMALL` | 422 |
         | `UNAUTHORIZED` | 401 |
         | `PERMISSION_DENIED` | 403 |
+        | `NOT_FOUND` | 404 |
         | `PROPERTY_NOT_FOUND` | 404 |
         | `SERVICE_NOT_FOUND` | 404 |
+        | `METHOD_NOT_ALLOWED` | 405 |
         | `CONFLICT` | 409 |
         | `RATE_LIMITED` | 429 |
         | `EMAIL_DELIVERY_FAILED` | 502 |
@@ -1231,8 +1261,10 @@ components:
         - IMAGE_TOO_SMALL
         - UNAUTHORIZED
         - PERMISSION_DENIED
+        - NOT_FOUND
         - PROPERTY_NOT_FOUND
         - SERVICE_NOT_FOUND
+        - METHOD_NOT_ALLOWED
         - CONFLICT
         - RATE_LIMITED
         - EMAIL_DELIVERY_FAILED
@@ -1635,9 +1667,20 @@ components:
         titulo:
           $ref: '#/components/schemas/TranslatableInput'
         extracto:
-          type: string
-          maxLength: 500
-          description: Extracto mostrado en la portada (AC2.6.4); > 500 → 422 `VALIDATION_ERROR` (AC4.5.3).
+          allOf:
+            - $ref: '#/components/schemas/TranslatableInput'
+            - type: object
+              properties:
+                es:
+                  type: string
+                  maxLength: 500
+                en:
+                  type: string
+                  maxLength: 500
+          description: >-
+            Extracto mostrado en la portada (AC2.6.4). Es un `Translatable` (MODELO DE DATOS,
+            TASKS): cualquier idioma con más de 500 caracteres → 422 `VALIDATION_ERROR`
+            (AC4.5.3).
         secciones:
           type: array
           description: Secciones libres (visión, misión, historia…); orden = posición (US4.5.1).
@@ -1674,3 +1717,51 @@ components:
           type: string
           format: date-time
           description: 'Control de concurrencia optimista (AC4.5.5) → 409 `CONFLICT`.'
+    AboutDocument:
+      type: object
+      description: >-
+        Documento único `pages/nosotros` tal como se sirve al público (D25, US5.6). `extracto`
+        alimenta el bloque «Nosotros» de la portada (AC2.6.4); `secciones` y `equipo` alimentan
+        `/nosotros` (AC5.6.1). El orden de `secciones` y `equipo` es la posición del arreglo
+        (MODELO DE DATOS, TASKS).
+      required: [titulo, extracto, secciones, equipo, updatedAt]
+      properties:
+        titulo:
+          $ref: '#/components/schemas/Translatable'
+        extracto:
+          $ref: '#/components/schemas/Translatable'
+        secciones:
+          type: array
+          description: Secciones libres; orden = posición (US5.6).
+          items:
+            type: object
+            required: [id, titulo, cuerpo]
+            properties:
+              id:
+                type: string
+              titulo:
+                $ref: '#/components/schemas/Translatable'
+              cuerpo:
+                $ref: '#/components/schemas/Translatable'
+        equipo:
+          type: array
+          description: Integrantes del equipo; orden = posición (US5.6).
+          items:
+            type: object
+            required: [id, nombre, cargo]
+            properties:
+              id:
+                type: string
+              nombre:
+                type: string
+                description: 'No se traduce (US0.5, «No se traducen»).'
+              cargo:
+                $ref: '#/components/schemas/Translatable'
+              descripcion:
+                $ref: '#/components/schemas/Translatable'
+              foto:
+                type: string
+                description: 'Clave de R2 de la foto (US4.5.2); el derivado de 640 px que pide AC5.6.1 se resuelve por la convención de US1.9.'
+        updatedAt:
+          type: string
+          format: date-time

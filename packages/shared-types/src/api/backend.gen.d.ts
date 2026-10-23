@@ -377,7 +377,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Documento de la página Nosotros (lectura pública)
+         * @description US2.6 / US5.6 / D25. Lectura del documento único `pages/nosotros`. Alimenta el bloque
+         *     «Nosotros» de la portada (AC2.6.4, solo el `extracto`) y la página `/nosotros`
+         *     (AC5.6.1). Sin sesión: el BFF la consume en el servidor al construir o revalidar la
+         *     página (AC7.4.5), de modo que la visita normal no ejecuta Functions. Si el documento
+         *     todavía no existe se sirve el seed (US4.5); PENDIENTE: el comportamiento ante documento
+         *     ausente no está fijado en TASKS.
+         */
+        get: operations["getAbout"];
         /**
          * Guardar la página Nosotros (documento único `pages/nosotros`)
          * @description PENDIENTE: definición pendiente en TASKS (US4.5 define el guardado del documento único
@@ -438,15 +447,17 @@ export interface components {
          *     | `IMAGE_TOO_SMALL` | 422 |
          *     | `UNAUTHORIZED` | 401 |
          *     | `PERMISSION_DENIED` | 403 |
+         *     | `NOT_FOUND` | 404 |
          *     | `PROPERTY_NOT_FOUND` | 404 |
          *     | `SERVICE_NOT_FOUND` | 404 |
+         *     | `METHOD_NOT_ALLOWED` | 405 |
          *     | `CONFLICT` | 409 |
          *     | `RATE_LIMITED` | 429 |
          *     | `EMAIL_DELIVERY_FAILED` | 502 |
          *     | `INTERNAL` | 500 |
          * @enum {string}
          */
-        ErrorCode: "VALIDATION_ERROR" | "CONSENT_REQUIRED" | "UNSUPPORTED_MEDIA" | "IMAGE_TOO_LARGE" | "IMAGE_TOO_SMALL" | "UNAUTHORIZED" | "PERMISSION_DENIED" | "PROPERTY_NOT_FOUND" | "SERVICE_NOT_FOUND" | "CONFLICT" | "RATE_LIMITED" | "EMAIL_DELIVERY_FAILED" | "INTERNAL";
+        ErrorCode: "VALIDATION_ERROR" | "CONSENT_REQUIRED" | "UNSUPPORTED_MEDIA" | "IMAGE_TOO_LARGE" | "IMAGE_TOO_SMALL" | "UNAUTHORIZED" | "PERMISSION_DENIED" | "NOT_FOUND" | "PROPERTY_NOT_FOUND" | "SERVICE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "CONFLICT" | "RATE_LIMITED" | "EMAIL_DELIVERY_FAILED" | "INTERNAL";
         /**
          * @description Estados de inmuebles y servicios (D7). Sin `DRAFT` ni estados de disponibilidad.
          * @enum {string}
@@ -673,8 +684,11 @@ export interface components {
         /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
         AboutInput: {
             titulo: components["schemas"]["TranslatableInput"];
-            /** @description Extracto mostrado en la portada (AC2.6.4); > 500 → 422 `VALIDATION_ERROR` (AC4.5.3). */
-            extracto: string;
+            /** @description Extracto mostrado en la portada (AC2.6.4). Es un `Translatable` (MODELO DE DATOS, TASKS): cualquier idioma con más de 500 caracteres → 422 `VALIDATION_ERROR` (AC4.5.3). */
+            extracto: components["schemas"]["TranslatableInput"] & {
+                es?: string;
+                en?: string;
+            };
             /** @description Secciones libres (visión, misión, historia…); orden = posición (US4.5.1). */
             secciones: {
                 id: string;
@@ -696,6 +710,29 @@ export interface components {
              * @description Control de concurrencia optimista (AC4.5.5) → 409 `CONFLICT`.
              */
             updatedAt?: string;
+        };
+        /** @description Documento único `pages/nosotros` tal como se sirve al público (D25, US5.6). `extracto` alimenta el bloque «Nosotros» de la portada (AC2.6.4); `secciones` y `equipo` alimentan `/nosotros` (AC5.6.1). El orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
+        AboutDocument: {
+            titulo: components["schemas"]["Translatable"];
+            extracto: components["schemas"]["Translatable"];
+            /** @description Secciones libres; orden = posición (US5.6). */
+            secciones: {
+                id: string;
+                titulo: components["schemas"]["Translatable"];
+                cuerpo: components["schemas"]["Translatable"];
+            }[];
+            /** @description Integrantes del equipo; orden = posición (US5.6). */
+            equipo: {
+                id: string;
+                /** @description No se traduce (US0.5, «No se traducen»). */
+                nombre: string;
+                cargo: components["schemas"]["Translatable"];
+                descripcion?: components["schemas"]["Translatable"];
+                /** @description Clave de R2 de la foto (US4.5.2); el derivado de 640 px que pide AC5.6.1 se resuelve por la convención de US1.9. */
+                foto?: string;
+            }[];
+            /** Format: date-time */
+            updatedAt: string;
         };
     };
     responses: {
@@ -1576,6 +1613,30 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationError"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getAbout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documento único `pages/nosotros`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccess"] & {
+                        data: components["schemas"]["AboutDocument"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
             500: components["responses"]["InternalError"];
         };
     };
