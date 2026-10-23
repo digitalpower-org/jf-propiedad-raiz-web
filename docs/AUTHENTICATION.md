@@ -1,7 +1,7 @@
 # docs/AUTHENTICATION.md
 # Autenticación y control de acceso
 
-> **Fuente de verdad** del diseño de autenticación y sesión para el catálogo inmobiliario.
+> **Fuente de verdad** del diseño de autenticación y sesión para el catálogo inmobiliario. Sustituye a `AUTH-FLOWS.md`: los flujos de §§7–9 son la referencia de secuencia.
 > El **backend** valida el idToken de Firebase (login y refresh) y **autoriza** las rutas de administrador; el **BFF** emite y valida el **JWT de sesión** de la cookie, con **65 minutos** de validez. El redirect tras el login es a **`/admin`**; el logout responde **204**; el conjunto de administradores se acota a **≤ 5**; los workspaces se gestionan con **npm únicamente**; la comunicación BFF ↔ backend usa **`X-Internal-Key`** (OIDC como mejora futura opcional).
 
 ---
@@ -299,7 +299,7 @@ X-Request-Id:   <uuid>          (opcional, correlación/logs)
 | :---- | :---- |
 | **Cookie de sesión (BFF)** | `__session` (D33): `HttpOnly: true`, `Secure: true` (obligatorio en prod), `SameSite: Strict`, `Path: '/'`. Sin `Domain` ambiguo. |
 | **CSRF** | Front y BFF en **mismo origen** → `SameSite=Strict` mitiga el grueso. Verificar `Origin` en rutas mutantes. |
-| **`X-Internal-Key`** | Secreto fuerte y **rotable** en Secret Manager / env de BFF y backend. HTTPS obligatorio. **Nunca** en el bundle del cliente. |
+| **`X-Internal-Key`** | Secreto fuerte y **rotable** en Secret Manager / env de BFF y backend. HTTPS obligatorio. **Nunca** en el bundle del cliente. Rotación con solape según §11.1. |
 | **Firma del JWT del BFF** | `HS256` con secreto en Secret Manager/env (D34). Rotación con solape ≥ 65 min (`SESSION_JWT_SECRET_PREVIOUS`). Nunca en el cliente. |
 | **Endpoint interno de sesión** | `POST /internal/auth/verify` accesible **solo** con `X-Internal-Key`; nunca expuesto al navegador. Es el único punto donde el backend ve un idToken. Su nombre y su contrato son fijos (D30). |
 | **Planos del backend** | `/api/v1/*` = API de dominio versionada, siempre con identidad propagada `X-User-*`. `/internal/*` = operaciones **entre planos**, sin versionar, **nunca alcanzables desde el navegador** (D30). El BFF es el único cliente de este plano; el backend es su único cliente de `/api/v1/*`. |
@@ -307,6 +307,35 @@ X-Request-Id:   <uuid>          (opcional, correlación/logs)
 | **XSS** | El idToken en memoria + cookie HttpOnly reducen superficie. El refresh token vive en IndexedDB (tradeoff conocido del SDK). Aplicar CSP y disciplina anti-XSS. |
 | **Logs** | No loguear tokens completos. Loguear `uid` + `email` solo si hace falta auditoría. |
 | **Registro de cuentas** | No existe flujo de "crear cuenta" en el front. La barrera real es la **lista blanca** verificada por el **backend** (a petición del BFF) en el login. |
+
+### 11.1 Rotación de `X-Internal-Key` (opción A, v1)
+
+`X-Internal-Key` es un secreto compartido y el mismo valor viaja en ambos sentidos (BFF → Functions y Functions → BFF). La rotación se hace con **solape** y coordinada en los dos planos.
+
+**Configuración**
+
+- `INTERNAL_KEY`: clave vigente; es la que se envía en `X-Internal-Key`.
+- `INTERNAL_KEY_ACCEPTED`: lista opcional de claves adicionales aceptadas durante la ventana de solape (separadas por comas). Vacía fuera de rotación.
+- Ambas viven en Secret Manager y se inyectan como variables de entorno en BFF y Functions. Nunca en el repositorio, logs ni bundle del cliente.
+- La verificación compara en tiempo constante contra `INTERNAL_KEY` y contra cada clave de `INTERNAL_KEY_ACCEPTED`.
+
+**Política**
+
+- Rotación ordinaria cada **90 días**.
+- Ventana de solape: **24–72 h** y siempre mayor que el despliegue + rollback.
+- Rotación inmediata ante sospecha de compromiso; puede omitirse el solape si el riesgo exige revocar ya, asumiendo 401 hasta completar ambos despliegues.
+- Cada rotación se registra (fecha, operador, versiones de Secret Manager, ventana y resultado). Nunca se registra el valor de la clave.
+- Alarma de picos 401/403 durante la ventana.
+
+**Procedimiento**
+
+1. Generar K2 (256 bits aleatorios) y crear la nueva versión en Secret Manager.
+2. **Pre-aceptación:** desplegar BFF y Functions con `INTERNAL_KEY=K1` e `INTERNAL_KEY_ACCEPTED=K2`. Ambos aceptan K1/K2; siguen enviando K1.
+3. **Conmutación:** desplegar BFF y Functions con `INTERNAL_KEY=K2` e `INTERNAL_KEY_ACCEPTED=K1`. Ambos aceptan K1/K2; envían K2.
+4. Verificar 401/403 y tráfico; si falla, volver a `INTERNAL_KEY=K1` (K1 sigue aceptada) y corregir.
+5. **Limpieza:** tras 24–72 h sin errores, retirar `INTERNAL_KEY_ACCEPTED` y destruir la versión antigua en Secret Manager.
+
+**Fuera de v1:** `kid`/múltiples claves con identificador (opción B) y OIDC de servicio (opción C). No cambian D32; quedan como evolución.
 
 ---
 
@@ -351,9 +380,9 @@ Ejemplo de responsabilidades del middleware:
 
 ## 14. Puntos abiertos
 
-- **Gestión del monorepo:** definir cómo se consume `shared-types` desde `client` y `functions`.
+- **Gestión del monorepo:** ~~definir cómo se consume `shared-types` desde `client` y `functions`.~~ **Cerrado por D35 y ARCHITECTURE §7:** `functions` lo consume con `tsconfig paths` e `import type`; `client` lo consume como workspace y hace deep import de `presets.json`.
 - **`/api/auth/me`:** implementar para sincronizar estado cuando la cookie y la sesión de Firebase divergen.
-- **Rotación de secretos:** ~~definir política de rotación de `X-Internal-Key` y del secreto de firma del JWT del BFF.~~ **Cerrado por D34 para el JWT de sesión:** rotación con solape ≥ 65 min (`SESSION_JWT_SECRET_PREVIOUS`). Queda pendiente la política de rotación de `X-Internal-Key`.
+- **Rotación de secretos:** ~~definir política de rotación de `X-Internal-Key` y del secreto de firma del JWT del BFF.~~ **Cerrado por D34 para el JWT de sesión:** rotación con solape ≥ 65 min (`SESSION_JWT_SECRET_PREVIOUS`). **Cerrado por §11.1 para `X-Internal-Key` (opción A):** rotación cada 90 días con solape de 24–72 h, `INTERNAL_KEY` + `INTERNAL_KEY_ACCEPTED` en ambos planos; `kid`/OIDC quedan como evolución.
 - **Endpoint interno de sesión:** ~~confirmar el nombre exacto (`POST /internal/auth/verify`) y su contrato en `./openapi.backend.yaml`.~~ **Cerrado por D30:** el plano `/internal/*` queda fijado como garantía (ver §10.1 y §11); el nombre y el contrato ya no son provisionales.
 
 ---

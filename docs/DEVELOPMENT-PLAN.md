@@ -2,10 +2,10 @@
 # Plan General de Desarrollo (Macro Tareas, Dependencias y Olas)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
-**Versión:** 1.4 · 21 de octubre de 2026 (major de Next.js declarada como requisito de diseño; base de decisiones actualizada a D1–D31)  
-**Base:** `./TASKS.md` (decisiones D1–D31), `./PERFORMANCE.md` (presupuestos) y `./AUTHENTICATION.md`  
+**Versión:** 1.5 · 22 de octubre de 2026 (major de Next.js declarada como requisito de diseño; base de decisiones actualizada a D1–D36)  
+**Base:** `./TASKS.md` (decisiones D1–D36), `./PERFORMANCE.md` (presupuestos) y `./AUTHENTICATION.md`  
 **Arquitectura:** Monorepo (`packages/shared-types`, `packages/functions`, `packages/client`) · Next.js (BFF) + Firebase (Functions/Firestore/Auth/App Hosting) + Cloudflare R2 + Resend  
-**Requisito de diseño (Next.js):** la **major de Next.js 16** no es una preferencia, es una condición de la arquitectura del BFF — en Next 16 la convención `middleware` se renombró a `proxy`, y por eso el guard de sesión vive en `packages/client/src/proxy.ts` (con `src/`, el archivo debe llamarse `proxy.ts`; con `middleware` Next lo ignora silenciosamente). La major queda **bloqueada**: subir el patch (16.3.8 → 16.x) es routine, pero saltar de major exige revisar el guard de sesión y sus tests (US1.3). Versiones fijadas de todo el stack: `./ARCHITECTURE.md` §2.1.  
+**Requisito de diseño (Next.js):** la **major de Next.js 16** no es una preferencia, es una condición de la arquitectura del BFF — en Next 16 la convención `middleware` se renombró a `proxy`, y por eso el **cierre de superficie** (404/405) vive en `packages/client/src/proxy.ts` (con `src/`, el archivo debe llamarse `proxy.ts`; con `middleware` Next lo ignora silenciosamente). La major queda **bloqueada**: subir el patch (16.3.8 → 16.x) es routine, pero saltar de major exige revisar el Proxy, sus 404/405 y sus tests (AC0.1.6). La sesión se valida en el route handler (D32). Versiones fijadas de todo el stack: `./ARCHITECTURE.md` §2.1.  
 **Alcance:** orden de ejecución, prelación y dependencias. **No incluye estimaciones.** No sustituye al detalle de historias: la fuente de alcance y aceptación sigue siendo `./TASKS.md`.
 
 ---
@@ -20,7 +20,7 @@
 
 **Prioridad de las historias:** `MUST` bloquea el lanzamiento · `SHOULD` se espera en la v1 · `COULD` diferible. Las MT que contienen `COULD` (US1.12, US5.5) son diferibles y se marcan como tal.
 
-- **Épica 7 («Mobile First y Uso Eficiente de Datos») es transversal y no tiene ola propia.** Sus exigencias se inyectan como AC en las MT que construyen cada superficie: MT2.2 (API y caché, US7.4), MT2.3 (UI pública, US7.1/US7.3), MT4.1 y MT4.2 (panel y subidas, US7.5) y MT5.1 (US7.1 en contacto). La **configuración temprana** (Playwright con móvil por defecto, `lighthouserc.json`, script de análisis de bundles) entra en **MT0.4**, donde los gates quedan **informativos**; pasan a **bloqueantes por superficie** en cuanto cada una existe (listado y ficha en MT2.3) y el **cierre global** (US7.2 presupuesto + US7.6 CI) ocurre en **MT6.2**. Detalle de AC en `./TASKS.md` (Épica 7) y valores en `./PERFORMANCE.md`.
+- **Épica 7 («Mobile First y Uso Eficiente de Datos») es transversal y no tiene ola propia.** Sus exigencias se inyectan como AC en las MT que construyen cada superficie: MT2.2 (API y caché, US7.4), MT2.3 (UI pública, US7.1/US7.3), MT4.1 y MT4.2 (panel y subidas, US7.5) y MT5.1 (US7.1 en contacto). La **configuración temprana** (Playwright con móvil por defecto, `lighthouserc.json`, script de análisis de bundles) entra en **MT0.4**, donde los gates quedan **informativos**; siguen así hasta **MT6.2**, cuando pasan a **bloqueantes** para todas las rutas de AC7.2.1 (US7.2 presupuesto + US7.6 CI). Las mediciones por superficie de MT2.3 son referencia, no gate. Detalle de AC en `./TASKS.md` (Épica 7) y valores en `./PERFORMANCE.md`.
 
 ---
 
@@ -30,10 +30,10 @@
 - **Objetivo:** dejar cerradas las reglas del proyecto y las decisiones que bloquean el arranque.
 - **Contenido:**
   - Definition of Done (DoD), estrategia de ramas, convención de commits y revisión de PR — ver `./DEFINITION-OF-DONE.md` (define los 4 niveles: DoR, US, MT y ola/release; ramas `main`/`dev` protegidas; cobertura backend ≥ 80 %). Incluye el bloque **«Mobile First & Rendimiento»** del DoD de historia (§2.10) y las filas de gate de rendimiento (US7.2/US7.6) en §6.
-  - **Proceso de QA** frontend y backend (unit / integración / E2E, cobertura y gates) — **a crear** en `./QA.md`.
-  - **Diagramas de secuencia de los flujos de autenticación** (Mermaid/SVG) — **a crear** en `./AUTH-FLOWS.md`.
+  - **Proceso de QA** frontend y backend (unit / integración / E2E, cobertura y gates) — ver `./QA.md` (ya existe; fuente operativa).
+  - **Diagramas de secuencia de los flujos de autenticación** (Mermaid/SVG) — **cubiertos por** `./AUTHENTICATION.md` §§7–9 (no se crea `./AUTH-FLOWS.md`).
 - **Depende de:** —
-- **Salida:** decisiones cerradas; QA y diagramas disponibles como referencia (documentos a crear dentro de esta MT).
+- **Salida:** decisiones cerradas; QA y flujos de autenticación disponibles como referencia en `./QA.md` y `./AUTHENTICATION.md`.
 
 ### MT0.2 — Repositorio y tooling
 - **Objetivo:** monorepo compilable, con estilo y CI mínima.
@@ -49,7 +49,7 @@
 
 ### MT0.4 — Andamiaje técnico (contratos y base i18n)
 - **Objetivo:** el contrato y el esqueleto sobre los que se construye todo.
-- **Contenido:** **US0.1** (2 specs OpenAPI —`./openapi.backend.yaml` (interno BFF↔Functions) y `./openapi.bff.yaml` (público navegador↔BFF), D26— + `shared-types` + catálogo de códigos de error, **más el helper puro `buildWhatsAppUrl` de US2.5 en `packages/client/src/lib/whatsapp.ts` (D35)** para que consignación y contenido no dependan del catálogo), **US0.4** (esqueleto de i18n por rutas `/es` y `/en`) y la **configuración de calidad mobile-first (US7.6, parte de arranque):** proyecto Playwright táctil por defecto (375 × 667, US7.6.1) más proyecto de escritorio smoke (US7.6.2), `lighthouserc.json` con el perfil de `./PERFORMANCE.md` (US7.6.3) y script de análisis de bundles para el gate de AC7.2.8. Los **gates de rendimiento quedan informativos (no bloquean) desde aquí** y pasan a bloqueantes en cada superficie en cuanto existe (listado y ficha en MT2.3; resto de páginas públicas según su MT); el bloqueo global de US7.2/US7.6 se cierra en MT6.2. *US0.4 va al inicio porque, según el propio doc, cambiar la estructura después reescribe todas las rutas; la base de pruebas móvil se monta aquí para no reescribir la suite después.*
+- **Contenido:** **US0.1** (2 specs OpenAPI —`./openapi.backend.yaml` (interno BFF↔Functions) y `./openapi.bff.yaml` (público navegador↔BFF), D26— + `shared-types` + catálogo de códigos de error, **más el helper puro `buildWhatsAppUrl` de US2.5 en `packages/client/src/lib/whatsapp.ts` (D35)** para que consignación y contenido no dependan del catálogo), **US0.4** (esqueleto de i18n por rutas `/es` y `/en`) y la **configuración de calidad mobile-first (US7.6, parte de arranque):** proyecto Playwright táctil por defecto (375 × 667, US7.6.1) más proyecto de escritorio smoke (US7.6.2), `lighthouserc.json` con el perfil de `./PERFORMANCE.md` (US7.6.3) y script de análisis de bundles para el gate de AC7.2.8. Los **gates de rendimiento quedan informativos (no bloquean) desde aquí** y siguen así hasta **MT6.2**, cuando pasan a bloqueantes para todas las rutas de AC7.2.1 (US7.2/US7.6); las mediciones por superficie de MT2.3 son referencia, no gate. *US0.4 va al inicio porque, según el propio doc, cambiar la estructura después reescribe todas las rutas; la base de pruebas móvil se monta aquí para no reescribir la suite después.*
 - **Depende de:** MT0.2.
 - **Salida:** tipos compartidos y contrato publicados; helper `buildWhatsAppUrl` en `packages/client/src/lib/whatsapp.ts` (D35); estructura de rutas bilingüe montada; gates de rendimiento listos en modo informativo.
 
@@ -200,7 +200,7 @@ Esta tabla recoge toda prelación **no evidente** (las obvias están en las colu
 | **MT6.2 depende solo de las MUST/SHOULD** | Técnica | Las diferibles (MT5.2, MT6.3) no deben bloquear el release | MT6.2 excluye MT5.2 y MT6.3 de su conjunto de dependencias. |
 | **AC6.2.1 (alerta de presupuesto) se activa en MT0.3** | Técnica | El Blaze se contrata en MT0.3; la alerta debe existir desde el primer gasto | No en Ola 1: va con el plan Blaze. |
 | **AC6.2.2 (índices) verificado en MT6.1** | Técnica | El estado «índices = combinaciones documentadas» solo es cierto tras US1.10 (MT2.2) | US6.2 cierra su faceta de índices en MT6.1, no en Ola 1. |
-| **Gates de rendimiento informativos desde MT0.4** | Técnica | US7.2/US7.6 se configuran en MT0.4; bloquear desde el inicio frena el desarrollo sin superficie que medir | Informativos desde MT0.4, bloqueantes por superficie (listado/ficha en MT2.3), cierre global en MT6.2. |
+| **Gates de rendimiento informativos desde MT0.4** | Técnica | US7.2/US7.6 se configuran en MT0.4; bloquear desde el inicio frena el desarrollo sin superficie que medir | Informativos desde MT0.4; bloqueantes en MT6.2 para todas las rutas de AC7.2.1. Las mediciones de MT2.3 son referencia, no gate. |
 | **AC5.4.7 (redirección al login) se re-scopa a US1.5** | Técnica | AC5.4.7 referencia AC1.5.4 (US1.5); dejarla en US5.4 crea un ciclo story-level MT1.2↔MT1.3 | MT1.3 (US5.4) queda sin depender de MT1.2. |
 | **US1.12 (MT6.3) es extensión, no duplicado** | Alcance | MT1.2 ya resuelve el rol único `admin`; US1.12 añade la distinción de permisos | MT6.3 = roles/permisos múltiples (COULD), no la autorización básica. |
 | **Contenido legal real (cliente)** | Externa | AC5.3.4 (revisión jurídica antes de producción) | Dependencia externa; no bloquea el desarrollo, sí el release. |
@@ -225,7 +225,7 @@ El **BFF es código de servidor de Next.js** y se asigna a **Dev 1** aunque viva
 | :-- | :-- | :-- |
 | `packages/client/src/app/api/**` | **Dev 1** | Route handlers del BFF, **uno por ruta y sin *catch-all*** (D31): `/api/auth/session`, `/api/auth/logout`, `/api/auth/me`, `/api/properties*`, `/api/services*`, `/api/media/*`, `/api/consignments`, `/api/about`, `/api/revalidate`. El router de Next.js es la allowlist |
 | `packages/client/src/server/**` | **Dev 1** | `routes.ts` (catálogo generado desde `./openapi.bff.yaml`: mapeo ruta pública ↔ interna y política de sesión, D31/AC0.1.8) y `session/jwt.ts` (el BFF ya no usa Firebase Admin; la verificación del idToken vive en `packages/functions/**`) |
-| `packages/client/src/proxy.ts` | **Dev 1** | Guard de sesión y propagación `X-User-*` (US1.3). En **Next 16** la convención `middleware` se renombró a **`proxy`**; con carpeta `src/`, el archivo debe vivir en `src/proxy.ts` (no en la raíz, o Next lo ignora) |
+| `packages/client/src/proxy.ts` | **Dev 1** | Cierre de superficie (404/405) y allowlist de `/api/*` (D32, AC0.1.6). **No** valida sesión ni propaga `X-User-*`; eso ocurre en el envoltorio del route handler. En **Next 16** la convención `middleware` se renombró a **`proxy`**; con carpeta `src/`, el archivo debe vivir en `src/proxy.ts` (no en la raíz, o Next lo ignora) |
 | `packages/client/**` (resto) | **Dev 2** | Componentes React, TanStack Query, SDK cliente de Firebase |
 | `packages/functions/**` | **Dev 1** | Backend (Clean Architecture) |
 | `packages/shared-types/**` | **Fullstack** | Contratos y tipos (US0.1) |
@@ -236,7 +236,7 @@ El **BFF es código de servidor de Next.js** y se asigna a **Dev 1** aunque viva
 Reglas:
 - El código de `src/server/**` es **server-only**; prohibido importarlo desde componentes cliente (paquete `server-only` + regla de lint).
 - La frontera entre ambos es el **contrato** de `shared-types` (US0.1).
-- El **`proxy` (US1.3)** afecta al enrutado: requiere coordinación entre devs y se define temprano (Ola 1).
+- El **`proxy` (AC0.1.6)** afecta al enrutado: requiere coordinación entre devs y se define temprano (Ola 1). La sesión se valida en el route handler (D32).
 
 ---
 

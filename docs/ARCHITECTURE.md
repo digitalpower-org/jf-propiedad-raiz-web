@@ -2,8 +2,8 @@
 # Arquitectura del Monorepo
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
-**Versión:** 1.1 · 21 de octubre de 2026 (stack fijada en §2.1)
-**Base:** `./TASKS.md` (decisiones D1–D31, en especial D9, D17, D19, D22, D24, D26–D31) y `./AUTHENTICATION.md`  
+**Versión:** 1.2 · 22 de octubre de 2026 (stack fijada en §2.1; base D1–D36)
+**Base:** `./TASKS.md` (decisiones D1–D36, en especial D9, D17, D19, D22, D24, D26–D36) y `./AUTHENTICATION.md`  
 **Naturaleza:** describe la **estructura**, el **flujo de datos** y las **convenciones** del proyecto. Los presupuestos de rendimiento viven en `./PERFORMANCE.md`, no aquí.
 
 ---
@@ -65,7 +65,7 @@ Regla de dependencias: `client` y `functions` dependen de `shared-types`; nunca 
 
 ### 2.1 Stack fijada
 
-Versiones con las que se desarrolla el proyecto. La **major de Next.js es un requisito de diseño, no una preferencia**: en Next 16 la convención `middleware` se renombró a `proxy`, y de ahí que el guard de sesión del BFF viva en `packages/client/src/proxy.ts` (§3.2). El patch de Next se actualiza por routine; la major, no.
+Versiones con las que se desarrolla el proyecto. La **major de Next.js es un requisito de diseño, no una preferencia**: en Next 16 la convención `middleware` se renombró a `proxy`, y de ahí que el **cierre de superficie** (404/405) viva en `packages/client/src/proxy.ts` (§3.2); la sesión se valida en el route handler (D32). El patch de Next se actualiza por routine; la major, no.
 
 | Pieza | Versión fijada | Dónde se fija | Nota |
 |---|---|---|---|
@@ -89,7 +89,7 @@ Versiones con las que se desarrolla el proyecto. La **major de Next.js es un req
 | Prettier | `^3.0.0` | raíz | Formato; `docs/` está excluido (`.prettierignore`). |
 | @lhci/cli | `^0.15.0` | raíz | Lighthouse CI (presupuestos en `./PERFORMANCE.md`). |
 
-**Regla de bloqueo de major:** actualizar el patch de Next (16.3.8 → 16.x) es routine. Saltar de major (16 → 17) **exige** revisar `packages/client/src/proxy.ts` y revalidar el guard de sesión y sus tests (US1.3), porque la convención de archivo y el contrato del Proxy son parte del diseño, no un detalle de implementación.
+**Regla de bloqueo de major:** actualizar el patch de Next (16.3.8 → 16.x) es routine. Saltar de major (16 → 17) **exige** revisar `packages/client/src/proxy.ts`, sus 404/405 y sus tests (AC0.1.6); la sesión se valida en el route handler (D32), porque la convención de archivo y el contrato del Proxy son parte del diseño, no un detalle de implementación.
 
 ---
 
@@ -205,14 +205,14 @@ Notas:
   - `/api/revalidate` — **ruta del BFF** consumida *server-to-server* por Cloud Functions mediante webhook interno autenticado por `X-Internal-Key`; se documenta en el tag `Internal` de `./openapi.bff.yaml` (AC0.3.1/D26).
   - El **mapeo** ruta pública ↔ ruta interna y la **política de sesión** (qué rutas exigen cookie) viven en un único módulo, `packages/client/src/server/routes.ts`, **generado** desde `./openapi.bff.yaml` (`gen:routes`, AC0.1.8): la spec es la fuente y el catálogo se deriva de ella, así que no pueden divergir.
 - **Planos del backend:** `/api/v1/*` es la API de dominio versionada (siempre con identidad propagada `X-User-*`); `/internal/*` es el plano **entre planos**, sin versionar, para la verificación de sesión (`POST /internal/auth/verify`) y **nunca alcanzable desde el navegador** (D30).
-- **`shared-types`:** paquete de solo tipos (`.d.ts`, sin runtime); `functions` lo consume vía `paths` en su `tsconfig` y **sin** dependencia npm (requisito de despliegue de Firebase); `client` lo consume como dependencia de workspace y reexporta los presets desde `src/lib/filters.ts` (import profundo `@jf/shared-types/presets.json`, con `presets.json` en la raíz del paquete); `npm run build:types` genera `src/api/backend.gen.d.ts` y `src/api/bff.gen.d.ts` a partir de las dos specs (D26). El único helper de runtime compartido, `buildWhatsAppUrl`, **no** vive aquí: está en `packages/client/src/lib/whatsapp.ts` (D35).
+- **`shared-types`:** paquete **sin código ejecutable** (solo `.d.ts` y datos JSON de solo lectura: `presets.json` y `errors.json`; sin `main`/`exports` de runtime); `functions` lo consume vía `paths` en su `tsconfig` y **sin** dependencia npm (requisito de despliegue de Firebase); `client` lo consume como dependencia de workspace y reexporta los presets desde `src/lib/filters.ts` (import profundo `@jf/shared-types/presets.json`, con `presets.json` en la raíz del paquete); `npm run build:types` genera `src/api/backend.gen.d.ts` y `src/api/bff.gen.d.ts` a partir de las dos specs (D26). El único helper de runtime compartido, `buildWhatsAppUrl`, **no** vive aquí: está en `packages/client/src/lib/whatsapp.ts` (D35).
 - **Configuración Auth en `firebase.json`:** la sección `auth` (proveedores `emailPassword`, `googleSignIn.supportEmail`) es configuración que **`firebase deploy` publica en el proyecto** (no es exclusiva del emulador). `emailPassword: true` se mantiene **intencionalmente**: además del login de producto (Google + lista blanca, US1.1) se usan usuarios de **desarrollo** con correo y contraseña.
 
 ---
 
 ## 8. Referencias
 
-- Historias y AC: `./TASKS.md` (D1–D29; US0.1, US0.3, US0.4, US0.5, US1.9–US1.11, US4.x, US7.x).
+- Historias y AC: `./TASKS.md` (D1–D36; US0.1, US0.3, US0.4, US0.5, US1.9–US1.11, US4.x, US7.x).
 - Contratos: `./openapi.backend.yaml`, `./openapi.bff.yaml` (D26).
 - Autenticación: `./AUTHENTICATION.md`.
 - Rendimiento: `./PERFORMANCE.md`.
