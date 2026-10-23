@@ -11,7 +11,7 @@
 - Dos tipos de usuario: **Visitante** (sin sesión, solo rutas públicas) y **Administrador** (con sesión, gestiona el catálogo).
 - El admin inicia sesión **únicamente con Google** (Firebase Auth). Solo se le emite acceso si su correo está en la **lista blanca** (colección `authorized_users` en Firestore) y activo; el **backend** lo verifica (a petición del BFF) al canjear el idToken.
 - El **frontend nunca habla con el backend**. Existe un **BFF** (Next.js) que media todas las peticiones.
-- El BFF reenvía el **idToken** de Firebase al **backend** para que lo **valide**; si la validación es exitosa, el BFF emite su **JWT propio** en una **cookie HttpOnly**. A partir de ahí, el navegador solo manda esa cookie al BFF, que la valida en cada petición.
+- El BFF reenvía el **idToken** de Firebase al **backend** para que lo **valide**; si la validación es exitosa, el BFF emite su **JWT propio** en una **cookie HttpOnly**. A partir de ahí, el navegador solo manda esa cookie (`__session`, D33) al BFF, que la valida en el envoltorio de cada route handler con sesión (D32).
 - El BFF → backend se autentica con una **`X-Internal-Key`** (secreto compartido) y propaga la identidad en cabeceras `X-User-*`; el **backend** es la autoridad de **identidad** (valida idTokens) y de **autorización** (rutas de admin).
 - La lista blanca de administradores vive en Firestore (colección `authorized_users`), no en Firebase Auth ni en variables de entorno. Firebase Auth aporta solo la identidad (Google); la autorización la decide el **backend**.
 - No se implementa ningún endpoint de refresh propio: la renovación la maneja el **SDK de Firebase** en el cliente.
@@ -74,7 +74,7 @@
 | Elemento | Rol | Notas |
 | :---- | :---- | :---- |
 | **Frontend (Next.js + React)** | UI web | Controla rutas públicas/privadas, muestra "Iniciar sesión con Google", gestiona estado con el SDK de Firebase Auth (`onAuthStateChanged`, `onIdTokenChanged`, `signInWithPopup`, `signOut`). **No** muestra ningún flujo de registro ni creación de cuenta. **No** guarda el idToken en `localStorage`. |
-| **BFF (Next.js)** | Backend for Frontend | Mismo despliegue/origen que el front (App Hosting). Único interlocutor del backend. **No** valida idTokens de Firebase: los reenvía al backend. Firma su **JWT propio** en cookie HttpOnly y valida esa cookie en cada petición; hace de proxy del resto de rutas añadiendo `X-Internal-Key` + `X-User-*`. |
+| **BFF (Next.js)** | Backend for Frontend | Mismo despliegue/origen que el front (App Hosting). Único interlocutor del backend. **No** valida idTokens de Firebase: los reenvía al backend. Firma su **JWT propio** en cookie HttpOnly y lo valida en el envoltorio de cada route handler con sesión (D32), no en el Proxy; reenvía al backend el resto de rutas añadiendo `X-Internal-Key` + `X-User-*`. |
 | **Firebase App Hosting** | Alojamiento front + BFF | Sirve la app Next.js (frontend y BFF en el **mismo origen**, lo que simplifica cookies `SameSite=Strict`). |
 | **Backend (Firebase Functions — monolito `api`)** | API REST (Clean Architecture) | **Valida los idTokens de Firebase (login/refresh) y la lista blanca** en su endpoint interno de sesión; **autoriza** las rutas de administrador. En las rutas de negocio valida `X-Internal-Key` y confía en `X-User-*` propagadas por el BFF. |
 | **Lista blanca (`authorized_users`)** | Guardia de autorización en el **backend** | Colección de Firestore `authorized_users` (`email`, `role`, `active`, `createdAt`). Es la fuente de la autorización, consultada por el backend. |
@@ -93,7 +93,7 @@ Es habitual confundir una sola "sesión". Aquí hay **dos**, en sitios distintos
 | Sesión | Qué guarda | Dónde | Vida | Quién la gestiona |
 | :---- | :---- | :---- | :---- | :---- |
 | **Sesión Firebase** | idToken + **refresh token** | IndexedDB del navegador (`browserLocalPersistence`, persistida por el SDK) | Refresh token: larga. idToken: ~1 h | SDK de Firebase (cliente); el idToken lo **valida el backend** en login/refresh |
-| **Sesión BFF** | **JWT propio** (`sub`, `email`, `role: admin`) | Cookie `HttpOnly` | **65 min** | BFF |
+| **Sesión BFF** | **JWT propio** (`sub`, `email`, `role`, `iss`, `aud`, `iat`, `exp`; D34) | Cookie `__session`, `HttpOnly` | **65 min** | BFF |
 
 Consecuencias:
 
@@ -127,8 +127,8 @@ Consecuencias:
 7. Backend: verifyIdToken(idToken, true) + comprueba el correo en authorized_users (active = true)
      - Correo fuera de la lista blanca -> el backend deniega (403) -> el BFF responde 403 -> login falla ("Acceso denegado")
 8. Backend: responde la identidad verificada { uid, email, role }
-9. BFF: construye su propio JWT { sub: uid, email, role (devuelto por el backend), exp: now + 65 min }
-10. BFF: responde 200 y setea cookie HttpOnly + Secure + SameSite=Strict con el JWT propio
+9. BFF: construye su propio JWT `{ sub: uid, email, role, iss: "jf-bff", aud: "jf-web", iat: now, exp: iat + 65 min }` (D34)
+10. BFF: responde 200 y setea la cookie `__session` (HttpOnly + Secure + SameSite=Strict) con el JWT propio
 11. Front redirige a /admin
 12. Peticiones siguientes: el navegador envía SOLO la cookie al BFF -> el BFF valida el JWT -> el BFF propaga X-User-* al backend -> el backend autoriza
 ```
@@ -185,7 +185,7 @@ El logout es **bidireccional**: hay que limpiar la sesión de Firebase **y** la 
 1. Admin pulsa "Cerrar sesión"
 2. Cliente: await signOut(auth)     (Firebase Auth limpia sesión local + refresh token)
 3. Cliente: POST /api/auth/logout
-4. BFF: borra la cookie de sesión (Max-Age=0 / expires=epoch, mismo Path/Domain/Secure/SameSite)
+4. BFF: borra la cookie `__session` (Max-Age=0 / expires=epoch, mismo Path/Domain/Secure/SameSite)
 5. Respuesta 204 -> redirigir a / (público)
 ```
 
@@ -199,20 +199,22 @@ El logout es **bidireccional**: hay que limpiar la sesión de Firebase **y** la 
 
 Para `POST /api/auth/session`, el BFF **no** valida el idToken por sí mismo: llama a un **endpoint interno** del backend.
 
-- **Endpoint:** `POST /internal/auth/verify` (nombre sujeto a confirmación; forma parte de `./openapi.backend.yaml`, D26).
+- **Endpoint:** `POST /internal/auth/verify` (**confirmado**; forma parte de `./openapi.backend.yaml`, D26). Su nombre y su contrato son fijos: `/internal/*` es el **plano entre planos** del backend, sin versionar y **nunca alcanzable desde el navegador** (D30).
 - **Autenticación:** `X-Internal-Key` (igual que el resto del tráfico BFF↔backend). **Nunca** se expone al navegador.
 - **Entrada:** el idToken de Firebase.
 - **Proceso (backend):** `verifyIdToken(idToken, true)` + consulta `authorized_users` (`email`, `active = true`).
 - **Salida:** 200 con `{ uid, email, role }` o 401/403 si el idToken es inválido/revocado o el correo no está autorizado.
 - El BFF traduce el 403 del backend a **403 `PERMISSION_DENIED`** y no emite cookie.
 
-### 10.2 Peticiones de negocio (proxy)
+### 10.2 Peticiones de negocio (envoltorio del handler)
 
-Para toda ruta que **no** sea `/auth/*`, el BFF:
+Cada route handler se declara con un envoltorio que consulta el catálogo único `packages/client/src/server/routes.ts` (D31) y aplica la política de **su** ruta (D32). El Proxy **no** autentica: solo cierra la superficie con 404/405 (AC0.1.6).
 
-1. Valida la cookie de sesión (JWT propio: firma, `exp`).
-2. En caso inválido/expirado → **401** (el front dispara el refresh de la sección 8).
-3. En caso válido → reenvía la petición al backend añadiendo cabeceras:
+**Rutas `session`:**
+
+1. El envoltorio valida la cookie (JWT propio: firma, `exp`) **antes** de ejecutar el handler y antes de leer el cuerpo.
+2. Inválida o expirada → **401** con la envoltura estándar (el front dispara el refresh de la sección 8).
+3. Válida → deriva `{ sub, email, role }` de los claims verificados y reenvía al backend añadiendo:
 
 ```
 X-Internal-Key: <secreto compartido BFF<->backend>
@@ -221,6 +223,17 @@ X-User-Email:   <email>
 X-User-Role:    admin
 X-Request-Id:   <uuid>          (opcional, correlación/logs)
 ```
+
+**Rutas `public`:** no se lee la cookie ni se adjuntan `X-User-*` (p. ej. `POST /api/consignments`, que solo propaga `X-Client-IP`).
+
+**Rutas `internal`:** la autoridad es `X-Internal-Key` —el mismo secreto que el BFF usa saliente hacia Functions—, no la cookie; es el caso de `POST /api/revalidate` (AC1.3.6).
+
+**Respuestas `session`:** `Cache-Control: no-store`; nunca se sirven desde caché compartida (AC1.3.7).
+
+**Por qué en el handler y no en el Proxy:** si la comprobación viviera solo en el Proxy, un `matcher` mal configurado, un rewrite futuro o una invocación directa del handler (pruebas, *fetch* interno) la saltarían. Con el envoltorio, cada handler es defendible por sí mismo y se prueba sin Proxy; el coste es un HMAC por petición, sin I/O (sesión *stateless*, AC1.2.8).
+
+
+**Cierre de la superficie (AC0.1.6):** antes del router de Next.js y sin decidir sesión ni reenvío, `packages/client/src/proxy.ts` distingue entre ruta no declarada y método no permitido con *path-first*: si la ruta no existe → **404 `NOT_FOUND`** con la envoltura estándar; si existe pero el método no está declarado → **405 `METHOD_NOT_ALLOWED`** con la envoltura estándar y cabecera `Allow` (añade `HEAD`/`OPTIONS` cuando corresponde). `HEAD`/`OPTIONS` se delegan a Next.js cuando son válidos. Los errores nunca se devuelven como HTML ni con cuerpo vacío.
 
 **Nomenclatura:** se usa el prefijo `X-User-*` por claridad y autoexplicación (`X-User-Id/Email/Role`), en lugar de `X-Id/X-Email/X-Role`.
 
@@ -235,15 +248,61 @@ X-Request-Id:   <uuid>          (opcional, correlación/logs)
 
 ---
 
+### 10.3 Verificación del JWT de sesión (D34)
+
+`verifySession()` se ejecuta en el envoltorio del handler (D32) antes de toda lógica y aplica las comprobaciones **en este orden**; cualquier fallo corta con **401 `UNAUTHORIZED`** y la misma forma, sin revelar cuál falló:
+
+| # | Comprobación | Regla |
+| :-- | :---- | :---- |
+| 1 | Valor único | Si la petición trae más de un `__session`, se rechaza |
+| 2 | Tamaño | ≤ 4 KB |
+| 3 | Formato y algoritmo | Tres segmentos base64url válidos; `alg` **exactamente** `HS256` (se rechazan `none`, `RS256`, `HS384`…) |
+| 4 | Firma | HMAC válido, comparación en tiempo constante |
+| 5 | Emisor/audiencia | `iss = "jf-bff"` y `aud = "jf-web"` |
+| 6 | Claims | `sub`, `email` y `role` presentes y `string` no vacío; `iat` y `exp` numéricos (segundos) |
+| 7 | `iat` | `iat ≤ now + 60 s` |
+| 8 | `exp` | `exp ≥ now − 60 s` |
+| 9 | Invariante de TTL | `iat ≤ exp` y `exp − iat = 3900 s` |
+
+**Lo que NO se comprueba y por qué:**
+
+- **`nbf`:** no se emite; si aparece, se ignora.
+- **Rol:** el BFF solo exige que `role` sea un string no vacío. Compararlo con `admin` sería autorización de negocio, que es del backend con `X-User-Role` (D27).
+- **Revocación:** no hay denylist, ni `jti`, ni consulta a Firestore por petición (D29). Un token copiado sigue siendo válido hasta su `exp`; el logout borra la cookie, no invalida el JWT.
+- **Ventana absoluta:** no existe. Una sesión activa se renueva indefinidamente mientras el idToken de Firebase siga siendo válido (§8.2).
+
+**Rotación del secreto:** `SESSION_JWT_SECRET` (actual) y `SESSION_JWT_SECRET_PREVIOUS` (saliente). Se verifica con ambos y se firma con el actual; la variable anterior se retira cuando han pasado ≥ 65 min desde la última emisión con la clave vieja. Sin `kid`.
+
+**Matriz de pruebas** (todas → 401 salvo donde se indique):
+
+| Caso | Esperado |
+| :---- | :---- |
+| Token válido | Pasa y entrega `{ sub, email, role }` |
+| `exp` vencido hace > 60 s | 401 |
+| `exp` vencido hace < 60 s | Pasa (tolerancia) |
+| `iat` en el futuro > 60 s | 401 |
+| Firma alterada o secreto distinto | 401 |
+| `alg: none` o `RS256` | 401 |
+| `iss` o `aud` distintos | 401 |
+| Falta `sub`, `email` o `role`, o tipo incorrecto | 401 |
+| `exp − iat` ≠ 3900 s | 401 |
+| Token truncado, base64 inválido o > 4 KB | 401 sin excepción |
+| `Cookie: __session=a; __session=b` | 401 |
+
+**Observabilidad:** se registra `requestId` y un motivo interno (`expired`, `bad_signature`, `bad_claims`…), nunca el token ni la cookie.
+
+---
+
 ## 11. Seguridad
 
 | Control | Decisión |
 | :---- | :---- |
-| **Cookie de sesión (BFF)** | `HttpOnly: true`, `Secure: true` (obligatorio en prod), `SameSite: Strict`, `Path: '/'`. Sin `Domain` ambiguo. |
+| **Cookie de sesión (BFF)** | `__session` (D33): `HttpOnly: true`, `Secure: true` (obligatorio en prod), `SameSite: Strict`, `Path: '/'`. Sin `Domain` ambiguo. |
 | **CSRF** | Front y BFF en **mismo origen** → `SameSite=Strict` mitiga el grueso. Verificar `Origin` en rutas mutantes. |
 | **`X-Internal-Key`** | Secreto fuerte y **rotable** en Secret Manager / env de BFF y backend. HTTPS obligatorio. **Nunca** en el bundle del cliente. |
-| **Firma del JWT del BFF** | `HS256` con secreto en env (suficiente para v1). Nunca en el cliente. |
-| **Endpoint interno de sesión** | `POST /internal/auth/verify` accesible **solo** con `X-Internal-Key`; nunca expuesto al navegador. Es el único punto donde el backend ve un idToken. |
+| **Firma del JWT del BFF** | `HS256` con secreto en Secret Manager/env (D34). Rotación con solape ≥ 65 min (`SESSION_JWT_SECRET_PREVIOUS`). Nunca en el cliente. |
+| **Endpoint interno de sesión** | `POST /internal/auth/verify` accesible **solo** con `X-Internal-Key`; nunca expuesto al navegador. Es el único punto donde el backend ve un idToken. Su nombre y su contrato son fijos (D30). |
+| **Planos del backend** | `/api/v1/*` = API de dominio versionada, siempre con identidad propagada `X-User-*`. `/internal/*` = operaciones **entre planos**, sin versionar, **nunca alcanzables desde el navegador** (D30). El BFF es el único cliente de este plano; el backend es su único cliente de `/api/v1/*`. |
 | **Superficie del backend** | Las Functions HTTP son **públicas por defecto**; el aislamiento de red **no** es una garantía. La `X-Internal-Key` es el gate. |
 | **XSS** | El idToken en memoria + cookie HttpOnly reducen superficie. El refresh token vive en IndexedDB (tradeoff conocido del SDK). Aplicar CSP y disciplina anti-XSS. |
 | **Logs** | No loguear tokens completos. Loguear `uid` + `email` solo si hace falta auditoría. |
@@ -294,8 +353,8 @@ Ejemplo de responsabilidades del middleware:
 
 - **Gestión del monorepo:** definir cómo se consume `shared-types` desde `client` y `functions`.
 - **`/api/auth/me`:** implementar para sincronizar estado cuando la cookie y la sesión de Firebase divergen.
-- **Rotación de secretos:** definir política de rotación de `X-Internal-Key` y del secreto de firma del JWT del BFF.
-- **Endpoint interno de sesión:** confirmar el nombre exacto (`POST /internal/auth/verify`) y su contrato en `./openapi.backend.yaml`.
+- **Rotación de secretos:** ~~definir política de rotación de `X-Internal-Key` y del secreto de firma del JWT del BFF.~~ **Cerrado por D34 para el JWT de sesión:** rotación con solape ≥ 65 min (`SESSION_JWT_SECRET_PREVIOUS`). Queda pendiente la política de rotación de `X-Internal-Key`.
+- **Endpoint interno de sesión:** ~~confirmar el nombre exacto (`POST /internal/auth/verify`) y su contrato en `./openapi.backend.yaml`.~~ **Cerrado por D30:** el plano `/internal/*` queda fijado como garantía (ver §10.1 y §11); el nombre y el contrato ya no son provisionales.
 
 ---
 

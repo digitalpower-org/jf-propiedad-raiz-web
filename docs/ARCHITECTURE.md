@@ -2,8 +2,8 @@
 # Arquitectura del Monorepo
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
-**Versión:** 1.0 · 19 de octubre de 2026
-**Base:** `./TASKS.md` (decisiones D1–D29, en especial D9, D17, D19, D22, D24, D26–D29) y `./AUTHENTICATION.md`  
+**Versión:** 1.1 · 21 de octubre de 2026 (stack fijada en §2.1)
+**Base:** `./TASKS.md` (decisiones D1–D31, en especial D9, D17, D19, D22, D24, D26–D31) y `./AUTHENTICATION.md`  
 **Naturaleza:** describe la **estructura**, el **flujo de datos** y las **convenciones** del proyecto. Los presupuestos de rendimiento viven en `./PERFORMANCE.md`, no aquí.
 
 ---
@@ -24,35 +24,72 @@ Plataforma web bilingüe (español de Colombia por defecto, inglés generado o e
 
 ```
 jf-propiedad-raiz-web/
+├── .github/workflows/ci.yml  # CI: los 7 gates de ./QA.md §5.1, en orden y en un único job
 ├── packages/
 │   ├── shared-types/        # Tipos y contratos compartidos (fuente única de los modelos)
 │   │   ├── presets.json     # Dato empaquetado: combinaciones de filtros soportadas (ver §5)
+│   │   ├── errors.json      # Catálogo runtime de códigos de error → estado HTTP (fuente única)
 │   │   └── src/
 │   │       ├── models/      # Property, Service, contenidos, catálogos cerrados (tipo, amenidades…)
 │   │       ├── api/         # DTOs de request/response + *.gen.d.ts generados (backend, bff; D26)
 │   │       ├── filters.d.ts # Tipos sobre presets.json (PropertyListFilter, PropertyListState)
-│   │       └── errors.d.ts  # Catálogo de códigos de error estándar
+│   │       └── errors.d.ts  # Unión de tipos del catálogo de códigos de error
 │   ├── functions/           # Backend de dominio (Clean Architecture)
 │   │   └── src/
+│   │       ├── index.ts         # Entrypoint de deploy (health del walking skeleton, MT0.5)
+│   │       ├── health.ts        # Cuerpo tipado del health; consume @jf/shared-types
 │   │       ├── domain/          # Entidades, reglas e invariantes (sin dependencias de infraestructura)
 │   │       ├── application/     # Casos de uso (consulta pública, propiedad, media, correo, traducción)
 │   │       ├── infrastructure/  # Repositorios Firestore, R2, Resend, Scheduler
 │   │       └── presentation/     # Handlers HTTP, validación de contrato (OpenAPI), mapeo de errores
 │   └── client/              # Next.js: UI + BFF
+│       ├── messages/        # Diccionarios es.json / en.json (US0.4, D36)
 │       └── src/
-│           ├── app/             # Rutas (páginas públicas bilingües y /admin)
-│           ├── lib/             # Cliente HTTP centralizado, filters.ts (reexporta presets), i18n
-│           └── server/          # BFF: sesión (cookie), propagación de identidad, X-Internal-Key
+│           ├── app/             # Rutas (páginas públicas bilingües y /admin) + app/api/ (18 route handlers del BFF)
+│           ├── lib/             # Cliente HTTP centralizado (api.ts), filters.ts (reexporta presets), whatsapp.ts (D35)
+│           ├── i18n/            # Rutas por idioma (routes.ts), negociación Accept-Language, carga de diccionarios
+│           ├── proxy.ts         # Cierre de la superficie (404/405, D32); no autentica
+│           └── server/          # BFF: catálogo generado (routes.ts), matcher path-first (match-route.ts), sesión, X-Internal-Key
 ├── docs/                    # TASKS.md, PRD.md, ARCHITECTURE.md, AUTHENTICATION.md, DATABASE.md,
 │                            # DESIGN-SYSTEM.md, DEVELOPMENT-PLAN.md, DEFINITION-OF-DONE.md,
 │                            # PERFORMANCE.md, QA.md, openapi.backend.yaml, openapi.bff.yaml
 ├── .opencoderules           # Reglas del repo (TypeScript estricto, cero any, gates)
 ├── .prettierignore          # Excluye docs/, artefactos generados (lib/, test-results/)
+├── lighthouserc.json        # Lighthouse CI móvil (PERFORMANCE.md §1/§2); informativo hasta MT6.2
+├── scripts/                 # analyze-bundle.mjs (presupuesto de bytes, AC7.2.2)
 ├── package.json             # Raíz del monorepo: workspaces + orquestación npm (lint, gates)
 └── firestore.indexes.json   # Índices compuestos (deben coincidir con §5)
 ```
 
 Regla de dependencias: `client` y `functions` dependen de `shared-types`; nunca al revés. `shared-types` no importa de `client` ni de `functions`.
+
+### 2.1 Stack fijada
+
+Versiones con las que se desarrolla el proyecto. La **major de Next.js es un requisito de diseño, no una preferencia**: en Next 16 la convención `middleware` se renombró a `proxy`, y de ahí que el guard de sesión del BFF viva en `packages/client/src/proxy.ts` (§3.2). El patch de Next se actualiza por routine; la major, no.
+
+| Pieza | Versión fijada | Dónde se fija | Nota |
+|---|---|---|---|
+| Next.js | `16.3.8` | `packages/client/package.json` | Major **16** = requisito de diseño (convención `proxy`). Patch actualizable dentro de 16.x por routine. |
+| eslint-config-next | `16.3.8` | `packages/client/package.json` | Fijado junto a Next para no mezclar reglas de lint entre majors. |
+| React / React DOM | `19.2.8` | `packages/client/package.json` | |
+| Mantine (`core`, `form`, `hooks`) | `^9.7.0` | `packages/client/package.json` | Sin Tailwind: CSS Modules + `postcss-preset-mantine`. |
+| TanStack Query | `^5.0.0` | `packages/client/package.json` | Único cliente de datos del frontend. |
+| next-intl | `4.14.9` | `packages/client/package.json` | i18n de US0.4 (D36); sin middleware, idioma por segmento `[locale]`. |
+| server-only | `0.0.1` | `packages/client/package.json` | Impide que la carga de diccionarios entre en el bundle de cliente (AC7.2.4). |
+| Zod | `^4.0.0` | `client` y `functions` | Validación de contrato en ambos planos. |
+| TypeScript | `^5` | los tres packages | `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`; sin `any`. |
+| Node.js | `24` | raíz (`engines.node`) y `packages/functions` | `packageManager: npm@11.19.0`; el repo no arranca con Node 20. |
+| Vitest | `^4.0.0` | `client` y `functions` | |
+| Playwright | `^1.50.0` | `packages/client` | E2E; requiere `npx playwright install chromium`. |
+| firebase-admin / firebase-functions | `^13.6.0` / `^7.0.0` | `packages/functions` | |
+| sharp | `^0.34.0` | `packages/functions` | Procesamiento de imágenes. |
+| resend | `^6.0.0` | `packages/functions` | Envío de correo. |
+| @google-cloud/translate | `^10.3.0` | `packages/functions` | Detrás del puerto `Translator`. |
+| openapi-typescript | `^7.0.0` | `packages/shared-types` | Genera `src/api/*.gen.d.ts` desde las dos specs (D26). |
+| Prettier | `^3.0.0` | raíz | Formato; `docs/` está excluido (`.prettierignore`). |
+| @lhci/cli | `^0.15.0` | raíz | Lighthouse CI (presupuestos en `./PERFORMANCE.md`). |
+
+**Regla de bloqueo de major:** actualizar el patch de Next (16.3.8 → 16.x) es routine. Saltar de major (16 → 17) **exige** revisar `packages/client/src/proxy.ts` y revalidar el guard de sesión y sus tests (US1.3), porque la convención de archivo y el contrato del Proxy son parte del diseño, no un detalle de implementación.
 
 ---
 
@@ -79,7 +116,9 @@ Navegador ──idToken (solo canje)──> BFF ──POST /internal/auth/verify
 ```
 
 - El **backend** valida el idToken (`verifyIdToken(idToken, true)`) y la lista blanca `authorized_users`; autoriza las rutas de administrador a partir de `X-User-Role` (D27).
-- El **BFF** emite y valida su propio JWT de sesión (firma y `exp`) en una cookie; no decide autorización de negocio.
+- El **BFF** emite y valida su propio JWT de sesión (firma, claims y tiempos, D34) en la cookie `__session`; la validación vive en el **envoltorio del route handler** (D32), no en el Proxy, y no decide autorización de negocio.
+- El **Proxy** (`packages/client/src/proxy.ts`) cierra la superficie pública **antes** del router de Next.js: rutas no declaradas responden `404 NOT_FOUND`, métodos no permitidos responden `405 METHOD_NOT_ALLOWED` con cabecera `Allow` (ambos con la envoltura estándar; nunca HTML ni cuerpo vacío). La resolución es *path-first* como en el router de Next.js (el segmento literal gana al dinámico y el método se comprueba después), de modo que no se filtran rutas por método incorrecto. **No** valida la cookie: la autenticación es del handler (D32).
+- El **cliente HTTP** (`packages/client/src/lib/api.ts`) es el punto único de consumo desde el navegador: normaliza cualquier respuesta a la envoltura de éxito o lanza `ApiError` con `code`, `status` y `requestId`. Las respuestas fuera de contrato (HTML, cuerpo vacío, JSON inválido) se degradan a `INTERNAL` sin filtrar el cuerpo crudo; los fallos de red se reportan con `status: 0`.
 
 ### 3.3 Escritura de contenido y traducción
 
@@ -160,8 +199,13 @@ Notas:
 - **Mobile First:** estilos base para 320–414 px y mejora progresiva con `min-width` (US7.1).
 - **Node.js:** la versión oficial del proyecto es **Node 24** (producción, App Hosting, CI y desarrollo local), fijada con `.nvmrc` (`nvm use`) y declarada en `engines` de la raíz y de `packages/functions` (`"node": "24"`).
 - **Nombres de paquetes (workspaces npm):** `@jf/shared-types`, `@jf/client`, `@jf/functions`; los scripts de un paquete se ejecutan con `npm run <script> -w <paquete>`.
-- **Rutas del BFF:** siempre bajo `/api/*`: `/api/auth/*` (sesión: `POST /api/auth/session`, `POST /api/auth/logout`, `GET /api/auth/me`), `/api/bff/*` (proxy público hacia Functions, AC0.2.1) y `/api/revalidate` (**ruta del BFF** consumida *server-to-server* por Cloud Functions mediante webhook interno autenticado por `X-Internal-Key`; se documenta en el tag `Internal` de `./openapi.bff.yaml`, AC0.3.1/D26).
-- **`shared-types`:** paquete de solo tipos (`.d.ts`, sin runtime); `functions` lo consume vía `paths` en su `tsconfig` y **sin** dependencia npm (requisito de despliegue de Firebase); `client` lo consume como dependencia de workspace y reexporta los presets desde `src/lib/filters.ts` (import profundo `@jf/shared-types/presets.json`, con `presets.json` en la raíz del paquete); `npm run build:types` genera `src/api/backend.gen.d.ts` y `src/api/bff.gen.d.ts` a partir de las dos specs (D26).
+- **Rutas del BFF:** siempre bajo `/api/*`, y **declaradas una a una** —sin *catch-all*— para que el router de Next.js sea la allowlist (*fail-closed*, D31). Por convención la ruta pública `/api/<x>` reenvía a la interna `/api/v1/<x>`; las excepciones se declaran en la operación con `x-bff-internal-path` (ruta interna literal, o `null` si la resuelve el BFF):
+  - `/api/auth/*` — sesión: `POST /api/auth/session` (reenvía a `POST /internal/auth/verify`), `POST /api/auth/logout` y `GET /api/auth/me` (locales, sin reenvío).
+  - `/api/properties*`, `/api/services*`, `/api/media/*`, `/api/consignments`, `/api/about` — superficie pública de datos y acciones (AC0.2.1), con o sin sesión según el catálogo.
+  - `/api/revalidate` — **ruta del BFF** consumida *server-to-server* por Cloud Functions mediante webhook interno autenticado por `X-Internal-Key`; se documenta en el tag `Internal` de `./openapi.bff.yaml` (AC0.3.1/D26).
+  - El **mapeo** ruta pública ↔ ruta interna y la **política de sesión** (qué rutas exigen cookie) viven en un único módulo, `packages/client/src/server/routes.ts`, **generado** desde `./openapi.bff.yaml` (`gen:routes`, AC0.1.8): la spec es la fuente y el catálogo se deriva de ella, así que no pueden divergir.
+- **Planos del backend:** `/api/v1/*` es la API de dominio versionada (siempre con identidad propagada `X-User-*`); `/internal/*` es el plano **entre planos**, sin versionar, para la verificación de sesión (`POST /internal/auth/verify`) y **nunca alcanzable desde el navegador** (D30).
+- **`shared-types`:** paquete de solo tipos (`.d.ts`, sin runtime); `functions` lo consume vía `paths` en su `tsconfig` y **sin** dependencia npm (requisito de despliegue de Firebase); `client` lo consume como dependencia de workspace y reexporta los presets desde `src/lib/filters.ts` (import profundo `@jf/shared-types/presets.json`, con `presets.json` en la raíz del paquete); `npm run build:types` genera `src/api/backend.gen.d.ts` y `src/api/bff.gen.d.ts` a partir de las dos specs (D26). El único helper de runtime compartido, `buildWhatsAppUrl`, **no** vive aquí: está en `packages/client/src/lib/whatsapp.ts` (D35).
 - **Configuración Auth en `firebase.json`:** la sección `auth` (proveedores `emailPassword`, `googleSignIn.supportEmail`) es configuración que **`firebase deploy` publica en el proyecto** (no es exclusiva del emulador). `emailPassword: true` se mantiene **intencionalmente**: además del login de producto (Google + lista blanca, US1.1) se usan usuarios de **desarrollo** con correo y contraseña.
 
 ---

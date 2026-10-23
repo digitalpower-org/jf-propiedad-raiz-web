@@ -2,9 +2,10 @@
 # Plan General de Desarrollo (Macro Tareas, Dependencias y Olas)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
-**Versión:** 1.3 · 20 de octubre de 2026 (auditoría 3: parches P2/P5/P9 — trazabilidad de US7.4 al panel, MT6.2 sin dependencias COULD, sitemap completo cerrado en MT5.1; verificado acíclico y 48/48 US)  
-**Base:** `./TASKS.md` (decisiones D1–D29), `./PERFORMANCE.md` (presupuestos) y `./AUTHENTICATION.md`  
+**Versión:** 1.4 · 21 de octubre de 2026 (major de Next.js declarada como requisito de diseño; base de decisiones actualizada a D1–D31)  
+**Base:** `./TASKS.md` (decisiones D1–D31), `./PERFORMANCE.md` (presupuestos) y `./AUTHENTICATION.md`  
 **Arquitectura:** Monorepo (`packages/shared-types`, `packages/functions`, `packages/client`) · Next.js (BFF) + Firebase (Functions/Firestore/Auth/App Hosting) + Cloudflare R2 + Resend  
+**Requisito de diseño (Next.js):** la **major de Next.js 16** no es una preferencia, es una condición de la arquitectura del BFF — en Next 16 la convención `middleware` se renombró a `proxy`, y por eso el guard de sesión vive en `packages/client/src/proxy.ts` (con `src/`, el archivo debe llamarse `proxy.ts`; con `middleware` Next lo ignora silenciosamente). La major queda **bloqueada**: subir el patch (16.3.8 → 16.x) es routine, pero saltar de major exige revisar el guard de sesión y sus tests (US1.3). Versiones fijadas de todo el stack: `./ARCHITECTURE.md` §2.1.  
 **Alcance:** orden de ejecución, prelación y dependencias. **No incluye estimaciones.** No sustituye al detalle de historias: la fuente de alcance y aceptación sigue siendo `./TASKS.md`.
 
 ---
@@ -36,9 +37,9 @@
 
 ### MT0.2 — Repositorio y tooling
 - **Objetivo:** monorepo compilable, con estilo y CI mínima.
-- **Contenido:** scaffold del monorepo (`packages/shared-types`, `packages/functions`, `packages/client`) + workspaces + `tsconfig`; lint/format (ESLint + Prettier, tipos estrictos); CI mínimo (build + lint + test) como gate.
+- **Contenido:** scaffold del monorepo (`packages/shared-types`, `packages/functions`, `packages/client`) + workspaces + `tsconfig`; lint/format (ESLint + Prettier, tipos estrictos); CI con los 7 gates de `./QA.md` §5.1 en su orden (`.github/workflows/ci.yml`, un único job) como gate.
 - **Depende de:** MT0.1 (las ramas, la convención de commits y el DoD se definen en MT0.1 y este repo las aplica).
-- **Salida:** `npm install` + `build` + `lint` + `test` en verde desde un clon limpio.
+- **Salida:** `npm install` + `build` + `lint` + `test` en verde desde un clon limpio, y la CI (`.github/workflows/ci.yml`) los reproduce con `npm ci`.
 
 ### MT0.3 — Infraestructura, cuentas y entornos
 - **Objetivo:** toda la plataforma externa contratada y conectable.
@@ -48,9 +49,9 @@
 
 ### MT0.4 — Andamiaje técnico (contratos y base i18n)
 - **Objetivo:** el contrato y el esqueleto sobre los que se construye todo.
-- **Contenido:** **US0.1** (2 specs OpenAPI —`./openapi.backend.yaml` (interno BFF↔Functions) y `./openapi.bff.yaml` (público navegador↔BFF), D26— + `shared-types` + catálogo de códigos de error, **incluido el helper puro `buildWhatsAppUrl` de US2.5 en `shared-types`** para que consignación y contenido no dependan del catálogo), **US0.4** (esqueleto de i18n por rutas `/es` y `/en`) y la **configuración de calidad mobile-first (US7.6, parte de arranque):** proyecto Playwright táctil por defecto (375 × 667, US7.6.1) más proyecto de escritorio smoke (US7.6.2), `lighthouserc.json` con el perfil de `./PERFORMANCE.md` (US7.6.3) y script de análisis de bundles para el gate de AC7.2.8. Los **gates de rendimiento quedan informativos (no bloquean) desde aquí** y pasan a bloqueantes en cada superficie en cuanto existe (listado y ficha en MT2.3; resto de páginas públicas según su MT); el bloqueo global de US7.2/US7.6 se cierra en MT6.2. *US0.4 va al inicio porque, según el propio doc, cambiar la estructura después reescribe todas las rutas; la base de pruebas móvil se monta aquí para no reescribir la suite después.*
+- **Contenido:** **US0.1** (2 specs OpenAPI —`./openapi.backend.yaml` (interno BFF↔Functions) y `./openapi.bff.yaml` (público navegador↔BFF), D26— + `shared-types` + catálogo de códigos de error, **más el helper puro `buildWhatsAppUrl` de US2.5 en `packages/client/src/lib/whatsapp.ts` (D35)** para que consignación y contenido no dependan del catálogo), **US0.4** (esqueleto de i18n por rutas `/es` y `/en`) y la **configuración de calidad mobile-first (US7.6, parte de arranque):** proyecto Playwright táctil por defecto (375 × 667, US7.6.1) más proyecto de escritorio smoke (US7.6.2), `lighthouserc.json` con el perfil de `./PERFORMANCE.md` (US7.6.3) y script de análisis de bundles para el gate de AC7.2.8. Los **gates de rendimiento quedan informativos (no bloquean) desde aquí** y pasan a bloqueantes en cada superficie en cuanto existe (listado y ficha en MT2.3; resto de páginas públicas según su MT); el bloqueo global de US7.2/US7.6 se cierra en MT6.2. *US0.4 va al inicio porque, según el propio doc, cambiar la estructura después reescribe todas las rutas; la base de pruebas móvil se monta aquí para no reescribir la suite después.*
 - **Depende de:** MT0.2.
-- **Salida:** tipos compartidos y contrato publicados (incl. `buildWhatsAppUrl`); estructura de rutas bilingüe montada; gates de rendimiento listos en modo informativo.
+- **Salida:** tipos compartidos y contrato publicados; helper `buildWhatsAppUrl` en `packages/client/src/lib/whatsapp.ts` (D35); estructura de rutas bilingüe montada; gates de rendimiento listos en modo informativo.
 
 ### MT0.5 — Esqueleto desplegable («walking skeleton»)
 - **Objetivo:** probar el despliegue de punta a punta en la Fase 0, antes de que el producto dependa de él.
@@ -58,7 +59,7 @@
 - **Depende de:** MT0.3, MT0.4.
 - **Salida:** despliegue de prueba en verde que fija el patrón de build/empaquetado que reutiliza MT1.5 y el cierre (MT6.1).
 
-> **Hito 0 (salida de la Fase 0):** repo + tooling + CI + Firebase/emuladores + cuentas + secretos/entornos + alerta de presupuesto + contratos (incl. `buildWhatsAppUrl`) + i18n base + **esqueleto desplegado (MT0.5)**. A partir de aquí arranca la Ola 1.
+> **Hito 0 (salida de la Fase 0):** repo + tooling + CI + Firebase/emuladores + cuentas + secretos/entornos + alerta de presupuesto + contratos y helper `buildWhatsAppUrl` (D35) + i18n base + **esqueleto desplegado (MT0.5)**. A partir de aquí arranca la Ola 1.
 
 ---
 
@@ -68,7 +69,7 @@
 
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
-| **MT1.1** | **BFF y seguridad interna** — reverse proxy de Next.js (`src/proxy.ts`, convención **Proxy** de Next 16) que valida su sesión (cookie), propaga identidad (`X-User-*`) y adjunta `X-Internal-Key`. (El canje del idToken —`POST /api/auth/session`— es US1.2 y vive en MT1.2.) | US0.2 | MT0.3, MT0.4, MT0.5 |
+| **MT1.1** | **BFF y seguridad interna** — superficie pública explícita del BFF (`app/api/**`, un route handler por ruta, sin *catch-all*, D31) sobre el catálogo `src/server/routes.ts` **generado** desde `./openapi.bff.yaml` (mapeo a la ruta interna y política de sesión, AC0.1.8), más el guard de Next (`src/proxy.ts`, convención **Proxy** de Next 16), que **solo** cierra la superficie (404/405, D32) y **no** autentica: la cookie la valida el envoltorio de cada route handler, que además propaga la identidad (`X-User-*`) y adjunta `X-Internal-Key` (D32, D34). (El canje del idToken —`POST /api/auth/session`— es US1.2 y vive en MT1.2.) | US0.2 | MT0.3, MT0.4, MT0.5 |
 | **MT1.2** | **Autenticación end-to-end** — login Google + endpoint interno que valida el `idToken` y la lista blanca `authorized_users` (Firestore) en el backend + cookie de sesión propia del BFF + autorización por `X-User-Role` + guard/renovación + logout + `/api/auth/me`. **Incluye el seed de `authorized_users`** (necesario para que US1.1 sea verificable) | US1.1, US1.2, US1.3, US1.4, US1.5, US1.6 | MT1.1, MT0.3 (Firebase Auth, Firestore) |
 | **MT1.3** | **Fundamentos de front compartidos** — cliente HTTP centralizado y gestión estándar de `ApiError` (lo consumen catálogo, consignación y CMS). La redirección al login ante 401 (AC5.4.7) se **re-scopa a US1.5** (vive con el ciclo de sesión), de modo que MT1.3 no depende de MT1.2 y se elimina el ciclo latente MT1.2↔MT1.3 | US5.4 | MT0.4 |
 | **MT1.4** | **Revalidación y traducción** — revalidación bajo demanda tras escrituras y traducción ES→EN selectiva por campo (`autoTranslate`, activa por defecto, con edición manual del inglés) con puerto `Translator`. Es prerequisito de **toda** escritura que traduce/revalida, incluido el alta de inmuebles (US1.7) | US0.3, US0.5 | MT1.1, MT0.3 |
@@ -88,7 +89,7 @@
 
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
-| **MT3.1** | **Consignación end-to-end** — formulario, consentimiento de datos, notificación con Resend y protección contra bots. Va por el BFF (US0.2) y usa el helper puro `buildWhatsAppUrl` (T3/US2.5) ya disponible en `shared-types` (MT0.4) en el respaldo de AC3.1.5. Su consentimiento enlaza a las páginas legales de **MT3.2** (Ola 2). No depende del catálogo (MT2.3) | US3.1, US3.2, US3.3, US3.4 | MT1.1, MT1.3, MT3.2, MT0.4, MT0.3 (Resend) |
+| **MT3.1** | **Consignación end-to-end** — formulario, consentimiento de datos, notificación con Resend y protección contra bots. Va por el BFF (US0.2) y usa el helper puro `buildWhatsAppUrl` (T3/US2.5) de `packages/client/src/lib/whatsapp.ts` (D35, MT0.4) en el respaldo de AC3.1.5. Su consentimiento enlaza a las páginas legales de **MT3.2** (Ola 2). No depende del catálogo (MT2.3) | US3.1, US3.2, US3.3, US3.4 | MT1.1, MT1.3, MT3.2, MT0.4, MT0.3 (Resend) |
 
 ### OLA 4 — CMS y gestión
 
@@ -101,7 +102,7 @@
 
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
-| **MT5.1** | **Páginas públicas de contenido** — índice/detalle de Servicios, pie de página y contacto, página «Nosotros». Leen los endpoints públicos de MT2.2 y el seed de MT2.4 (no dependen del CMS: el contenido del seed ya existe), usan el helper `buildWhatsAppUrl` de `shared-types` (MT0.4) y reutilizan el SEO técnico y el layout de MT2.3. **Aquí se cierra el sitemap completo** de US2.7 (al existir ya Servicios, Nosotros y las legales de MT3.2) | US5.1, US5.2, US5.6, US7.1 (contacto) | MT2.2, MT2.4, MT2.3, MT0.4 |
+| **MT5.1** | **Páginas públicas de contenido** — índice/detalle de Servicios, pie de página y contacto, página «Nosotros». Leen los endpoints públicos de MT2.2 y el seed de MT2.4 (no dependen del CMS: el contenido del seed ya existe), usan el helper `buildWhatsAppUrl` de `packages/client/src/lib/whatsapp.ts` (D35, MT0.4) y reutilizan el SEO técnico y el layout de MT2.3. **Aquí se cierra el sitemap completo** de US2.7 (al existir ya Servicios, Nosotros y las legales de MT3.2) | US5.1, US5.2, US5.6, US7.1 (contacto) | MT2.2, MT2.4, MT2.3, MT0.4 |
 | **MT5.2** | **Contacto editable (COULD)** — configuración de contacto desde el panel | US5.5 | MT4.2 |
 
 ### OLA 6 — Operación y cierre
@@ -189,7 +190,7 @@ Esta tabla recoge toda prelación **no evidente** (las obvias están en las colu
 | **MT2.1/MT2.2 → MT2.4 (seed de catálogo)** | Técnica | El seed siembra inmuebles (`JF-XXXX`), derivados de fotos y combinaciones de filtros que solo existen tras el dominio | El seed de catálogo va **después** del dominio y **antes** del catálogo (MT2.3). |
 | **MT2.2 (endpoints públicos de servicios/Nosotros) → MT2.3 (US2.6)** | Técnica | AC2.6.2/AC2.6.4 (portada) necesitan datos de contenido | **Rompe el cluster**: la portada cierra en Ola 2 sin esperar al CMS. |
 | **MT2.3 cierra el sitemap de inmuebles; MT5.1 cierra el sitemap completo** | Técnica | AC2.7.3 (el sitemap lista también Servicios, Nosotros y legales, no disponibles en Ola 2) | El sitemap completo **se re-scopa a MT5.1**; así MT2.3↔MT5.1 no forma ciclo. |
-| **`buildWhatsAppUrl` vive en `shared-types` (MT0.4)** | Contrato (T3) | Es una función pura; ubicarla en el contrato temprano libera a MT3.1 y MT5.1 de depender del catálogo (MT2.3) | Caen dos aristas artificiales (MT3.1←MT2.3 y MT5.1←MT2.3). |
+| **`buildWhatsAppUrl` se implementa en MT0.4** | Contrato (T3) | Es una función pura que vive fuera del catálogo (`packages/client/src/lib/whatsapp.ts`, D35); implementarla temprano libera a MT3.1 y MT5.1 de depender del catálogo (MT2.3) | Caen dos aristas artificiales (MT3.1←MT2.3 y MT5.1←MT2.3). |
 | **MT5.1 no depende del CMS** | Técnica | El contenido público de Servicios/Nosotros se lee del seed (MT2.4), no del CMS (MT4.2); el CMS solo lo edita | MT5.1←MT4.1/MT4.2 era artificial: se elimina. |
 | **MT3.2 (legales) → MT3.1 y al sitemap** | Contrato | AC3.3.1 (el consentimiento enlaza a la Política) y AC2.7.3 (el sitemap lista las legales) | Las legales se adelantan a **Ola 2** (solo dependen de MT0.4/MT1.4); resuelven antes de que MT3.1 y MT5.1 las referencien. |
 | **MT2.3 (vistas previas) → MT4.1** | UI | AC4.1.9 (el editor reutiliza los componentes de tarjeta/ficha públicos) | No reimplementar componentes de catálogo en el CMS. |
@@ -222,12 +223,13 @@ El **BFF es código de servidor de Next.js** y se asigna a **Dev 1** aunque viva
 
 | Ruta | Responsable | Contenido |
 | :-- | :-- | :-- |
-| `packages/client/src/app/api/**` | **Dev 1** | Route handlers del BFF: `/api/auth/session`, `/api/auth/logout`, `/api/auth/me`, `/api/bff/*`, `/api/revalidate` |
-| `packages/client/src/server/**` | **Dev 1** | `session/jwt.ts` (el BFF ya no usa Firebase Admin; la verificación del idToken vive en `packages/functions/**`) |
+| `packages/client/src/app/api/**` | **Dev 1** | Route handlers del BFF, **uno por ruta y sin *catch-all*** (D31): `/api/auth/session`, `/api/auth/logout`, `/api/auth/me`, `/api/properties*`, `/api/services*`, `/api/media/*`, `/api/consignments`, `/api/about`, `/api/revalidate`. El router de Next.js es la allowlist |
+| `packages/client/src/server/**` | **Dev 1** | `routes.ts` (catálogo generado desde `./openapi.bff.yaml`: mapeo ruta pública ↔ interna y política de sesión, D31/AC0.1.8) y `session/jwt.ts` (el BFF ya no usa Firebase Admin; la verificación del idToken vive en `packages/functions/**`) |
 | `packages/client/src/proxy.ts` | **Dev 1** | Guard de sesión y propagación `X-User-*` (US1.3). En **Next 16** la convención `middleware` se renombró a **`proxy`**; con carpeta `src/`, el archivo debe vivir en `src/proxy.ts` (no en la raíz, o Next lo ignora) |
 | `packages/client/**` (resto) | **Dev 2** | Componentes React, TanStack Query, SDK cliente de Firebase |
 | `packages/functions/**` | **Dev 1** | Backend (Clean Architecture) |
-| `packages/shared-types/**` | **Fullstack** | Contratos y tipos (US0.1), incluido `buildWhatsAppUrl` |
+| `packages/shared-types/**` | **Fullstack** | Contratos y tipos (US0.1) |
+| `packages/client/src/lib/whatsapp.ts` | **Dev 2** | Helper puro `buildWhatsAppUrl` (T3, US2.5; D35) |
 
 **Reasignación reflejada en `./TASKS.md`:** US0.2, US1.2, US1.3 y US1.6 → **Dev 1**; US1.4 y US5.4 → **Fullstack**; US1.5 permanece en **Dev 2** (SDK de cliente y UI). US5.3 (legales, MT3.2) se asigna a **Dev 2** (contenido estático + rutas i18n). MT0.5 (esqueleto desplegable) y MT2.4 (seed de catálogo) son **Fullstack**.
 
@@ -296,7 +298,7 @@ Reglas:
 ## REGLAS DE SECUENCIACIÓN (resumen)
 
 1. **Nada de producto antes de la Fase 0.** `MT0.1` (proceso/DoD) → `MT0.2` (repo/tooling) → `MT0.3` (infra + alerta de presupuesto) → `MT0.4` (contratos + i18n + gates informativos) → `MT0.5` (esqueleto desplegable) son prerequisito de todo.
-2. **`US0.1` es la raíz:** tipos y contrato antes de cualquier implementación (incluye `buildWhatsAppUrl`).
+2. **`US0.1` es la raíz:** tipos y contrato antes de cualquier implementación; el helper `buildWhatsAppUrl` se implementa en `MT0.4` pero vive en `packages/client/src/lib/whatsapp.ts` (D35), no en `shared-types`.
 3. **`US0.4` (i18n) al inicio:** la estructura de rutas se construye una sola vez.
 4. **`US5.4` adelantado y sin depender de la auth:** es infraestructura de front compartida; su redirección 401 (AC5.4.7) se **re-scopa a US1.5**, así `MT1.3` corre en paralelo con `MT1.2`.
 5. **`MT1.2` (auth) antes de toda ruta de administrador:** `MT2.1` (media valida rol), `MT4.1` y `MT4.2` (guard de `/admin`). Lleva el **seed de `authorized_users`**.
@@ -304,5 +306,5 @@ Reglas:
 7. **`US0.3` y `US0.5` antes de toda escritura que traduzca/revalide:** alta de inmuebles (`MT2.1`), CMS (`MT4.x`), vigencia «Nuevo» (`MT2.2`) y seed (`MT1.5`/`MT2.4`).
 8. **Contenido público de lectura temprano:** los endpoints públicos de servicios y Nosotros se entregan en `MT2.2`; la **portada** (`US2.6`) cierra en Ola 2, y el **sitemap completo** (`US2.7`) cierra en `MT5.1` (al existir Servicios, Nosotros y legales), sin esperar al CMS.
 9. **Legales adelantadas (`MT3.2`, Ola 2):** solo dependen de `MT0.4` (+ `US0.5` para el inglés); se entregan antes de `MT3.1` y del cierre del sitemap, para que el consentimiento (`AC3.3.1`) y el sitemap (`AC2.7.3`) apunten a rutas reales.
-10. **El helper de WhatsApp (`buildWhatsAppUrl`) vive en `shared-types` (`MT0.4`)**, no en el catálogo: es una función pura y no debe arrastrar dependencias hacia `MT3.1` ni `MT5.1`.
+10. **El helper de WhatsApp (`buildWhatsAppUrl`) vive en `packages/client/src/lib/whatsapp.ts` (`MT0.4`, D35)**, no en `shared-types` ni en el catálogo: es una función pura y no debe arrastrar dependencias hacia `MT3.1` ni `MT5.1`.
 11. **El cierre y despliegue (`MT6.1`) precede al hardening (`MT6.2`):** no se endurece ni se miden presupuestos sobre un producto sin desplegar. `MT6.2` depende solo de las **MUST/SHOULD**, no de las diferibles (`MT5.2`, `MT6.3`).
