@@ -5,7 +5,7 @@
 
 > **Gestor de paquetes:** **npm únicamente** (`ARCHITECTURE.md` §7). Ningún comando de este documento usa pnpm/yarn/bun.
 > **Contratos:** `docs/PRD.md` es definitivo (regenerado alineado a `TASKS.md`). Las specs API son `docs/openapi.backend.yaml` (interna, BFF ↔ Functions) y `docs/openapi.bff.yaml` (pública, navegador ↔ BFF), ambas definitivas según D26; `@jf/shared-types` genera sus tipos con `npm run build:types -w @jf/shared-types`.
-> **Estado del harness:** las herramientas de este protocolo están instaladas (§1.3), salvo `lighthouserc.json`, los workflows de CI y el script `npm run emulators`. Cada bloque indica si corre **HOY** o es **objetivo** (MT0.2/MT0.4/MT6.2).
+> **Estado del harness:** las herramientas de este protocolo están instaladas (§1.3), salvo el script `npm run emulators`. Cada bloque indica si corre **HOY** o es **objetivo** (MT0.2/MT0.4/MT6.2).
 
 ---
 
@@ -50,11 +50,12 @@ Regla: si un AC dice *qué*, el DoD dice *cuándo cuenta como hecho* y este docu
 |---|---|---|
 | ESLint 9 flat config (client y functions) | ✅ `npm run lint` → exit 0 (functions migrado desde v8; sin `eslint-config-google`) | hoy |
 | Prettier (`format` / `format:check`) | ✅ instalado en la raíz; `docs/` y artefactos generados vía `.prettierignore` | hoy |
-| Vitest + cobertura (ambos paquetes) | ✅ `npm run test` → exit 0 (`passWithNoTests`); `test:coverage` por workspace → exit 0 | hoy |
+| Vitest + cobertura (ambos paquetes) | ✅ `npm run test` → exit 0 (**26 tests** en `@jf/client`: 19 de i18n + 7 del matcher del Proxy; **2** en `@jf/functions`: health); `test:coverage` por workspace → exit 0 | hoy |
 | Playwright (móvil por defecto 375 × 667) | ✅ config + spec placeholder en `packages/client/e2e/` (no forma parte de gates) | hoy |
 | `@axe-core/playwright` | ✅ instalado en `@jf/client` | hoy (specs a escribir en cada MT) |
-| `@lhci/cli` | ✅ instalado en la raíz; falta `lighthouserc.json` | MT0.4 (gate en MT6.2) |
-| CI (GitHub Actions) | ❌ sin `.github/workflows` | MT0.2 |
+| `@lhci/cli` | ✅ instalado en la raíz; `lighthouserc.json` creado (perfil móvil, umbrales de §5.2); `npm run lhci` es **manual e informativo** | hoy el comando / MT6.2 el gate |
+| Análisis de bundles | ✅ `npm run analyze:bundle` (JS/CSS gzip de las rutas construidas, presupuesto de `PERFORMANCE.md` §3); informativo hasta MT6.2 (`--enforce` lo vuelve bloqueante) | hoy el comando / MT6.2 el gate |
+| CI (GitHub Actions) | ✅ `.github/workflows/ci.yml` ejecuta los 7 gates de §5.1 en orden, en un único job (gate 4 ejecuta i18n + matcher del Proxy; 5 sigue sin umbral y 7 en vacío: ver nota en §5.1) | hoy |
 | Emuladores (config) | ✅ `firebase.json` | script `npm run emulators` pendiente |
 | Tipos de contrato (`*.gen.d.ts`) | ✅ `npm run build:types -w @jf/shared-types` idempotente | hoy |
 
@@ -218,7 +219,26 @@ npm run build
 npm run test:e2e
 ```
 
-Los gates de **rendimiento** (Lighthouse móvil `@lhci/cli` y presupuesto de bundles) se activan en **MT6.2** con los valores de `PERFORMANCE.md` §2/§3 y fallan la build si se incumplen (AC7.2.8, AC7.6.3). Mientras tanto son informativos.
+Los gates de **rendimiento** (Lighthouse móvil `npm run lhci` y presupuesto de bundles `npm run analyze:bundle`) se activan en **MT6.2** con los valores de `PERFORMANCE.md` §2/§3 y fallan la build si se incumplen (AC7.2.8, AC7.6.3). Mientras tanto son informativos y **no forman parte** de los 7 gates de §5.1.
+
+```bash
+# Requisitos: build hecha (el comando arranca `next start` él mismo)
+npm run build -w @jf/client
+
+# Presupuesto de bytes (JS/CSS gzip de /es y /en); --enforce lo vuelve bloqueante
+npm run analyze:bundle
+npm run analyze:bundle -- --route=es --enforce
+
+# Lighthouse móvil (2 rutas, 1 pasada). Necesita Chrome: si no está en el PATH,
+# exporta CHROME_PATH (p. ej. el binario de Playwright o /usr/bin/google-chrome-stable).
+npm run lhci
+```
+
+`npm run lhci` con una sola pasada tiene varianza: sus números son una **referencia**, no un veredicto, hasta que el gate sea bloqueante en MT6.2 (ahí se sube `numberOfRuns`).
+
+> **Réplica en CI:** `.github/workflows/ci.yml` ejecuta **exactamente estos 7 gates, en este orden y en un único job** (jobs paralelos romperían la regla «falla en el primer gate rojo»). Usa `npm ci` y Node según `.nvmrc`.
+>
+> **Estado real de los gates 4–7 hoy:** el gate 4 ejecuta **26 tests** en `@jf/client` (i18n + matcher del Proxy) y **2** en `@jf/functions` (health); el gate 5 ejecuta cobertura pero sigue en vacío porque `@jf/functions` no tiene `coverage.thresholds` (el ≥ 80 % no puede fallar) y el único spec E2E (`packages/client/e2e/placeholder.spec.ts`) sigue en `test.skip`. Verde en CI significa «compila, formatea, tipa, los tests existentes pasan y no rompe nada», **no** «probado»; la suite completa y los umbrales entran en **MT6.2**.
 
 ### 5.2 Resumen de umbrales (fuente: DoD §6 + PERFORMANCE.md)
 
@@ -234,8 +254,8 @@ Los gates de **rendimiento** (Lighthouse móvil `@lhci/cli` y presupuesto de bun
 | Contrato | validación OpenAPI (specs backend + bff × shared-types) | coherentes |
 | Seguridad | grep de secretos + revisión BFF/backend | sin secretos; identidad/autorización en backend |
 | i18n | paridad es/en + grep JSX | sin texto hardcodeado (T1) |
-| Rendimiento | `@lhci/cli` (MT6.2) | ≥ 85 · LCP ≤ 2,5 s · CLS ≤ 0,1 · TBT ≤ 300 ms |
-| Bundles | script MT0.4 (MT6.2) | JS inicial ≤ 200 KB · página ≤ 1 MB · ficha ≤ 1,5 MB |
+| Rendimiento | `npm run lhci` (`@lhci/cli`, MT6.2) | ≥ 85 · LCP ≤ 2,5 s · CLS ≤ 0,1 · TBT ≤ 300 ms |
+| Bundles | `npm run analyze:bundle` (MT6.2) | JS inicial ≤ 200 KB · página ≤ 1 MB · ficha ≤ 1,5 MB |
 
 ### 5.3 Ramas (referencia: DoD §5)
 
