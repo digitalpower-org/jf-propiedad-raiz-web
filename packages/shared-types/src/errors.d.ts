@@ -1,6 +1,16 @@
 /**
  * Catálogo único de códigos de error y envolturas de respuesta (AC0.1.1–AC0.1.3, D15).
  * Misma tabla que `docs/openapi.backend.yaml` y `docs/openapi.bff.yaml` (`ErrorCode`).
+ *
+ * La **fuente runtime** es `packages/shared-types/errors.json` (código → estado HTTP),
+ * consumida por el BFF y el navegador; este archivo es su unión de tipos. Las dos
+ * representaciones no pueden divergir:
+ *
+ * - `./errors.sync.d.ts` comprueba en **tiempo de compilación** que el conjunto de
+ *   códigos sea idéntico en ambos (falla el `tsc` si se añade o se quita un código
+ *   en solo uno de los dos).
+ * - `npm run check:errors` (paquete `@jf/shared-types`) comprueba además la
+ *   **paridad de los estados HTTP** y falla el build si divergen.
  */
 
 /** Códigos de error estándar (AC0.1.3). */
@@ -12,8 +22,10 @@ export type ErrorCode =
     | "IMAGE_TOO_SMALL"
     | "UNAUTHORIZED"
     | "PERMISSION_DENIED"
+    | "NOT_FOUND"
     | "PROPERTY_NOT_FOUND"
     | "SERVICE_NOT_FOUND"
+    | "METHOD_NOT_ALLOWED"
     | "CONFLICT"
     | "RATE_LIMITED"
     | "EMAIL_DELIVERY_FAILED"
@@ -28,8 +40,10 @@ export interface ErrorCodeTable {
     readonly IMAGE_TOO_SMALL: 422;
     readonly UNAUTHORIZED: 401;
     readonly PERMISSION_DENIED: 403;
+    readonly NOT_FOUND: 404;
     readonly PROPERTY_NOT_FOUND: 404;
     readonly SERVICE_NOT_FOUND: 404;
+    readonly METHOD_NOT_ALLOWED: 405;
     readonly CONFLICT: 409;
     readonly RATE_LIMITED: 429;
     readonly EMAIL_DELIVERY_FAILED: 502;

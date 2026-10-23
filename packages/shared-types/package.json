@@ -4,7 +4,10 @@
   "private": true,
   "types": "./src/index.d.ts",
   "scripts": {
+    "check:errors": "node scripts/check-error-catalog.mjs",
+    "prebuild:types": "npm run check:errors",
     "build:types": "openapi-typescript ../../docs/openapi.backend.yaml -o ./src/api/backend.gen.d.ts && openapi-typescript ../../docs/openapi.bff.yaml -o ./src/api/bff.gen.d.ts",
+    "pretypecheck": "npm run check:errors",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

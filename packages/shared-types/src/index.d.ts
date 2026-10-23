@@ -1,6 +1,7 @@
 /**
  * `@jf/shared-types` — contratos compartidos del monorepo.
  * Paquete de solo tipos (archivos `.d.ts`); no es un paquete de runtime.
+ * El helper de runtime `buildWhatsAppUrl` vive en `packages/client/src/lib/whatsapp.ts` (D35).
  * Contratos API: `docs/openapi.backend.yaml` (interna) y `docs/openapi.bff.yaml` (pública), D26.
  */
 
