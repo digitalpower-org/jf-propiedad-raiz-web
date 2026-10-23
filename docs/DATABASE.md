@@ -1,7 +1,7 @@
 # docs/DATABASE.md
 # Esquema de datos de Cloud Firestore
 
-> **Fuente de verdad:** `docs/TASKS.md`, sección «MODELO DE DATOS MÍNIMO» (líneas 65 a 71), más las decisiones D6, D7, D8, D9, D10, D11, D13, D14, D17, D18, D20, D21, D22, D24 y D25 y sus AC asociados. `packages/shared-types` es la implementación de ese modelo (ARCHITECTURE §7). Todo campo y todo valor de este documento es rastreable hasta TASKS; no hay campos inventados. El borrador anterior se descartó por completo: estaba en inglés, usaba enums y nombres de campo que contradicen este modelo, no contemplaba i18n y añadía campos y entidades que TASKS no define.
+> **Fuente de verdad:** `docs/TASKS.md`, sección «MODELO DE DATOS MÍNIMO», más las decisiones D6, D7, D8, D9, D10, D11, D13, D14, D17, D18, D20, D21, D22, D24 y D25 y sus AC asociados. `packages/shared-types` es la implementación de ese modelo (ARCHITECTURE §7). Todo campo y todo valor de este documento es rastreable hasta TASKS; no hay campos inventados. El borrador anterior se descartó por completo: estaba en inglés, usaba enums y nombres de campo que contradicen este modelo, no contemplaba i18n y añadía campos y entidades que TASKS no define.
 
 ---
 

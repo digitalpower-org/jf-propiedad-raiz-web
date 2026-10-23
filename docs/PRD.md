@@ -2,7 +2,7 @@
 # Documento de Requisitos de Producto (PRD)
 
 **Producto:** Plataforma web y CMS de `jfpropiedadraiz.com` (JF Propiedad Raíz, Valle de Aburrá)
-**Versión:** 2.0 · 20 de octubre de 2026
+**Versión:** 2.1 · 22 de octubre de 2026
 **Alcance y criterios de aceptación:** `docs/TASKS.md` es la **fuente de verdad**. Este PRD describe el producto en términos de valor y alcance, resume las historias de usuario y remite a TASKS para los AC completos, el modelo de datos y las decisiones en detalle. Ante cualquier conflicto entre documentos, gana TASKS.
 **Docs de cierre y medición:** `docs/DEFINITION-OF-DONE.md` (reglas de aceptación de cada historia) y `docs/PERFORMANCE.md` (presupuestos de rendimiento y de datos).
 **Nota de revisión:** este documento sustituye al PRD placeholder anterior, que contradecía decisiones cerradas de `docs/TASKS.md`: sin Custom Claims en el login, hasta 5 administradores (no 2), sin teléfonos hardcodeados, consignación = correo con respaldo manual por WhatsApp (no doble destino automático), incluye Proyectos y Servicios en la estructura y no existe el concepto de «lead».
@@ -175,7 +175,7 @@ Resumen de la tabla de decisiones de `docs/TASKS.md`. Son vinculantes para el pr
 | D14 | Panorámicas 360° | Archivos `.jpg` en R2 con Pannellum, cargado dinámicamente y solo al abrir |
 | D15 | Forma de errores | Envoltura estándar con `success`, `data` y `message`; validación = HTTP 422 `VALIDATION_ERROR` |
 | D16 | Hosting del frontend | Next.js en Firebase App Hosting, en el mismo proyecto de Firebase que Functions, Firestore y Auth |
-| D17 | Orden e índices | Orden siempre por `createdAt` descendente con desempate por `id`; dos consultas por pestaña (primero `true`, después `false`); cursor `{ createdAt, id }`; índices compuestos para las 4 combinaciones de igualdad; los 8 presets nacen de activar o no el rango de precio |
+| D17 | Orden e índices | Orden siempre por `createdAt` descendente con desempate por `id`; dos consultas por pestaña (primero `true`, después `false`); cursor `{ createdAt, id }`; índices compuestos para las 4 combinaciones de igualdad con y sin rango de precio (8 índices de presets); los 8 presets nacen de activar o no el rango de precio |
 | D18 | Banderas | `destacada` manual (franja de portada) y `nuevo` automática: se enciende al crear y una tarea diaria la apaga a los 30 días (`NEW_FLAG_DAYS`) |
 | D19 | Listados | Scroll infinito por cursor, de 12 en 12; sin paginación numerada |
 | D20 | Proyectos sobre planos | Operación propia (`PROYECTO_SOBRE_PLANOS`) con campos propios (`etapa`, `fechaEntregaEstimada`, `unidadesDisponibles`) |
@@ -193,7 +193,7 @@ Resumen de la tabla de decisiones de `docs/TASKS.md`. Son vinculantes para el pr
 | D32 | Autoridad de autenticación del BFF | La cookie se valida en el **route handler** mediante un envoltorio guiado por `routes.ts` (D31), no en el Proxy: `public` no lee cookie, `session` exige cookie válida y entrega la identidad, `internal` exige `X-Internal-Key`. El Proxy solo cierra la superficie (404/405) y no autentica. La identidad se construye desde el JWT verificado y las cabeceras `X-User-*` del cliente se descartan y reescriben; el `X-Internal-Key` es el mismo secreto en ambos sentidos |
 | D33 | Nombre de la cookie de sesión | La cookie del BFF es **`__session`** (convención de Firebase, que además es el único nombre que Firebase Hosting reenvía a Functions); `HttpOnly; Secure; SameSite=Strict; Path=/`, sin `Domain`. El identificador del esquema OpenAPI sigue siendo `session` |
 | D34 | Vigencia del JWT de sesión | Vigente = firma HS256 (alg fijado, comparación en tiempo constante) + `iss`/`aud` + claims obligatorios + `iat`/`exp` con ±60 s de tolerancia + TTL exacto de 3900 s; sin `nbf`, sin ventana absoluta y sin denylist (D29). Cualquier fallo → 401 uniforme. Rotación del secreto con solape ≥ 65 min |
-| D35 | Ubicación de `buildWhatsAppUrl` | El helper de WhatsApp vive en `packages/client/src/lib/whatsapp.ts` (runtime, función pura), no en `shared-types`, que es solo tipos. `functions` no lo necesita |
+| D35 | Ubicación de `buildWhatsAppUrl` | El helper de WhatsApp vive en `packages/client/src/lib/whatsapp.ts` (runtime, función pura), no en `shared-types`, que no tiene código ejecutable (solo tipos y datos JSON de lectura). `functions` no lo necesita |
 | D36 | Implementación de i18n | `next-intl` 4.14.9 en `@jf/client`, sin middleware (el Proxy sigue reservado a `/api` por D32): rutas localizadas en `src/i18n/routes.ts`, diccionarios `messages/{es,en}.json` con paridad de claves, `/` resuelto en `app/route.ts` por `Accept-Language` (307) y `dynamicParams = false` (404 para idiomas no soportados). Carga por `import()` de un solo idioma tras `server-only`, así el navegador solo recibe el diccionario activo (AC7.2.4). `setRequestLocale` en cada layout y página (render paralelo en Next 16). Zona horaria `America/Bogota` |
 
 **Regla de repositorio (no es una decisión D):** el monorepo usa **npm únicamente** como gestor de paquetes (npm workspaces sobre `packages/shared-types`, `packages/functions` y `packages/client`); no se reintroduce pnpm.
