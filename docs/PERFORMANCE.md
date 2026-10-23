@@ -2,7 +2,7 @@
 # Presupuestos de Rendimiento y de Datos (Mobile First)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`  
-**Versión:** 1.0 · 19 de octubre de 2026  
+**Versión:** 1.1 · 22 de octubre de 2026  
 **Base:** `./TASKS.md` — Épica 7 (US7.2, US7.3, US7.6), US1.9 (derivados), US2.3 (scroll infinito), US1.10 (consulta pública)  
 **Naturaleza:** este documento es la **fuente única de los valores numéricos de rendimiento**. Las historias citan el presupuesto aquí definido; si un valor cambia, se cambia sólo aquí (ver §10).
 
@@ -35,7 +35,7 @@ Aplica a **todas** las rutas públicas de US0.4: `/es`, `/es/venta`, `/es/alquil
 | CLS (Cumulative Layout Shift) | **≤ 0,1** | AC7.2.1 |
 | TBT (Total Blocking Time) | **≤ 300 ms** | AC7.2.1 |
 
-Cumplimiento en CI: obligatorio en las rutas de listado y ficha; informativo (no bloquea) en legales y «Nosotros» mientras no tengan datos dinámicos.
+Cumplimiento en CI: obligatorio en **todas** las rutas públicas de §2. El gate se activa en **MT6.2** (ver §8); hasta entonces las mediciones son referencia y no bloquean.
 
 ---
 
@@ -133,7 +133,7 @@ Ninguno antes de una interacción explícita del usuario: no hay Google Analytic
 | Presupuesto de bundles | script de análisis de bundles (MT0.4) | se superan los límites de §3 | AC7.2.8, AC7.6.3 |
 | E2E móvil | Playwright, proyecto táctil 375 × 667 por defecto | cualquier e2e del proyecto móvil falla | AC7.6.1, AC7.6.3 |
 
-La configuración (`lighthouserc.json`, proyecto Playwright móvil, script de bundles) se monta en **MT0.4**; los gates se activan en **MT6.2**.
+La configuración (`lighthouserc.json`, proyecto Playwright móvil, script de bundles) se monta en **MT0.4**; los gates se activan en **MT6.2** para todas las rutas de AC7.2.1. El `lighthouserc.json` actual solo mide `/es` y `/en`; MT6.2 lo amplía a listado, ficha, servicios, Nosotros, contacto y legales.
 
 ---
 

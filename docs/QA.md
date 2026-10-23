@@ -1,6 +1,6 @@
 # docs/QA.md: Protocolo de Calidad del Monorepo
 
-**Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com` · **Fecha:** 2026-10-20
+**Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com` · **Fecha:** 2026-10-22
 **Naturaleza:** **único punto de verdad operativo de calidad**: aquí viven los comandos, el harness de pruebas y los gates. Los AC (QUÉ) viven en `./TASKS.md`; las reglas de cierre (REGLAS) en `./DEFINITION-OF-DONE.md`; los valores numéricos de rendimiento en `./PERFORMANCE.md`.
 
 > **Gestor de paquetes:** **npm únicamente** (`ARCHITECTURE.md` §7). Ningún comando de este documento usa pnpm/yarn/bun.
@@ -53,7 +53,7 @@ Regla: si un AC dice *qué*, el DoD dice *cuándo cuenta como hecho* y este docu
 | Vitest + cobertura (ambos paquetes) | ✅ `npm run test` → exit 0 (**26 tests** en `@jf/client`: 19 de i18n + 7 del matcher del Proxy; **2** en `@jf/functions`: health); `test:coverage` por workspace → exit 0 | hoy |
 | Playwright (móvil por defecto 375 × 667) | ✅ config + spec placeholder en `packages/client/e2e/` (no forma parte de gates) | hoy |
 | `@axe-core/playwright` | ✅ instalado en `@jf/client` | hoy (specs a escribir en cada MT) |
-| `@lhci/cli` | ✅ instalado en la raíz; `lighthouserc.json` creado (perfil móvil, umbrales de §5.2); `npm run lhci` es **manual e informativo** | hoy el comando / MT6.2 el gate |
+| `@lhci/cli` | ✅ instalado en la raíz; `lighthouserc.json` creado (perfil móvil, umbrales de §5.2; **hoy solo mide `/es` y `/en`**, MT6.2 lo amplía a todas las rutas de AC7.2.1); `npm run lhci` es **manual e informativo** | hoy el comando / MT6.2 el gate |
 | Análisis de bundles | ✅ `npm run analyze:bundle` (JS/CSS gzip de las rutas construidas, presupuesto de `PERFORMANCE.md` §3); informativo hasta MT6.2 (`--enforce` lo vuelve bloqueante) | hoy el comando / MT6.2 el gate |
 | CI (GitHub Actions) | ✅ `.github/workflows/ci.yml` ejecuta los 7 gates de §5.1 en orden, en un único job (gate 4 ejecuta i18n + matcher del Proxy; 5 sigue sin umbral y 7 en vacío: ver nota en §5.1) | hoy |
 | Emuladores (config) | ✅ `firebase.json` | script `npm run emulators` pendiente |
@@ -79,7 +79,7 @@ npm run typecheck -w @jf/functions       # = tsc --noEmit
 npm run lint -w @jf/functions
 ```
 
-> Nota: todos los scripts existen y corren hoy con exit 0 (verificado desde la raíz y con `-w @jf/functions`). La cobertura ≥ 80 % aplica a **`packages/functions`** (DoD §2.3); `shared-types` es un paquete de solo tipos `.d.ts` y queda fuera del umbral.
+> Nota: todos los scripts existen y corren hoy con exit 0 (verificado desde la raíz y con `-w @jf/functions`). La cobertura ≥ 80 % aplica a **`packages/functions`** (DoD §2.3); `shared-types` no tiene código ejecutable (solo `.d.ts` y datos JSON) y queda fuera del umbral.
 
 ### 2.2 Reglas de calidad de código backend
 
