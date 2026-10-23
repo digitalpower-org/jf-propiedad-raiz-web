@@ -138,7 +138,7 @@ Contenido de la página `/nosotros` (y `/en/about-us`), editable desde el panel 
 
 ## 5. Sin entidad Lead (D11)
 
-**No existe la entidad Lead.** Las solicitudes (consignación y contacto) solo generan correos (US3.2, D5); no se guarda, lista ni gestiona ningún dato de solicitante en Firestore ni en ningún otro sitio (D11, línea 71 del MODELO DE DATOS MÍNIMO). El «guardado o gestión de leads» está además en la lista de fuera de alcance de v1.
+**No existe la entidad Lead.** Las solicitudes (consignación y contacto) solo generan correos (US3.2, D5); no se guarda, lista ni gestiona ningún dato de solicitante en Firestore ni en ningún otro sitio (D11; `docs/TASKS.md`, §«MODELO DE DATOS MÍNIMO»). El «guardado o gestión de leads» está además en la lista de fuera de alcance de v1.
 
 ---
 
