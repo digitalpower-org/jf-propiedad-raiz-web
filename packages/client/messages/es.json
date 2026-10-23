@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "title": "JF Propiedad Raíz"
+  },
+  "nav": {
+    "home": "Inicio"
+  },
+  "home": {
+    "title": "Inmuebles en el Valle de Aburrá",
+    "intro": "Compra, venta y alquiler de propiedades."
+  },
+  "localeSwitcher": {
+    "switchTo": "Ver en inglés"
+  }
+}
