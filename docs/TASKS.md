@@ -38,7 +38,7 @@
 | D5 | Consignación | Un formulario genera un correo HTML a Juan Fernando con los datos y un enlace de WhatsApp preformateado para responder al solicitante; el solicitante recibe un correo de «Recibo». Si falla el correo a Juan, el usuario ve un aviso y un botón para enviar el mensaje por WhatsApp (acción suya). No hay notificación automática a WhatsApp. |
 | D6 | Código de inmueble | `JF-XXXX` secuencial, asignado **al crear**. |
 | D7 | Estados | `ACTIVE` / `HIDDEN` / `DELETED`. Sin estado de disponibilidad (vendido/alquilado). Sin `DRAFT` (ver US1.7). |
-| D8 | Navegación | Pestañas independientes `/venta`, `/alquiler`, `/proyectos`, `/servicios` y `/nosotros`. Las tres primeras corresponden a un valor de `operacion`. |
+| D8 | Navegación | Pestañas independientes `/venta`, `/alquiler`, `/proyectos` y `/servicios`. Las tres primeras corresponden a un valor de `operacion`. Nosotros y Contacto se enlazan desde el footer (US5.2). |
 | D9 | Filtros | La operación es fija por pestaña y el listado público exige siempre `status = ACTIVE` (el admin ve `HIDDEN` solo por su API). Se resuelven de forma nativa en Firestore: `tipo`, ubicación (`departamento` + `municipio` juntos, como un único filtro), rango de `precio` y `destacada` (un solo valor `true`/`false`, nunca ambos). El resto se filtra en el navegador sobre lo ya cargado. No hay filtro de sector (D24). |
 | D10 | Servicios | Editables desde el admin, sin cantidad fija (crear, editar, ocultar, reordenar, eliminar). |
 | D11 | Leads | **No existen.** Las solicitudes solo generan correos (US3.2); no se guarda, lista ni gestiona ningún dato de solicitante. |
@@ -370,7 +370,7 @@
 - **Responsable:** \[ Dev 2 \] · **Prioridad:** MUST · **Estado:** \[ \]  
 - **Descripción:** `/venta`, `/alquiler` y `/proyectos` son listados separados; cada uno muestra los inmuebles de su `operacion` (`VENTA`, `ALQUILER`, `PROYECTO_SOBRE_PLANOS`).  
 - **Criterios de aceptación:**  
-  - AC2.1.1 **Dado** el menú principal **Entonces** hay accesos a Venta, Alquiler, Proyectos, Servicios y Nosotros, y un selector de idioma. `[agente]`  
+  - AC2.1.1 **Dado** el menú principal **Entonces** hay accesos a Venta, Alquiler, Proyectos y Servicios, y un selector de idioma. `[agente]`  
   - AC2.1.2 **Dado** que navego en *Venta* con filtros y cambio a *Alquiler* **Entonces** los filtros y parámetros se resetean por completo. `[agente]`  
   - AC2.1.3 **Dado** un inmueble **Entonces** aparece solo en la pestaña de su `operacion`. `[agente]`  
   - AC2.1.4 **Dado** un ancho menor a 768 px (375 px de referencia) **Entonces** los accesos no se muestran en línea sino detrás de un botón de menú con nombre accesible «Abrir menú» (en inglés, «Open menu»), y el logo permanece visible. `[agente]`  
@@ -612,7 +612,7 @@
 - **Responsable:** \[ Dev 2 \] · **Prioridad:** MUST · **Estado:** \[ \]  
 - **Descripción:** `/contacto` es una página informativa (su redacción es una propuesta; ver N1). El formulario es solo el de US3.1.  
 - **Criterios de aceptación:**  
-  - AC5.2.1 **Dado** cualquier página pública **Entonces** el footer muestra los datos de contacto desde `NEXT_PUBLIC_CONTACT_*`, enlaces legales y el selector de idioma. `[agente]`  
+  - AC5.2.1 **Dado** cualquier página pública **Entonces** el footer muestra enlaces a Nosotros y Contacto en el idioma actual (`/es/nosotros` o `/en/about-us`; `/es/contacto` o `/en/contact`), los datos de contacto desde `NEXT_PUBLIC_CONTACT_*`, los enlaces legales y el selector de idioma. `[agente]`  
   - AC5.2.2 **Dado** `/contacto` **Entonces** muestra los mismos datos de contacto, un botón de WhatsApp (helper T3) y un enlace a «Consigne su propiedad». `[agente]`  
   - AC5.2.3 **\[Debe NOT\]** No hay formulario en `/contacto` ni teléfonos o direcciones literales en el código. `[agente]`
 

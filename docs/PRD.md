@@ -94,7 +94,7 @@ Prioridades según TASKS: **MUST** bloquea el lanzamiento · **SHOULD** se esper
 
 | US | Resumen | Prioridad |
 | :---- | :---- | :---- |
-| US2.1 Navegación por pestañas | Venta, Alquiler, Proyectos, Servicios y Nosotros con selector de idioma; cambiar de pestaña resetea filtros; menú móvil accesible con foco y áreas de 44×44 px | MUST |
+| US2.1 Navegación por pestañas | Venta, Alquiler, Proyectos y Servicios con selector de idioma; cambiar de pestaña resetea filtros; menú móvil accesible con foco y áreas de 44×44 px | MUST |
 | US2.2 Buscador con filtros | Filtros de base de datos (tipo, ubicación, precio) que piden de nuevo al backend y filtros de frontend en caliente; URL como única fuente de verdad, skeletons, estado vacío con WhatsApp, orden fijo (destacados primero y más recientes) | MUST |
 | US2.3 Scroll infinito | 12 en 12 por cursor; se agota la serie `destacada = true` y luego continúa `destacada = false` con consulta nueva; botón «Cargar más» accesible; restablece scroll al volver de una ficha | SHOULD |
 | US2.4 Ficha técnica con SEO | SSR/ISR con galería y visor modal, características opcionales que se ocultan si no existen, bloque de proyecto sobre planos, puntos de interés con categorías, YouTube diferido (`youtube-nocookie` en modal) y Pannellum con importación dinámica; Lighthouse ≥ 85 en móvil | MUST |
@@ -126,7 +126,7 @@ Prioridades según TASKS: **MUST** bloquea el lanzamiento · **SHOULD** se esper
 | US | Resumen | Prioridad |
 | :---- | :---- | :---- |
 | US5.1 Índice y detalle de servicios | Tarjetas ordenadas por `orden`, detalle con galería y botón de cotización por WhatsApp; sin formulario, calendario ni pagos | MUST |
-| US5.2 Footer y página de contacto | Datos de contacto desde `NEXT_PUBLIC_CONTACT_*`, enlaces legales y selector de idioma; `/contacto` informativa, sin formulario ni teléfonos literales | MUST |
+| US5.2 Footer y página de contacto | Enlaces a Nosotros y Contacto en el idioma actual, datos de contacto desde `NEXT_PUBLIC_CONTACT_*`, enlaces legales y selector de idioma; `/contacto` informativa, sin formulario ni teléfonos literales | MUST |
 | US5.3 Páginas legales | Contenido real en español marcado como borrador hasta la revisión jurídica; en inglés, traducción de cortesía que indica que prevalece el español; la política declara que los datos no se almacenan y viajan por correo (Resend) | MUST |
 | US5.4 Cliente HTTP y `ApiError` | Errores normalizados con diccionario de mensajes por `code`, errores de validación en el formulario sin notificación duplicada, `requestId` copiable en el admin, reintentos en red/5xx, `ErrorBoundary` y redirección a login ante un 401 irrecoverable | MUST |
 | US5.5 Configuración de contacto editable | Mover WhatsApp y correo de consignaciones de variables de entorno a la base de datos, con las variables como respaldo | COULD |
@@ -166,7 +166,7 @@ Resumen de la tabla de decisiones de `docs/TASKS.md`. Son vinculantes para el pr
 | D5 | Consignación | Un correo HTML a Juan Fernando con enlace de WhatsApp preformateado y «Recibo» al solicitante; si falla el correo a Juan, aviso en pantalla y botón de WhatsApp como acción del usuario; sin notificación automática a WhatsApp |
 | D6 | Código de inmueble | `JF-XXXX` secuencial, asignado al crear |
 | D7 | Estados | `ACTIVE` / `HIDDEN` / `DELETED`; sin estado de disponibilidad ni `DRAFT` |
-| D8 | Navegación | Pestañas independientes `/venta`, `/alquiler`, `/proyectos`, `/servicios` y `/nosotros` |
+| D8 | Navegación | Pestañas independientes `/venta`, `/alquiler`, `/proyectos` y `/servicios`. Nosotros y Contacto se enlazan desde el footer (US5.2) |
 | D9 | Filtros | La operación es fija por pestaña y el listado exige `status = ACTIVE`; Firestore resuelve nativamente tipo, ubicación (departamento + municipio como un solo filtro), rango de precio y `destacada` con un único valor; el resto se filtra en el navegador; sin filtro de sector |
 | D10 | Servicios | Editables desde el admin, sin cantidad fija: crear, editar, ocultar, reordenar, eliminar |
 | D11 | Leads | **No existen.** Las solicitudes solo generan correos; no se guarda ni gestiona ningún dato de solicitante |

@@ -19,7 +19,7 @@ Esta tabla armoniza la guía estética con las decisiones cerradas de TASKS. Cad
 | Mapa | No hay mapa en la ficha ni en ninguna otra página; el mapa interactivo está fuera de alcance (AC2.4.11). |
 | Formularios | El formulario de consignación (`/consigne-su-propiedad`, US3.1) es el único del sitio. La ficha solo lleva su botón de WhatsApp (US2.5, AC2.5.5) y `/contacto` no tiene formulario (AC5.2.3). |
 | Teléfonos y direcciones | El repositorio no contiene teléfonos, direcciones ni correos reales (T2) y no hay literales en el código (AC5.2.3). El número de WhatsApp sale de `NEXT_PUBLIC_WHATSAPP_NUMBER` (AC2.5.3), los datos del footer de `NEXT_PUBLIC_CONTACT_*` (AC5.2.1), y todo enlace se construye con el helper `buildWhatsAppUrl` (T3). |
-| Navegación | Pestañas Venta, Alquiler, Proyectos, Servicios y Nosotros, más selector de idioma (D8, AC2.1.1). Contacto se alcanza desde el footer y los CTAs (AC5.2.2). |
+| Navegación | Pestañas Venta, Alquiler, Proyectos y Servicios, más selector de idioma (D8, AC2.1.1). Nosotros y Contacto se alcanzan desde enlaces del footer (AC5.2.1); Contacto también desde el CTA de la portada (AC2.6.2). |
 | Buscador | Sin campo de zona ni sector (D24) y sin control de orden (AC2.2.13). La ubicación se elige como departamento y municipio juntos (D9); el orden es fijo, destacados primero y más recientes después, con una etiqueta discreta que lo indica (AC2.2.7). |
 | Fuera de alcance v1 | Mapa interactivo, páginas por municipio o barrio, filtro o catálogo de sector, blog, testimonios, cifras de confianza en portada, asesores en portada y formulario dentro de la ficha. |
 | Fuentes | Solo `next/font`, subconjunto latino, máximo 2 familias y `font-display: swap` (PERFORMANCE §4, AC7.2.5). La decisión sobre Regola está pendiente (ver Tipografía). |
@@ -155,7 +155,7 @@ Estos principios gobiernan las decisiones del sistema por encima del gusto esté
 ## Components
 
 ### Primary Button
-**Role:** Llamada a la acción principal (Ver inmueble, Agendar visita, Buscar).
+**Role:** Llamada a la acción principal (Ver inmueble, Buscar, Consignar propiedad).
 
 Background: #277730 (Verde Bosque). Text: #ffffff (Blanco Puro). Padding: 14px (mínimo 44px de alto táctil). Radius: 12px. Font: regola, 14 a 15px, peso 500. Hover/active: #1f6227 (Verde Profundo). Focus: anillo de 2px #277730 con offset de 2px.
 
@@ -180,7 +180,7 @@ Background: rgba(0, 0, 0, 0.04). Text: #111611 (Tinta). Radius: 24px. Padding va
 Fijo/flotante: Background #277730, ícono y texto blancos, Radius 24px (pill), altura 48px, shadow `--shadow-sm`. En la ficha: el único botón de WhatsApp de la página, con el texto «Preguntar por este inmueble» (AC2.5.1). El número nunca aparece como literal: sale de `NEXT_PUBLIC_WHATSAPP_NUMBER` y todo enlace lo construye el helper `buildWhatsAppUrl` (T3, AC2.5.3). El mensaje precargado incluye el código y el título del inmueble, en el idioma de la página (AC2.5.2).
 
 ### Property Card (Tarjeta de inmueble)
-**Role:** Unidad principal del sitio; se repite en listados, destacados y relacionados.
+**Role:** Unidad principal del sitio; se repite en listados y destacados.
 
 Background: #efefe6 (Arena Suave) o #ffffff sobre bandas Piedra Clara. Radius: 12px. Shadow: `rgba(0, 0, 0, 0.12) 0px 0.5px 2px 0px`; hover `rgba(0, 0, 0, 0.08) 0px 2px 10px 0px` con elevación de 2px. Padding de contenido: 18 a 24px.
 
@@ -256,12 +256,12 @@ Warm Sand Card con cita en body-lg, nombre, zona y tipo de operación. Preferir 
 ### Detail Page Gallery & Sticky Contact
 **Role:** Ficha de inmueble.
 
-Galería con una imagen principal grande y 4 miniaturas (radius 12px), visor en pantalla completa (AC2.4.5). Columna lateral fija (escritorio) o barra inferior fija (móvil) con precio, botón primario y el único botón de WhatsApp («Preguntar por este inmueble», US2.5). Debajo: tabla de características, descripción en texto plano (nunca `dangerouslySetInnerHTML`, AC2.4.11), puntos de interés con íconos (AC2.4.4) e inmuebles similares. **No hay mapa** (AC2.4.11). Los datos usan numerales tabulares.
+Galería con una imagen principal grande y 4 miniaturas (radius 12px), visor en pantalla completa (AC2.4.5). Columna lateral fija (escritorio) o barra inferior fija (móvil) con precio, botón primario y el único botón de WhatsApp («Preguntar por este inmueble», US2.5). Debajo: tabla de características, descripción en texto plano (nunca `dangerouslySetInnerHTML`, AC2.4.11), puntos de interés con íconos (AC2.4.4). **No hay mapa** (AC2.4.11). Los datos usan numerales tabulares.
 
 ### Footer
 **Role:** Cierre del sitio con contacto y navegación.
 
-Background #277730 (Verde Bosque), texto blanco, enlaces con subrayado al hover, CTA Amarillo Sol (WhatsApp). Incluye logo, datos de contacto leídos de `NEXT_PUBLIC_CONTACT_*` (sin teléfonos, direcciones ni correos literales, AC5.2.1/AC5.2.3/T2), el sitio desde `NEXT_PUBLIC_SITE_URL`, enlaces legales, selector de idioma (AC0.4.3) y redes sociales si existen. Radio de 0 en el borde superior del footer a sangre completa.
+Background #277730 (Verde Bosque), texto blanco, enlaces con subrayado al hover, CTA Amarillo Sol (WhatsApp). Incluye logo, enlaces a Nosotros y Contacto en el idioma actual (AC5.2.1), datos de contacto leídos de `NEXT_PUBLIC_CONTACT_*` (sin teléfonos, direcciones ni correos literales, AC5.2.1/AC5.2.3/T2), el sitio desde `NEXT_PUBLIC_SITE_URL`, enlaces legales, selector de idioma (AC0.4.3) y redes sociales si existen. Radio de 0 en el borde superior del footer a sangre completa.
 
 ## Do's and Don'ts
 
@@ -322,7 +322,7 @@ El lenguaje visual es una dicotomía entre aspiración cálida y objetividad lim
 El diseño se construye sobre un contenedor centrado de ancho máximo ~1280px, con generoso espacio blanco a los lados. La página abre con un hero a sangre completa (fotografía o banda verde) con el buscador, y continúa con una pila vertical de secciones sobre el fondo Marfil Elegante. Las separaciones de sección se definen con grandes espacios verticales (96 a 120px) y alternancia sutil de fondo Marfil/Piedra Clara en lugar de divisores visuales, creando un ritmo calmado y sin prisa. El contenido se organiza en columnas centradas simples para narrativa y en grillas de 2 o 3 columnas para inmuebles y servicios.
 
 ### Estructura de la página principal (orden cerrado por AC2.6)
-1. Header: logo, navegación (Venta, Alquiler, Proyectos, Servicios, Nosotros, Contacto), selector de idioma y botón WhatsApp.
+1. Header: logo, navegación (Venta, Alquiler, Proyectos, Servicios), selector de idioma y botón WhatsApp.
 2. Hero con titular, accesos directos a Venta, Alquiler y Proyectos (AC2.6.1) y buscador.
 3. Franja «Destacadas» con inmuebles `destacada = true` y `status = ACTIVE` (AC2.6.2, AC2.6.3).
 4. Vista previa de servicios con CTA hacia `/contacto` (AC2.6.2).
@@ -333,7 +333,7 @@ El diseño se construye sobre un contenedor centrado de ancho máximo ~1280px, c
 La portada **no** incluye testimonios, cifras de confianza, asesores, tarjetas de zona ni formulario (AC2.6.7 y orden cerrado de AC2.6.2). Si no hay destacados, servicios o extracto, la franja o el bloque correspondiente no se renderiza (AC2.6.5).
 
 ### Navegación
-Máximo tres clics hasta cualquier inmueble. El menú principal son pestañas independientes (`/venta`, `/alquiler`, `/proyectos`, `/servicios`, `/nosotros`) más el selector de idioma en header y footer (D8, AC2.1.1, AC0.4.3). Menú móvil colapsable con buscador accesible y botón fijo inferior de WhatsApp.
+Máximo tres clics hasta cualquier inmueble. El menú principal son pestañas independientes (`/venta`, `/alquiler`, `/proyectos`, `/servicios`) más el selector de idioma en header y footer (D8, AC2.1.1, AC0.4.3). Nosotros y Contacto se enlazan desde el footer (AC5.2.1). Menú móvil colapsable con buscador accesible y botón fijo inferior de WhatsApp.
 
 ### Páginas clave
 Portada, Venta, Alquiler y Proyectos (pestañas independientes), listado/resultados con filtros, ficha en `/propiedad/[slug]` (sin mapa), Servicios y detalle de servicio, Nosotros, Consigne su propiedad (único formulario del sitio), Contacto (página informativa con datos de contacto, botón de WhatsApp y enlace a «Consigne su propiedad», sin formulario) y páginas legales (aviso de privacidad, política de tratamiento de datos, términos). **Fuera de alcance v1:** páginas por municipio o barrio, blog y cualquier mapa interactivo.
@@ -350,7 +350,7 @@ Portada, Venta, Alquiler y Proyectos (pestañas independientes), listado/resulta
 - **Border**: `rgba(0, 0, 0, 0.1)`
 
 ### Example Component Prompts
-1. **Primary Button:** "Crea un botón con el texto 'Agendar visita'. Fondo #277730, texto blanco, radio de 12px, padding de 14px y altura mínima de 44px. Fuente según la decisión pendiente de Tipografía (regola o Plus Jakarta Sans, máximo 2 familias vía next/font) de 15px, peso 500. En hover, fondo #1f6227."
+1. **Primary Button:** "Crea un botón con el texto 'Consignar propiedad'. Fondo #277730, texto blanco, radio de 12px, padding de 14px y altura mínima de 44px. Fuente según la decisión pendiente de Tipografía (regola o Plus Jakarta Sans, máximo 2 familias vía next/font) de 15px, peso 500. En hover, fondo #1f6227."
 2. **Display Headline:** "Crea un titular 'Tu hogar en el sur del Valle' con la fuente regola a 96px, peso 400 (light), color #111611, line-height 0.9 y letter-spacing -4.51px. En móvil, 48px."
 3. **Property Card:** "Crea una tarjeta de inmueble con fondo #efefe6, radio de 12px y sombra `rgba(0,0,0,0.12) 0px 0.5px 2px 0px`. Imagen 4:3 arriba con insignia 'Venta' en pill blanco. Precio '$ 450.000.000' en 23px con numerales tabulares. Debajo, código del inmueble y ubicación 'Apartamento en Envigado' en 16px y una fila de íconos lineales verdes (#277730) con '85 m²', '3 hab.', '2 baños' y 'Estrato 4'. Enlace 'Ver inmueble' en #277730."
 4. **Search Hero:** "Genera un hero a sangre completa con una fotografía de un apartamento luminoso, degradado inferior oscuro, titular blanco en 60px, accesos directos a Venta, Alquiler y Proyectos, y un buscador flotante blanco con radio de 18px y sombra `rgba(0,0,0,0.08) 0px 8px 30px 0px`, con los campos Tipo, Ubicación (departamento y municipio), Presupuesto y un botón primario 'Buscar' (#277730). Sin campo de zona ni control de orden."
