@@ -5,16 +5,10 @@
       "name": "@google-cloud/firestore",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "google-gax"
-      ],
-      "effects": [
-        "firebase-admin"
-      ],
+      "via": ["google-gax"],
+      "effects": ["firebase-admin"],
       "range": "7.5.0-pre.0 || 7.6.0 - 7.11.6",
-      "nodes": [
-        "node_modules/@google-cloud/firestore"
-      ],
+      "nodes": ["node_modules/@google-cloud/firestore"],
       "fixAvailable": {
         "name": "firebase-admin",
         "version": "14.5.0",
@@ -25,17 +19,10 @@
       "name": "@google-cloud/storage",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "retry-request",
-        "teeny-request"
-      ],
-      "effects": [
-        "firebase-admin"
-      ],
+      "via": ["retry-request", "teeny-request"],
+      "effects": ["firebase-admin"],
       "range": "2.2.0 - 2.5.0 || 5.19.0 - 8.0.0",
-      "nodes": [
-        "node_modules/@google-cloud/storage"
-      ],
+      "nodes": ["node_modules/@google-cloud/storage"],
       "fixAvailable": {
         "name": "firebase-admin",
         "version": "14.5.0",
@@ -46,19 +33,10 @@
       "name": "@lhci/cli",
       "severity": "high",
       "isDirect": true,
-      "via": [
-        "@lhci/utils",
-        "inquirer",
-        "lighthouse",
-        "proxy-agent",
-        "tmp",
-        "uuid"
-      ],
+      "via": ["@lhci/utils", "inquirer", "lighthouse", "proxy-agent", "tmp", "uuid"],
       "effects": [],
       "range": "*",
-      "nodes": [
-        "node_modules/@lhci/cli"
-      ],
+      "nodes": ["node_modules/@lhci/cli"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -69,16 +47,10 @@
       "name": "@lhci/utils",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "lighthouse"
-      ],
-      "effects": [
-        "@lhci/cli"
-      ],
+      "via": ["lighthouse"],
+      "effects": ["@lhci/cli"],
       "range": ">=0.14.0",
-      "nodes": [
-        "node_modules/@lhci/utils"
-      ],
+      "nodes": ["node_modules/@lhci/utils"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -89,17 +61,10 @@
       "name": "@puppeteer/browsers",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "extract-zip",
-        "proxy-agent"
-      ],
-      "effects": [
-        "puppeteer-core"
-      ],
+      "via": ["extract-zip", "proxy-agent"],
+      "effects": ["puppeteer-core"],
       "range": "*",
-      "nodes": [
-        "node_modules/@puppeteer/browsers"
-      ],
+      "nodes": ["node_modules/@puppeteer/browsers"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -118,9 +83,7 @@
           "title": "basic-ftp: Quadratic-time CPU denial of service in Client.list() Unix directory-listing parser (RE_LINE backtracking)",
           "url": "https://github.com/advisories/GHSA-c475-qrg2-pj4r",
           "severity": "high",
-          "cwe": [
-            "CWE-1333"
-          ],
+          "cwe": ["CWE-1333"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -128,13 +91,9 @@
           "range": "<=6.2.0"
         }
       ],
-      "effects": [
-        "get-uri"
-      ],
+      "effects": ["get-uri"],
       "range": "<=6.2.0",
-      "nodes": [
-        "node_modules/basic-ftp"
-      ],
+      "nodes": ["node_modules/basic-ftp"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -153,9 +112,7 @@
           "title": "body-parser vulnerable to Denial of Service via trailing bytes after a compressed request body",
           "url": "https://github.com/advisories/GHSA-27r3-jxmh-p828",
           "severity": "high",
-          "cwe": [
-            "CWE-248"
-          ],
+          "cwe": ["CWE-248"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
@@ -169,9 +126,7 @@
           "title": "body-parser vulnerable to Denial of Service via trailing bytes after a compressed request body",
           "url": "https://github.com/advisories/GHSA-27r3-jxmh-p828",
           "severity": "high",
-          "cwe": [
-            "CWE-248"
-          ],
+          "cwe": ["CWE-248"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
@@ -191,16 +146,10 @@
       "name": "chromium-bidi",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "zod"
-      ],
-      "effects": [
-        "puppeteer-core"
-      ],
+      "via": ["zod"],
+      "effects": ["puppeteer-core"],
       "range": "0.5.13 - 157.0.8081-0",
-      "nodes": [
-        "node_modules/chromium-bidi"
-      ],
+      "nodes": ["node_modules/chromium-bidi"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -211,16 +160,10 @@
       "name": "external-editor",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "tmp"
-      ],
-      "effects": [
-        "inquirer"
-      ],
+      "via": ["tmp"],
+      "effects": ["inquirer"],
       "range": ">=1.1.1",
-      "nodes": [
-        "node_modules/external-editor"
-      ],
+      "nodes": ["node_modules/external-editor"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -239,9 +182,7 @@
           "title": "extract-zip unvalidated symlink path traversal",
           "url": "https://github.com/advisories/GHSA-jmr9-qjv8-65gv",
           "severity": "high",
-          "cwe": [
-            "CWE-22"
-          ],
+          "cwe": ["CWE-22"],
           "cvss": {
             "score": 8.1,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
@@ -255,9 +196,7 @@
           "title": "extract-zip allows arbitrary file writes through symlink archive entries",
           "url": "https://github.com/advisories/GHSA-7pqw-9j4j-h8q3",
           "severity": "high",
-          "cwe": [
-            "CWE-22"
-          ],
+          "cwe": ["CWE-22"],
           "cvss": {
             "score": 8.1,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:H"
@@ -265,13 +204,9 @@
           "range": "<=2.0.1"
         }
       ],
-      "effects": [
-        "@puppeteer/browsers"
-      ],
+      "effects": ["@puppeteer/browsers"],
       "range": "*",
-      "nodes": [
-        "node_modules/extract-zip"
-      ],
+      "nodes": ["node_modules/extract-zip"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -282,15 +217,10 @@
       "name": "firebase-admin",
       "severity": "moderate",
       "isDirect": true,
-      "via": [
-        "@google-cloud/firestore",
-        "@google-cloud/storage"
-      ],
+      "via": ["@google-cloud/firestore", "@google-cloud/storage"],
       "effects": [],
       "range": "7.0.0 - 8.2.0 || 11.0.0 - 14.3.0",
-      "nodes": [
-        "node_modules/firebase-admin"
-      ],
+      "nodes": ["node_modules/firebase-admin"],
       "fixAvailable": {
         "name": "firebase-admin",
         "version": "14.5.0",
@@ -301,14 +231,10 @@
       "name": "firebase-functions-test",
       "severity": "moderate",
       "isDirect": true,
-      "via": [
-        "ts-deepmerge"
-      ],
+      "via": ["ts-deepmerge"],
       "effects": [],
       "range": ">=2.0.0",
-      "nodes": [
-        "node_modules/firebase-functions-test"
-      ],
+      "nodes": ["node_modules/firebase-functions-test"],
       "fixAvailable": {
         "name": "firebase-functions-test",
         "version": "0.3.3",
@@ -319,30 +245,20 @@
       "name": "gaxios",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "uuid"
-      ],
+      "via": ["uuid"],
       "effects": [],
       "range": "6.4.0 - 6.7.1",
-      "nodes": [
-        "node_modules/gaxios"
-      ],
+      "nodes": ["node_modules/gaxios"],
       "fixAvailable": true
     },
     "get-uri": {
       "name": "get-uri",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "basic-ftp"
-      ],
-      "effects": [
-        "pac-proxy-agent"
-      ],
+      "via": ["basic-ftp"],
+      "effects": ["pac-proxy-agent"],
       "range": ">=5.0.0",
-      "nodes": [
-        "node_modules/get-uri"
-      ],
+      "nodes": ["node_modules/get-uri"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -353,17 +269,10 @@
       "name": "google-gax",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "retry-request",
-        "uuid"
-      ],
-      "effects": [
-        "@google-cloud/firestore"
-      ],
+      "via": ["retry-request", "uuid"],
+      "effects": ["@google-cloud/firestore"],
       "range": "4.0.5-experimental - 4.6.1",
-      "nodes": [
-        "node_modules/@google-cloud/firestore/node_modules/google-gax"
-      ],
+      "nodes": ["node_modules/@google-cloud/firestore/node_modules/google-gax"],
       "fixAvailable": {
         "name": "firebase-admin",
         "version": "14.5.0",
@@ -374,16 +283,10 @@
       "name": "inquirer",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "external-editor"
-      ],
-      "effects": [
-        "@lhci/cli"
-      ],
+      "via": ["external-editor"],
+      "effects": ["@lhci/cli"],
       "range": "3.0.0 - 8.2.6 || 9.0.0 - 9.3.7",
-      "nodes": [
-        "node_modules/inquirer"
-      ],
+      "nodes": ["node_modules/inquirer"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -394,17 +297,10 @@
       "name": "lighthouse",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "puppeteer-core"
-      ],
-      "effects": [
-        "@lhci/cli",
-        "@lhci/utils"
-      ],
+      "via": ["puppeteer-core"],
+      "effects": ["@lhci/cli", "@lhci/utils"],
       "range": "11.7.0-dev.20240320 - 13.3.0",
-      "nodes": [
-        "node_modules/lighthouse"
-      ],
+      "nodes": ["node_modules/lighthouse"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -415,16 +311,10 @@
       "name": "pac-proxy-agent",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "get-uri"
-      ],
-      "effects": [
-        "proxy-agent"
-      ],
+      "via": ["get-uri"],
+      "effects": ["proxy-agent"],
       "range": ">=6.0.0",
-      "nodes": [
-        "node_modules/pac-proxy-agent"
-      ],
+      "nodes": ["node_modules/pac-proxy-agent"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -435,17 +325,10 @@
       "name": "proxy-agent",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "pac-proxy-agent"
-      ],
-      "effects": [
-        "@lhci/cli",
-        "@puppeteer/browsers"
-      ],
+      "via": ["pac-proxy-agent"],
+      "effects": ["@lhci/cli", "@puppeteer/browsers"],
       "range": ">=6.0.0",
-      "nodes": [
-        "node_modules/proxy-agent"
-      ],
+      "nodes": ["node_modules/proxy-agent"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -456,17 +339,10 @@
       "name": "puppeteer-core",
       "severity": "high",
       "isDirect": false,
-      "via": [
-        "@puppeteer/browsers",
-        "chromium-bidi"
-      ],
-      "effects": [
-        "lighthouse"
-      ],
+      "via": ["@puppeteer/browsers", "chromium-bidi"],
+      "effects": ["lighthouse"],
       "range": "19.8.4 - 25.12.0",
-      "nodes": [
-        "node_modules/puppeteer-core"
-      ],
+      "nodes": ["node_modules/puppeteer-core"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -477,13 +353,8 @@
       "name": "retry-request",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "teeny-request"
-      ],
-      "effects": [
-        "@google-cloud/storage",
-        "google-gax"
-      ],
+      "via": ["teeny-request"],
+      "effects": ["@google-cloud/storage", "google-gax"],
       "range": "7.0.0 - 7.0.2",
       "nodes": [
         "node_modules/@google-cloud/firestore/node_modules/retry-request",
@@ -507,9 +378,7 @@
           "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
           "url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj",
           "severity": "high",
-          "cwe": [
-            "CWE-1395"
-          ],
+          "cwe": ["CWE-1395"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -523,9 +392,7 @@
           "title": "sharp: Vulnerabilities in libheif: GHSA-g89c-p67h-r497 and GHSA-2jg2-4ch7-h545",
           "url": "https://github.com/advisories/GHSA-rgj7-g3m4-5g8c",
           "severity": "high",
-          "cwe": [
-            "CWE-122"
-          ],
+          "cwe": ["CWE-122"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -539,10 +406,7 @@
           "title": "sharp : Vulnerability in librsvg dependency CVE-2026-96889",
           "url": "https://github.com/advisories/GHSA-wq5f-xc86-pv6w",
           "severity": "high",
-          "cwe": [
-            "CWE-416",
-            "CWE-1395"
-          ],
+          "cwe": ["CWE-416", "CWE-1395"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -552,9 +416,7 @@
       ],
       "effects": [],
       "range": "<=0.35.5-rc.1",
-      "nodes": [
-        "packages/functions/node_modules/sharp"
-      ],
+      "nodes": ["packages/functions/node_modules/sharp"],
       "fixAvailable": {
         "name": "sharp",
         "version": "0.35.5",
@@ -565,13 +427,8 @@
       "name": "teeny-request",
       "severity": "moderate",
       "isDirect": false,
-      "via": [
-        "uuid"
-      ],
-      "effects": [
-        "@google-cloud/storage",
-        "retry-request"
-      ],
+      "via": ["uuid"],
+      "effects": ["@google-cloud/storage", "retry-request"],
       "range": "3.9.1 - 9.0.0",
       "nodes": [
         "node_modules/@google-cloud/firestore/node_modules/teeny-request",
@@ -595,9 +452,7 @@
           "title": "tmp allows arbitrary temporary file / directory write via symbolic link `dir` parameter",
           "url": "https://github.com/advisories/GHSA-52f5-9888-hmc6",
           "severity": "low",
-          "cwe": [
-            "CWE-59"
-          ],
+          "cwe": ["CWE-59"],
           "cvss": {
             "score": 2.5,
             "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:N"
@@ -611,9 +466,7 @@
           "title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
           "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65",
           "severity": "high",
-          "cwe": [
-            "CWE-22"
-          ],
+          "cwe": ["CWE-22"],
           "cvss": {
             "score": 0,
             "vectorString": null
@@ -621,15 +474,9 @@
           "range": "<0.2.6"
         }
       ],
-      "effects": [
-        "@lhci/cli",
-        "external-editor"
-      ],
+      "effects": ["@lhci/cli", "external-editor"],
       "range": "<=0.2.5",
-      "nodes": [
-        "node_modules/external-editor/node_modules/tmp",
-        "node_modules/tmp"
-      ],
+      "nodes": ["node_modules/external-editor/node_modules/tmp", "node_modules/tmp"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
@@ -648,9 +495,7 @@
           "title": "ts-deepmerge: Prototype Method Override leads to DoS",
           "url": "https://github.com/advisories/GHSA-87mf-gv2c-c62c",
           "severity": "moderate",
-          "cwe": [
-            "CWE-248"
-          ],
+          "cwe": ["CWE-248"],
           "cvss": {
             "score": 5.3,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
@@ -658,13 +503,9 @@
           "range": "<8.0.0"
         }
       ],
-      "effects": [
-        "firebase-functions-test"
-      ],
+      "effects": ["firebase-functions-test"],
       "range": "<8.0.0",
-      "nodes": [
-        "node_modules/ts-deepmerge"
-      ],
+      "nodes": ["node_modules/ts-deepmerge"],
       "fixAvailable": {
         "name": "firebase-functions-test",
         "version": "0.3.3",
@@ -683,10 +524,7 @@
           "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
           "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
           "severity": "moderate",
-          "cwe": [
-            "CWE-787",
-            "CWE-1285"
-          ],
+          "cwe": ["CWE-787", "CWE-1285"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
@@ -694,12 +532,7 @@
           "range": "<11.1.1"
         }
       ],
-      "effects": [
-        "@lhci/cli",
-        "gaxios",
-        "google-gax",
-        "teeny-request"
-      ],
+      "effects": ["@lhci/cli", "gaxios", "google-gax", "teeny-request"],
       "range": "<11.1.1",
       "nodes": [
         "node_modules/@google-cloud/firestore/node_modules/uuid",
@@ -725,9 +558,7 @@
           "title": "Zod can exhaust memory while validating oversized constrained collections",
           "url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
           "severity": "high",
-          "cwe": [
-            "CWE-770"
-          ],
+          "cwe": ["CWE-770"],
           "cvss": {
             "score": 7.5,
             "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
@@ -735,13 +566,9 @@
           "range": "<4.6.6"
         }
       ],
-      "effects": [
-        "chromium-bidi"
-      ],
+      "effects": ["chromium-bidi"],
       "range": "<4.6.6",
-      "nodes": [
-        "node_modules/chromium-bidi/node_modules/zod"
-      ],
+      "nodes": ["node_modules/chromium-bidi/node_modules/zod"],
       "fixAvailable": {
         "name": "@lhci/cli",
         "version": "0.6.1",
