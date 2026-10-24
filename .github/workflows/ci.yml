@@ -1,0 +1,82 @@
+# CI — los 7 gates de `docs/QA.md` §5.1, en su orden exacto y en un único job
+# (el protocolo exige «falla en el primer gate rojo»: un job secuencial lo garantiza;
+# jobs paralelos con `needs:` ejecutarían todos los gates aunque el 1 ya esté rojo).
+#
+# ALCANCE ACTUAL (andamiaje, Fase 0): los gates 5 y 7 pasan EN VACÍO a propósito.
+#   · 4:   ya hay tests reales en `@jf/client` y `@jf/functions`.
+#   · 5:   `@jf/functions` no declara `coverage.thresholds`, así que el «≥ 80 %»
+#          de QA §5.1 aún no puede fallar.
+#   · 7:   el único spec es `packages/client/e2e/placeholder.spec.ts` y está `test.skip`.
+# Verde aquí significa «compila, formatea, tipa y no rompe nada», NO «probado».
+# La suite real y los umbrales se cierran en MT6.2 (AC7.2.8, AC7.6.3).
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  gates:
+    name: Gates pre-PR (QA §5.1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 24 (según .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # --- Gates 1–7: docs/QA.md §5.1 ------------------------------------
+      - name: 'Gate 1/7 · Lint'
+        run: npm run lint
+
+      - name: 'Gate 2/7 · Formato (Prettier --check)'
+        run: npm run format:check
+
+      - name: 'Gate 3/7 · Tipos (strict)'
+        run: npm run typecheck
+
+      - name: 'Gate 4/7 · Tests (unit + integración)'
+        run: npm run test
+
+      - name: 'Gate 5/7 · Cobertura backend (objetivo ≥ 80 %, activo en MT6.2)'
+        run: npm run test:coverage -w @jf/functions
+
+      - name: 'Gate 6/7 · Build (functions tsc + client next build)'
+        run: npm run build
+
+      # Preparación del gate 7 (los navegadores no forman parte del orden de gates).
+      - name: Cache de navegadores de Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Instalar Chromium (Playwright)
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/client
+
+      - name: 'Gate 7/7 · E2E móvil (Playwright + axe)'
+        run: npm run test:e2e

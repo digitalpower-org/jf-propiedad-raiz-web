@@ -78,6 +78,9 @@ web_modules/
 .next
 out
 
+# Lighthouse CI
+.lighthouseci/
+
 # Nuxt.js build / generate output
 .nuxt
 dist
@@ -125,9 +128,6 @@ dist
 # Stores Visual Studio Code versions used for testing Visual Studio Code extensions
 .vscode-test
 
-# pnpm
-.pnpm-store
-
 # yarn v3
 .pnp.*
 .yarn/*
@@ -147,6 +147,11 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Editor / agent tooling
+.vscode/
+.omo/
+session-*.md
 
 .env
 .env.*

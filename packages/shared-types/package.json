@@ -1,10 +1,14 @@
 {
   "name": "@jf/shared-types",
   "version": "1.0.0",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "private": true,
+  "types": "./src/index.d.ts",
   "scripts": {
-    "build:types": "openapi-typescript ../../docs/openapi.yaml -o ./src/index.ts"
+    "check:errors": "node scripts/check-error-catalog.mjs",
+    "prebuild:types": "npm run check:errors",
+    "build:types": "openapi-typescript ../../docs/openapi.backend.yaml -o ./src/api/backend.gen.d.ts && openapi-typescript ../../docs/openapi.bff.yaml -o ./src/api/bff.gen.d.ts",
+    "pretypecheck": "npm run check:errors",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "openapi-typescript": "^7.0.0",
