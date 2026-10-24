@@ -102,7 +102,7 @@ npm run lint -w @jf/functions
 | `domain/` | invariantes: precio COP entero >0, estados, código JF-XXXX, reglas Translatable | unitario puro |
 | `application/` | casos de uso con dobles falsos (`ImageProcessor`, `Translator`, `EmailSender`, repositorios) | unitario |
 | `presentation/` | mapeo de errores al catálogo, validación 422, `X-Internal-Key` 401, `X-User-Role` 403 | unitario/integración |
-| integración (emuladores) | CRUD + consulta pública con índices, cursor `{createdAt,id}` (AC1.10.2), rate-limit (US3.4), tarea «Nuevo» idempotente (AC1.11.3) | integración |
+| integración (emuladores) | CRUD + consulta pública con índices, cursor `{createdAt,id}` (AC1.10.2), rate-limit (US3.4) | integración |
 | contrato | requests contra `openapi.backend.yaml` y `openapi.bff.yaml` (tipos generados en `@jf/shared-types`) | integración |
 
 ---
