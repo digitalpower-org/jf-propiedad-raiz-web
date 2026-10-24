@@ -48,7 +48,7 @@
 | D15 | Forma de errores | `{ success: false, data: { code, details, requestId }, message }`. Validación \= HTTP 422 con `VALIDATION_ERROR`. |
 | D16 | Hosting del frontend | Next.js en **Firebase App Hosting**, en el mismo proyecto de Firebase que Functions, Firestore y Auth. |
 | D17 | Orden e índices | El listado se ordena siempre por `createdAt` descendente (más reciente primero), con desempate por `id`; como `destacada` se filtra por un único valor, las pestañas hacen dos consultas (primero `true`, después `false`) para mostrar los destacados primero. La paginación es por cursor `{ createdAt, id }` en cada consulta. Los índices compuestos cubren las 4 combinaciones de igualdad (`tipo` × ubicación) documentadas en `./ARCHITECTURE.md` y `firestore.indexes.json`; el rango de precio **no** comparte índice con el mismo preset sin precio, de modo que los 8 presets resultan de activar o no el rango y cada uno tiene su propio índice. |
-| D18 | Banderas | `destacada` (manual, franja en portada; booleano ya presente en el modelo Property) y `nuevo` (automática: se activa al crear el inmueble y una tarea programada diaria la apaga pasados 30 días (`NEW_FLAG_DAYS`) desde `createdAt`). |
+| D18 | Banderas | `destacada` (manual, franja en portada; booleano ya presente en el modelo Property) y la insignia «Nuevo», que se deriva en el frontend cuando `createdAt` tiene menos de 30 días; no se persiste ninguna bandera ni existe tarea programada. |
 | D19 | Listados | Scroll infinito por cursor, de 12 en 12\. Sin paginación numerada. |
 | D20 | Proyectos sobre planos | Son una `operacion` propia y tienen campos propios (`proyecto`) además de los de un inmueble. |
 | D21 | Panorámicas 360° | Máximo 3 por inmueble. |
@@ -73,7 +73,7 @@
 ## MODELO DE DATOS MÍNIMO (referencia para `shared-types`)
 
 - **Translatable:** `{ es: string, en?: string, autoTranslate?: boolean, enPendiente?: boolean }`. `es` lo escribe el admin; `en` lo escribe el sistema con la traducción automática (US0.5) o el admin manualmente; `autoTranslate` (por campo, activo por defecto) controla si el backend traduce al guardar; `enPendiente` lo mantiene el backend (regla de estado en US0.5).  
-- **Property:** `id`, `codigo` (`JF-XXXX`), `slug`, `status` (`ACTIVE|HIDDEN|DELETED`), `operacion` (`VENTA|ALQUILER|PROYECTO_SOBRE_PLANOS`), `tipo` (`CASA|APARTAMENTO|LOTE_CAMPESTRE|LOTE_URBANO|FINCA|LOCAL_COMERCIAL|BODEGA|OFICINA`), `titulo` (Translatable), `descripcion` (Translatable; aquí va, como texto libre, cualquier mención de sector o barrio), `precio` (COP, entero; valor de venta o canon mensual), `departamento`, `municipio`, `estrato`, `predial`, `administracion`, `acabados` (Translatable), `antiguedad`, `areaConstruida`, `areaLote`, `dormitorios`, `banos`, `parqueaderos`, `deposito` (cuarto útil), `amenidades[]` (catálogo cerrado en `shared-types`, p. ej. `PISCINA`, `CANCHA`, `GIMNASIO`), `puntosInteres[]` (categoría predefinida o ítem personalizado con etiqueta Translatable), `fotos[]` (orden \= posición; posición 1 \= portada; cada una con las claves de sus derivados), `videos[]` (máx. 2 URLs de YouTube), `panoramas[]` (JPG en R2, máx. 3), `destacada` (boolean), `nuevo` (boolean, automático), `proyecto?` (solo si `operacion = PROYECTO_SOBRE_PLANOS`: `etapa` (Translatable), `fechaEntregaEstimada` (`AAAA-MM`), `unidadesDisponibles`), `fechaPublicacion`, `createdAt`, `updatedAt`.  
+- **Property:** `id`, `codigo` (`JF-XXXX`), `slug`, `status` (`ACTIVE|HIDDEN|DELETED`), `operacion` (`VENTA|ALQUILER|PROYECTO_SOBRE_PLANOS`), `tipo` (`CASA|APARTAMENTO|LOTE_CAMPESTRE|LOTE_URBANO|FINCA|LOCAL_COMERCIAL|BODEGA|OFICINA`), `titulo` (Translatable), `descripcion` (Translatable; aquí va, como texto libre, cualquier mención de sector o barrio), `precio` (COP, entero; valor de venta o canon mensual), `departamento`, `municipio`, `estrato`, `predial`, `administracion`, `acabados` (Translatable), `antiguedad`, `areaConstruida`, `areaLote`, `dormitorios`, `banos`, `parqueaderos`, `deposito` (cuarto útil), `amenidades[]` (catálogo cerrado en `shared-types`, p. ej. `PISCINA`, `CANCHA`, `GIMNASIO`), `puntosInteres[]` (categoría predefinida o ítem personalizado con etiqueta Translatable), `fotos[]` (orden \= posición; posición 1 \= portada; cada una con las claves de sus derivados), `videos[]` (máx. 2 URLs de YouTube), `panoramas[]` (JPG en R2, máx. 3), `destacada` (boolean), `proyecto?` (solo si `operacion = PROYECTO_SOBRE_PLANOS`: `etapa` (Translatable), `fechaEntregaEstimada` (`AAAA-MM`), `unidadesDisponibles`), `fechaPublicacion`, `createdAt`, `updatedAt`.  
 - **Service:** `id`, `slug`, `status` (`ACTIVE|HIDDEN|DELETED`), `titulo`, `resumen`, `cuerpo` (los tres Translatable), `fotos[]`, `orden`, `updatedAt`.  
 - **About** (documento único `pages/nosotros`): `titulo` (Translatable), `extracto` (Translatable, máx. 500 caracteres; es lo que se muestra en la portada), `secciones[]` (`id`, `titulo` (Translatable), `cuerpo` (Translatable); orden \= posición), `equipo[]` (`id`, `nombre`, `cargo` (Translatable), `descripcion?` (Translatable), `foto?`; orden \= posición), `updatedAt`.  
 - No existe la entidad Lead (D11).
@@ -117,7 +117,7 @@
 - **Responsable:** \[ Fullstack \] · **Prioridad:** MUST · **Estado:** \[ \]  
 - **Descripción:** tras cada escritura, el backend avisa a Next.js para refrescar las páginas públicas sin reconstruir el sitio. En cada guardado el orden es: validar → traducir (US0.5) → escribir → revalidar.  
 - **Criterios de aceptación:**  
-  - AC0.3.1 **Dado** que se crea, edita, activa, oculta o elimina un inmueble o servicio, que se guarda la página Nosotros, o que la tarea de US1.11 apaga banderas **Cuando** se confirma la escritura **Entonces** Functions invoca `POST /api/revalidate` con un secreto y se ejecuta `revalidatePath`/`revalidateTag` de las rutas afectadas **en ambos idiomas** (listados, ficha, portada, servicios, nosotros y sitemap). `[agente]`  
+  - AC0.3.1 **Dado** que se crea, edita, activa, oculta o elimina un inmueble o servicio, o que se guarda la página Nosotros **Cuando** se confirma la escritura **Entonces** Functions invoca `POST /api/revalidate` con un secreto y se ejecuta `revalidatePath`/`revalidateTag` de las rutas afectadas **en ambos idiomas** (listados, ficha, portada, servicios, nosotros y sitemap). `[agente]`  
   - AC0.3.2 **Dado** un inmueble activado **Entonces** aparece en su listado y en su ficha sin ejecutar `next build`. `[agente]`  
   - AC0.3.3 **Dado** una llamada a `/api/revalidate` sin el secreto **Entonces** responde 401\. `[agente]`  
   - AC0.3.4 **\[Debe NOT\]** Si la revalidación falla, la escritura ya hecha no se revierte; se registra el fallo. `[agente]`
@@ -262,8 +262,8 @@
 - **Responsable:** \[ Dev 1 \] · **Prioridad:** MUST · **Estado:** \[ \]  
 - **Descripción:** casos de uso de dominio para crear, activar, ocultar y eliminar (soft delete). No existe `DRAFT`: un inmueble recién creado queda `HIDDEN` y solo pasa a `ACTIVE` si cumple los campos obligatorios.  
 - **Criterios de aceptación:**  
-  - AC1.7.1 **Dado** que un admin crea un inmueble **Cuando** pasa por `CreatePropertyUseCase` **Entonces** se asigna `codigo` `JF-XXXX` con un contador atómico en Firestore, el estado inicial es `HIDDEN`, `nuevo = true` y se registra `createdAt`. `[agente]`  
-  - AC1.7.2 **Dado** un inmueble **Entonces** `codigo`, `nuevo`, `createdAt`, `fechaPublicacion` y `updatedAt` son de solo lectura en la API y en el editor. `[agente]`  
+  - AC1.7.1 **Dado** que un admin crea un inmueble **Cuando** pasa por `CreatePropertyUseCase` **Entonces** se asigna `codigo` `JF-XXXX` con un contador atómico en Firestore, el estado inicial es `HIDDEN` y se registra `createdAt`. `[agente]`  
+  - AC1.7.2 **Dado** un inmueble **Entonces** `codigo`, `createdAt`, `fechaPublicacion` y `updatedAt` son de solo lectura en la API y en el editor. `[agente]`  
   - AC1.7.3 **Dado** un inmueble al que le falte alguno de estos datos: `operacion`, `tipo`, `titulo` (es), `departamento`, `municipio`, `precio` o al menos una foto **Cuando** se intenta pasar a `ACTIVE` **Entonces** responde 422 `VALIDATION_ERROR` con los campos faltantes. `[agente]`  
   - AC1.7.4 **Dado** un `precio` menor o igual a 0, o no entero **Entonces** se rechaza con 422\. `[agente]`  
   - AC1.7.5 **Dado** la primera activación de un inmueble **Entonces** se fija `fechaPublicacion`; ocultarlo y reactivarlo no la cambia. `[agente]`  
@@ -339,17 +339,15 @@
   - AC1.10.6 **Dado** `GET /api/v1/properties/featured` **Entonces** devuelve hasta 12 inmuebles `ACTIVE` con `destacada = true`, ordenados por `fechaPublicacion desc` (consulta propia, con su índice). `[agente]`  
   - AC1.10.7 **\[Debe NOT\]** Ninguna respuesta pública incluye inmuebles `HIDDEN`/`DELETED` ni campos internos, el listado se ordena por `createdAt` descendente (nunca por `precio`) y no se usa `AggregationQuery`. `[agente]`
 
-### US1.11 — Vigencia de la Bandera «Nuevo» (tarea programada)
+### US1.11 — Insignia «Nuevo» Derivada en el Frontend
 
-- **Responsable:** \[ Dev 1 \] · **Prioridad:** SHOULD · **Estado:** \[ \]  
-- **Descripción:** `nuevo` se enciende al crear el inmueble (US1.7) y una tarea diaria la apaga 30 días después de `createdAt` (`NEW_FLAG_DAYS`).  
+- **Responsable:** \[ Dev 2 \] · **Prioridad:** SHOULD · **Estado:** \[ \]  
+- **Descripción:** la insignia «Nuevo» se calcula en el frontend a partir de `createdAt`; no se persiste ninguna bandera en Firestore ni se devuelve en la API.  
 - **Criterios de aceptación:**  
-  - AC1.11.1 **Dado** una función programada diaria (`onSchedule`, 03:00 `America/Bogota`) **Entonces** pone `nuevo = false` en los inmuebles con `nuevo = true` cuyo `createdAt` supera `NEW_FLAG_DAYS` días. `[agente]`  
-  - AC1.11.2 **Dado** la vigencia **Entonces** se lee de la variable de entorno `NEW_FLAG_DAYS` y cambiarla no requiere cambios de código. `[agente]`  
-  - AC1.11.3 **Dado** que la tarea se ejecuta dos veces seguidas **Entonces** la segunda modifica 0 documentos (idempotente). `[agente]`  
-  - AC1.11.4 **Dado** que modifica al menos un inmueble `ACTIVE` **Entonces** dispara la revalidación (US0.3); si modifica 0, no. `[agente]`  
-  - AC1.11.5 **Dado** la consulta de la tarea **Entonces** usa solo `nuevo == true` (no recorre todo el catálogo). `[agente]`  
-  - AC1.11.6 **\[Debe NOT\]** La tarea no cambia `updatedAt` (para no provocar conflictos 409 falsos en el editor) y `nuevo` no es escribible desde la API. `[agente]`
+  - AC1.11.1 **Dado** un inmueble cuyo `createdAt` tiene menos de 30 días **Cuando** el frontend renderiza su tarjeta **Entonces** muestra la insignia «Nuevo» calculada desde `createdAt`. `[agente]`  
+  - AC1.11.2 **Dado** un inmueble cuyo `createdAt` tiene 30 días o más **Entonces** el frontend no muestra la insignia «Nuevo». `[agente]`  
+  - AC1.11.3 **Dado** el modelo de datos **Entonces** `nuevo` no existe en Firestore ni en las respuestas de la API; el umbral de 30 días vive en el frontend. `[agente]`  
+  - AC1.11.4 **\[Debe NOT\]** No hay tarea programada, variable `NEW_FLAG_DAYS` ni revalidación asociada al paso de los 30 días. `[agente]`
 
 ### US1.12 — Autorización por Roles (COULD)
 
@@ -403,7 +401,7 @@
   - AC2.2.8 **Dado** la carga inicial **Entonces** se renderiza una grilla de `Skeleton` de Mantine con las proporciones reales (4:3 en la imagen, líneas para el texto) y sin saltos de layout. `[agente]`  
   - AC2.2.9 **Dado** que la respuesta llega en menos de \~200 ms **Entonces** no se muestra el skeleton. `[agente]`  
   - AC2.2.10 **Dado** cero resultados **Entonces** se muestra un estado vacío en el idioma de la página que invita a dar más información sobre lo que busca y ofrece un botón de WhatsApp con un mensaje prediseñado que resume los filtros activos; los filtros se conservan y no hay error 500\. `[agente]`  
-  - AC2.2.11 **Dado** una tarjeta **Entonces** muestra imagen (derivado 640), código, título, precio, municipio, íconos de dormitorios/baños/área/estrato y una insignia «Nuevo» cuando `nuevo = true`. `[agente]`  
+  - AC2.2.11 **Dado** una tarjeta **Entonces** muestra imagen (derivado 640), código, título, precio, municipio, íconos de dormitorios/baños/área/estrato y una insignia «Nuevo» calculada en el frontend cuando `createdAt` tiene menos de 30 días. `[agente]`  
   - AC2.2.12 **Dado** la primera carga de un listado **Entonces** los datos se hidratan desde el servidor (prefetch \+ `HydrationBoundary`) y el contenido inicial llega en el HTML. `[agente]`  
   - AC2.2.13 **\[Debe NOT\]** No hay `?page=` ni `?cursor=` en la URL, ni control de orden, ni filtro de sector, ni spinners. `[agente]`
 
@@ -531,7 +529,7 @@
 - **Criterios de aceptación:**  
   - AC4.1.1 **Dado** `/admin/propiedades` **Entonces** lista los inmuebles no eliminados, con código, título, operación y estado, y permite abrir el editor, activar y ocultar. `[agente]`  
   - AC4.1.2 **Dado** `/admin/propiedades/nueva` **Cuando** guardo **Entonces** el inmueble queda `HIDDEN` con código asignado y no aparece en ninguna ruta pública. `[agente]`  
-  - AC4.1.3 **Dado** el editor **Entonces** cubre los campos editables de Property: `operacion`, `tipo`, `titulo`, `descripcion`, `precio`, `departamento`, `municipio`, `estrato`, `predial`, `administracion`, `acabados`, `antiguedad`, `areaConstruida`, `areaLote`, `dormitorios`, `banos`, `parqueaderos`, `deposito`, `amenidades`, `puntosInteres`, `fotos`, `videos`, `panoramas`, `destacada` y `status`; y muestra de solo lectura `codigo`, `nuevo`, `fechaPublicacion`, `createdAt` y `updatedAt`. `[agente]`  
+  - AC4.1.3 **Dado** el editor **Entonces** cubre los campos editables de Property: `operacion`, `tipo`, `titulo`, `descripcion`, `precio`, `departamento`, `municipio`, `estrato`, `predial`, `administracion`, `acabados`, `antiguedad`, `areaConstruida`, `areaLote`, `dormitorios`, `banos`, `parqueaderos`, `deposito`, `amenidades`, `puntosInteres`, `fotos`, `videos`, `panoramas`, `destacada` y `status`; y muestra de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt`. `[agente]`  
   - AC4.1.4: **Dado** un Administrador creando o editando los campos traducibles del inmueble **Cuando** observa la interfaz del editor **Entonces** cada campo traducible se muestra con su par de entradas editables en español (`es`) e inglés (`en`), con un indicador de estado de traducción para cada campo («Actualizada» o «Pendiente», regla de AC0.5.11) y un interruptor individual que activa o desactiva la traducción automática de ese campo (activada por defecto) **Y además** hay un interruptor global que aplica el mismo valor a la traducción automática de todos los campos traducibles **Y cuando** presiona **«Guardar»** **Entonces** el backend traduce únicamente los campos con traducción automática activa que estén «Pendiente», persiste los valores de `en` escritos a mano y refleja el estado resultante en cada indicador. `[agente]`  
   - AC4.1.5 **Dado** `operacion = PROYECTO_SOBRE_PLANOS` **Entonces** el editor muestra un bloque adicional con etapa, mes y año de entrega estimada y unidades disponibles; **dado** otra operación **Entonces** el bloque no se muestra y no se guarda. `[agente]`  
   - AC4.1.6 **Dado** un inmueble completo **Cuando** lo guardo **Entonces** pasa automáticamente a `ACTIVE` y aparece público (US0.3); **dado** uno incompleto **Entonces** se muestra qué falta, en español. `[agente]`  
@@ -675,7 +673,7 @@
 - **Responsable:** \[ Dev 1 \] · **Prioridad:** MUST · **Estado:** \[ \]  
 - **Criterios de aceptación:**  
   - AC6.1.1 **Dado** `npm run seed` ejecutado dos veces **Entonces** la segunda informa 0 cambios (idempotente). `[agente]`  
-  - AC6.1.2 **Dado** el resultado **Entonces** hay hasta 20 inmuebles repartidos en venta, alquiler y proyectos, con al menos 13 `ACTIVE` en `VENTA` (para ejercitar el scroll infinito) y precios variados, al menos 1 `HIDDEN`, 1 `destacada`, 1 con `nuevo = true`, un proyecto sobre planos con sus campos propios, algunos con `en` completo y otros sin él, algunos servicios y un documento Nosotros de ejemplo con 2 secciones y 2 integrantes (texto de ejemplo, sin afirmaciones inventadas sobre la empresa). `[agente]`  
+  - AC6.1.2 **Dado** el resultado **Entonces** hay hasta 20 inmuebles repartidos en venta, alquiler y proyectos, con al menos 13 `ACTIVE` en `VENTA` (para ejercitar el scroll infinito) y precios variados, al menos 1 `HIDDEN`, 1 `destacada`, 1 con `createdAt` dentro de los últimos 30 días (para ejercitar la insignia «Nuevo»), un proyecto sobre planos con sus campos propios, algunos con `en` completo y otros sin él, algunos servicios y un documento Nosotros de ejemplo con 2 secciones y 2 integrantes (texto de ejemplo, sin afirmaciones inventadas sobre la empresa). `[agente]`  
   - AC6.1.3 **Dado** el inmueble `HIDDEN` sembrado **Entonces** responde 404 en la web pública y queda fuera de todo listado. `[agente]`  
   - AC6.1.4 **\[Debe NOT\]** No se descargan imágenes de internet (las de *Placeholder* se generan localmente), no hay fotos de personas reales, direcciones o teléfonos reales, y el seed no llama al servicio de traducción (usa el traductor falso de AC0.5.9). `seed:reset` es la única ruta destructiva y se invoca explícitamente. `[agente]`
 
