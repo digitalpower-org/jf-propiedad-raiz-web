@@ -62,12 +62,11 @@ export interface Property {
     /** Máximo 3 panorámicas 360° (D21, AC4.3.3). */
     readonly panoramas?: readonly [Panorama?, Panorama?, Panorama?];
     readonly destacada: boolean;
-    /** Bandera automática (D18); no escribible desde la API (AC1.11.6). */
-    readonly nuevo: boolean;
     readonly proyecto?: Proyecto;
     /** Se fija solo en la primera activación (AC1.7.5); de solo lectura (AC1.7.2). */
     readonly fechaPublicacion?: string;
-    /** De solo lectura en la API y en el editor (AC1.7.2). */
+    /** De solo lectura en la API y en el editor (AC1.7.2). El frontend deriva de aquí la
+     * insignia «Nuevo» cuando tiene menos de 30 días (US1.11); no se persiste ninguna bandera. */
     readonly createdAt: string;
     /** De solo lectura; control de concurrencia optimista contra 409 (AC1.7.2, AC1.7.8). */
     readonly updatedAt: string;
@@ -92,8 +91,7 @@ export interface PropertyCard {
     /** Derivados WebP de la foto de portada (posición 1) para el `srcset` (AC7.3.1). */
     readonly portada?: readonly DerivadoImagen[];
     readonly destacada: boolean;
-    /** Insignia «Nuevo» en la tarjeta (AC2.2.11). */
-    readonly nuevo: boolean;
+    /** La insignia «Nuevo» se deriva de `createdAt` en el frontend (< 30 días, US1.11). */
     readonly createdAt: string;
 }
 
