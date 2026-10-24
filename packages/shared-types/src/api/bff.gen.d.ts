@@ -109,9 +109,9 @@ export interface paths {
          *     (AC1.3.1) y reenvía a `POST /api/v1/properties` con `X-Internal-Key` y
          *     `X-User-Id`/`X-User-Email`/`X-User-Role` tomados de su propia sesión, sobrescribiendo
          *     cualquier `X-User-*` del navegador (AC1.3.5). El backend autoriza con `X-User-Role:
-         *     admin` (D27) y es quien asigna el `codigo` `JF-XXXX` secuencial (D6), `nuevo = true` y
-         *     `createdAt`; el cliente no puede enviarlos (AC1.7.2). Tras la escritura, Functions
-         *     dispara la revalidación (AC0.3.1).
+         *     admin` (D27) y es quien asigna el `codigo` `JF-XXXX` secuencial (D6) y `createdAt`; el
+         *     cliente no puede enviarlos (AC1.7.2). Tras la escritura, Functions dispara la revalidación
+         *     (AC0.3.1).
          */
         post: operations["createProperty"];
         delete?: never;
@@ -502,11 +502,10 @@ export interface paths {
          *     El navegador **nunca** llama a esta ruta; el consumidor es Functions (mismo plano interno
          *     que `X-Internal-Key`, D26, D30). Sin el secreto → 401 (AC0.3.3).
          *
-         *     Tras cada escritura confirmada (inmuebles, servicios, página Nosotros y la tarea de
-         *     «Nuevo» de US1.11), Functions invoca este endpoint con el secreto y se ejecuta
-         *     `revalidatePath`/`revalidateTag` de las rutas afectadas **en ambos idiomas** (listados,
-         *     ficha, portada, servicios, nosotros y sitemap). Si la revalidación falla, la escritura no
-         *     se revierte; solo se registra (AC0.3.4).
+         *     Tras cada escritura confirmada (inmuebles, servicios y página Nosotros), Functions invoca
+         *     este endpoint con el secreto y se ejecuta `revalidatePath`/`revalidateTag` de las rutas
+         *     afectadas **en ambos idiomas** (listados, ficha, portada, servicios, nosotros y sitemap).
+         *     Si la revalidación falla, la escritura no se revierte; solo se registra (AC0.3.4).
          */
         post: operations["revalidate"];
         delete?: never;
@@ -621,8 +620,6 @@ export interface components {
             areaConstruida?: number;
             estrato?: number;
             destacada: boolean;
-            /** @description Bandera automática (D18); insignia «Nuevo» en la tarjeta (AC2.2.11). */
-            nuevo: boolean;
             /** Format: date-time */
             createdAt: string;
             /** @description Derivados WebP de la foto en posición 1, indexados por lado mayor en px (US1.9). */
@@ -654,7 +651,7 @@ export interface components {
          * @enum {string}
          */
         EstadoPropiedad: "ACTIVE" | "HIDDEN" | "DELETED";
-        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `nuevo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
+        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
         PropertyInput: {
             operacion: components["schemas"]["Operacion"];
             tipo: components["schemas"]["TipoInmueble"];
