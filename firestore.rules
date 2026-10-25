@@ -1,8 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ================================================================
+    // DENY por defecto — todo lo no explícitamente permitido está cerrado
+    // ================================================================
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // ================================================================
+    // Colección: authorized_users (lista blanca de administradores)
+    // Nota: el Admin SDK (firestore-seed.js) omite reglas por completo.
+    //       Aquí solo se controla el acceso desde el SDK cliente (emulador).
+    // ================================================================
+    match /authorized_users/{docId} {
+      // Lectura pública (verificación de lista blanca)
+      allow read: if true;
+      // Escritura solo para usuarios autenticados (en producción solo Admin SDK/seed)
+      allow write: if request.auth != null;
+    }
+
+    // ================================================================
+    // Colección: properties (catálogo de inmuebles)
+    // ================================================================
+    match /properties/{propertyId} {
+      // Lectura pública: solo inmuebles con status ACTIVE (catálogo público)
+      allow read: if resource.data.status == 'ACTIVE';
+      // Escritura: solo usuarios autenticados (administradores)
+      allow write: if request.auth != null;
+    }
+
+    // ================================================================
+    // Colección: services (servicios del CMS)
+    // ================================================================
+    match /services/{serviceId} {
+      // Lectura pública: solo servicios con status ACTIVE
+      allow read: if resource.data.status == 'ACTIVE';
+      // Escritura: solo usuarios autenticados (administradores)
+      allow write: if request.auth != null;
+    }
+
+    // ================================================================
+    // Documento único: pages/nosotros
+    // ================================================================
+    match /pages/{pageId} {
+      // Lectura pública solo del documento nosotros
+      allow read: if pageId == 'nosotros';
+      // Escritura: solo usuarios autenticados (administradores)
+      allow write: if request.auth != null;
+    }
+
   }
 }
