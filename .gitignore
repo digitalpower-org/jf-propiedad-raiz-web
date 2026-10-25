@@ -158,3 +158,6 @@ session-*.md
 !.env.example
 *serviceAccount*.json
 firebase-adminsdk*.json
+
+# Patch files generated for MT1.1 handoff review
+.patches/
