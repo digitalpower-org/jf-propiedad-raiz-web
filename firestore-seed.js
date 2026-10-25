@@ -18,7 +18,7 @@ const db = admin.firestore();
 
 async function seedAuthorizedUsers() {
   console.log('Inicializando colección authorized_users...');
-  
+
   const testUsers = [
     {
       email: 'admin@jfu24.com',
@@ -55,21 +55,19 @@ async function seedAuthorizedUsers() {
   // Borrar documentos existentes (para idempotencia)
   console.log('Limpiando colección authorized_users...');
   const existingDocs = await db.collection('authorized_users').get();
-  const deletePromises = existingDocs.docs.map(doc => doc.ref.delete());
+  const deletePromises = existingDocs.docs.map((doc) => doc.ref.delete());
   await Promise.all(deletePromises);
 
   // Escribir nuevos documentos
   console.log(`Creando ${testUsers.length} usuarios autorizados...`);
-  const writePromises = testUsers.map(user => 
-    db.collection('authorized_users').add(user)
-  );
+  const writePromises = testUsers.map((user) => db.collection('authorized_users').add(user));
   await Promise.all(writePromises);
 
   // Verificar que los documentos se crearon
   const snapshot = await db.collection('authorized_users').get();
   console.log(`✅ Éxito: ${snapshot.size} usuarios autorizados creados.`);
   console.log('\nUsuarios creados:');
-  snapshot.docs.forEach(doc => {
+  snapshot.docs.forEach((doc) => {
     console.log(`  - ${doc.data().email} (role: ${doc.data().role}, active: ${doc.data().active})`);
   });
 

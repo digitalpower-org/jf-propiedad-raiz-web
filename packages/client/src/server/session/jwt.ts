@@ -6,13 +6,13 @@ import { type NextRequest } from 'next/server';
 import crypto from 'crypto';
 
 export interface SessionClaims {
-  readonly sub: string;      // UID de Firebase Auth
-  readonly email: string;    // correo verificado
-  readonly role: string;     // siempre "admin" en v1
-  readonly iss: string;      // emisor fijo
-  readonly aud: string;      // audiencia fija
-  readonly iat: number;      // emitido en segundos
-  readonly exp: number;      // expira en segundos
+  readonly sub: string; // UID de Firebase Auth
+  readonly email: string; // correo verificado
+  readonly role: string; // siempre "admin" en v1
+  readonly iss: string; // emisor fijo
+  readonly aud: string; // audiencia fija
+  readonly iat: number; // emitido en segundos
+  readonly exp: number; // expira en segundos
 }
 
 export const SESSION_JWT_SECRET = process.env.SESSION_JWT_SECRET || 'dev-secret-key-change-in-prod';
@@ -71,7 +71,11 @@ export function verifySession(cookie: string): SessionClaims | null {
   }
 
   const base64urlRegex = /^[A-Za-z0-9_-]+$/;
-  if (!base64urlRegex.test(headerB64) || !base64urlRegex.test(bodyB64) || !base64urlRegex.test(signatureB64)) {
+  if (
+    !base64urlRegex.test(headerB64) ||
+    !base64urlRegex.test(bodyB64) ||
+    !base64urlRegex.test(signatureB64)
+  ) {
     logUnverified('SESSION_ERROR', 'JWT_INVALID_BASE64URL');
     return null;
   }
@@ -112,7 +116,9 @@ export function verifySession(cookie: string): SessionClaims | null {
         .createHmac('sha256', SESSION_JWT_SECRET_PREVIOUS)
         .update(headerB64 + '.' + bodyB64)
         .digest('base64url');
-      if (crypto.timingSafeEqual(Buffer.from(signatureB64), Buffer.from(expectedSignaturePrevious))) {
+      if (
+        crypto.timingSafeEqual(Buffer.from(signatureB64), Buffer.from(expectedSignaturePrevious))
+      ) {
         return verifySessionWithBody(bodyJson, true); // true = used previous secret
       }
     }
@@ -141,9 +147,17 @@ function verifySessionWithBody(body: unknown, usedPreviousSecret: boolean): Sess
   }
 
   // 7. sub/email/role presentes y non-empty string
-  if (!claims.sub || typeof claims.sub !== 'string' || claims.sub === '' ||
-      !claims.email || typeof claims.email !== 'string' || claims.email === '' ||
-      !claims.role || typeof claims.role !== 'string' || claims.role === '') {
+  if (
+    !claims.sub ||
+    typeof claims.sub !== 'string' ||
+    claims.sub === '' ||
+    !claims.email ||
+    typeof claims.email !== 'string' ||
+    claims.email === '' ||
+    !claims.role ||
+    typeof claims.role !== 'string' ||
+    claims.role === ''
+  ) {
     logUnverified('SESSION_ERROR', 'JWT_MISSING_CLAIMS');
     return null;
   }
@@ -215,18 +229,20 @@ function logVerified(reason: string, details: unknown): void {
   console.log(`[SESSION_VERIFIED] ${reason}: ${JSON.stringify(details, null, 2)}`);
 }
 
-export async function extractSessionFromCookie(request: NextRequest): Promise<SessionClaims | null> {
+export async function extractSessionFromCookie(
+  request: NextRequest,
+): Promise<SessionClaims | null> {
   const cookieHeader = request.headers.get('cookie');
   if (!cookieHeader) return null;
 
-  const cookies = cookieHeader.split(';').map(c => c.trim());
-  const sessionCookie = cookies.find(c => c.startsWith('__session='));
+  const cookies = cookieHeader.split(';').map((c) => c.trim());
+  const sessionCookie = cookies.find((c) => c.startsWith('__session='));
   if (!sessionCookie) return null;
 
   const value = sessionCookie.substring('__session='.length);
 
   // Rechazar múltiples valores de __session (la llamada externa debe validar esto primero)
-  const otherSession = cookies.find(c => c.startsWith('__session=') && c !== sessionCookie);
+  const otherSession = cookies.find((c) => c.startsWith('__session=') && c !== sessionCookie);
   if (otherSession) {
     logUnverified('SESSION_ERROR', 'MULTIPLE_SESSION_COOKIES');
     return null;

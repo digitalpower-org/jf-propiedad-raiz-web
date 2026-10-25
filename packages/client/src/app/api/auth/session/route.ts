@@ -68,8 +68,13 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
 
   // 5. Backend denegó (idToken inválido o fuera de lista blanca)
   if (!verifyData.success || !verifyData.data) {
-    const code = verifyData.error?.code === 'PERMISSION_DENIED' ? 'PERMISSION_DENIED' : 'UNAUTHORIZED';
-    return errorEnvelope(code, verifyData.error?.message ?? 'No autorizado', backendResponse.status);
+    const code =
+      verifyData.error?.code === 'PERMISSION_DENIED' ? 'PERMISSION_DENIED' : 'UNAUTHORIZED';
+    return errorEnvelope(
+      code,
+      verifyData.error?.message ?? 'No autorizado',
+      backendResponse.status,
+    );
   }
 
   // 6. Backend autorizó: firmar JWT propio del BFF y establecer cookie
