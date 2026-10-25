@@ -62,8 +62,6 @@ export interface Property {
     /** Máximo 3 panorámicas 360° (D21, AC4.3.3). */
     readonly panoramas?: readonly [Panorama?, Panorama?, Panorama?];
     readonly destacada: boolean;
-    /** Bandera automática (D18); no escribible desde la API (AC1.11.6). */
-    readonly nuevo: boolean;
     readonly proyecto?: Proyecto;
     /** Se fija solo en la primera activación (AC1.7.5); de solo lectura (AC1.7.2). */
     readonly fechaPublicacion?: string;
@@ -92,8 +90,6 @@ export interface PropertyCard {
     /** Derivados WebP de la foto de portada (posición 1) para el `srcset` (AC7.3.1). */
     readonly portada?: readonly DerivadoImagen[];
     readonly destacada: boolean;
-    /** Insignia «Nuevo» en la tarjeta (AC2.2.11). */
-    readonly nuevo: boolean;
     readonly createdAt: string;
 }
 

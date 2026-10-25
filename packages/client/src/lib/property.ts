@@ -2,7 +2,8 @@
  * Reglas de presentación de inmuebles que no se persisten en el backend.
  *
  * La insignia «Nuevo» (US1.11, AC2.2.11) se deriva de `createdAt`: no existe
- * un campo `nuevo` en Firestore ni en la API.
+ * un campo `nuevo` en Firestore. El frontend evalúa `isNewProperty(createdAt)`
+ * para decidir si renderiza la insignia.
  */
 
 export const NEW_PROPERTY_DAYS = 30;

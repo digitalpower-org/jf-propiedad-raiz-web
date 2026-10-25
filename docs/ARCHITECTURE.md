@@ -137,7 +137,7 @@ Navegador ──idToken (solo canje)──> BFF ──POST /internal/auth/verify
 
 | Capa | Contenido | Depende de |
 | :---- | :---- | :---- |
-| Dominio | Entidades, invariantes y reglas (precio en COP entero, una sola `operacion`, `nuevo` no escribible…) | nada |
+| Dominio | Entidades, invariantes y reglas (precio en COP entero, una sola `operacion`…) | nada |
 | Aplicación | Casos de uso (consulta pública, CRUD de inmuebles, media, correo, traducción) | dominio |
 | Infraestructura | Firestore, R2, Resend, Cloud Scheduler | aplicación |
 | Interfaces | Handlers HTTP, validación contra las specs OpenAPI, mapeo al catálogo de errores | aplicación |
@@ -174,7 +174,7 @@ Notas:
 
 **Consulta propia de portada (destacadas):** `status = ACTIVE` + `destacada = true`, orden `fechaPublicacion` desc, hasta 12 (AC1.10.6) → índice nº 9: `status ASC, destacada ASC, fechaPublicacion DESC, __name__ ASC`.
 
-**Consulta de la tarea «Nuevo» (US1.11):** solo `nuevo == true` (AC1.11.5); no recorre el catálogo.
+**Consulta de la insignia «Nuevo» (US1.11):** se evalúa en el frontend con `isNewProperty(createdAt)`; no hay campo `nuevo` ni consulta en backend.
 
 ---
 

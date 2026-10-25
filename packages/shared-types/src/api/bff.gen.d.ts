@@ -109,7 +109,7 @@ export interface paths {
          *     (AC1.3.1) y reenvía a `POST /api/v1/properties` con `X-Internal-Key` y
          *     `X-User-Id`/`X-User-Email`/`X-User-Role` tomados de su propia sesión, sobrescribiendo
          *     cualquier `X-User-*` del navegador (AC1.3.5). El backend autoriza con `X-User-Role:
-         *     admin` (D27) y es quien asigna el `codigo` `JF-XXXX` secuencial (D6), `nuevo = true` y
+         *     admin` (D27) y es quien asigna el `codigo` `JF-XXXX` secuencial (D6) y
          *     `createdAt`; el cliente no puede enviarlos (AC1.7.2). Tras la escritura, Functions
          *     dispara la revalidación (AC0.3.1).
          */
@@ -621,9 +621,6 @@ export interface components {
             areaConstruida?: number;
             estrato?: number;
             destacada: boolean;
-            /** @description Bandera automática (D18); insignia «Nuevo» en la tarjeta (AC2.2.11). */
-            nuevo: boolean;
-            /** Format: date-time */
             createdAt: string;
             /** @description Derivados WebP de la foto en posición 1, indexados por lado mayor en px (US1.9). */
             portada?: {
@@ -654,7 +651,7 @@ export interface components {
          * @enum {string}
          */
         EstadoPropiedad: "ACTIVE" | "HIDDEN" | "DELETED";
-        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `nuevo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
+        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
         PropertyInput: {
             operacion: components["schemas"]["Operacion"];
             tipo: components["schemas"]["TipoInmueble"];
