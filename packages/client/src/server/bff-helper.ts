@@ -31,9 +31,6 @@ export function buildContext(request: NextRequest): BffContext {
   const userId = request.headers.get('x-user-id') ?? null;
   const userEmail = request.headers.get('x-user-email') ?? null;
   const userRole = request.headers.get('x-user-role') ?? null;
-
-  // Si se proporciona X-User-* desde el BFF, preferirlo.
-  // El BFF sobrescribe los headers con el JWT verificado (AC1.3.5).
   return {
     internalKey: getInternalKey(),
     userId: userId ?? undefined,
