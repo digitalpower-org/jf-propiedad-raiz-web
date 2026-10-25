@@ -49,10 +49,11 @@ export interface paths {
         /**
          * Crear un inmueble (estado inicial HIDDEN)
          * @description PENDIENTE: definición pendiente en TASKS. Ruta deducida de US1.7 / AC1.7.1 y US4.1 /
-         *     AC4.1.2 (crear → `HIDDEN` con `codigo` `JF-XXXX` secuencial y `createdAt`, D6); TASKS
-         *     define el caso de uso pero no la ruta HTTP ni el cuerpo exacto de la respuesta. `codigo`,
-         *     `fechaPublicacion`, `createdAt` y `updatedAt` son de solo lectura y no se envían
-         *     (AC1.7.2); `autoTranslate` y `enPendiente` solo los escribe el backend (AC0.5.10).
+         *     AC4.1.2 (crear → `HIDDEN` con `codigo` `JF-XXXX` secuencial, `nuevo = true` y
+         *     `createdAt`, D6); TASKS define el caso de uso pero no la ruta HTTP ni el cuerpo exacto
+         *     de la respuesta. `codigo`, `nuevo`, `fechaPublicacion`, `createdAt` y `updatedAt` son de
+         *     solo lectura y no se envían (AC1.7.2); `autoTranslate` y `enPendiente` solo los escribe el
+         *     backend (AC0.5.10).
          */
         post: operations["createProperty"];
         delete?: never;
@@ -519,6 +520,8 @@ export interface components {
             areaConstruida?: number;
             estrato?: number;
             destacada: boolean;
+            /** @description Bandera automática (D18); insignia «Nuevo» en la tarjeta (AC2.2.11). */
+            nuevo: boolean;
             /** Format: date-time */
             createdAt: string;
             /** @description Derivados WebP de la foto en posición 1, indexados por lado mayor en px (US1.9). */
@@ -549,7 +552,7 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
+        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `nuevo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
         PropertyInput: {
             operacion: components["schemas"]["Operacion"];
             tipo: components["schemas"]["TipoInmueble"];

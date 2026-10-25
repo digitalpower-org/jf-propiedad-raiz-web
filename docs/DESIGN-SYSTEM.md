@@ -186,7 +186,7 @@ Background: #efefe6 (Arena Suave) o #ffffff sobre bandas Piedra Clara. Radius: 1
 
 Estructura de arriba hacia abajo:
 1. **Imagen** en proporción 4:3 (esquinas superiores 12px), con carrusel discreto en hover/swipe, `loading="lazy"` y dimensiones explícitas. Equivale al derivado de 640 del listado (AC2.2.11).
-2. **Insignia** superpuesta arriba a la izquierda: tipo de negocio (Venta o Alquiler) en pill blanco con texto Tinta; "Nuevo" (cuando `createdAt` tiene menos de 30 días, AC2.2.11) o "Destacado" en pill Amarillo Sol con texto Tinta (máximo una insignia amarilla por tarjeta).
+2. **Insignia** superpuesta arriba a la izquierda: tipo de negocio (Venta o Alquiler) en pill blanco con texto Tinta; "Nuevo" (cuando `nuevo = true`, AC2.2.11) o "Destacado" en pill Amarillo Sol con texto Tinta (máximo una insignia amarilla por tarjeta).
 3. **Precio** en `body-lg` o `heading-sm`, peso 400, numerales tabulares. Administración (si aplica) en caption Grafito.
 4. **Código y título/ubicación** en body-sm: código del inmueble, tipo de inmueble y municipio (AC2.2.11).
 5. **Fila de datos** con íconos lineales Verde Bosque 20px y texto caption: área m², dormitorios, baños y estrato (AC2.2.11).

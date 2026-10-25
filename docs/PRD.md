@@ -87,7 +87,7 @@ Prioridades según TASKS: **MUST** bloquea el lanzamiento · **SHOULD** se esper
 | US1.8 URLs presignadas para R2 | PUT firmado que expira en 15 min bajo `pending/`, MIME validado antes de firmar, CORS restringido; el navegador nunca ve credenciales | MUST |
 | US1.9 Confirmación de subida y derivados | Validación por cabecera (tipo, peso, dimensiones, píxeles, proporción 2:1 en panorámicas), derivados WebP vía puerto `ImageProcessor`, original eliminado, ciclo de vida de `pending/` a 1 día | MUST |
 | US1.10 Consulta pública del catálogo | Una sola consulta nativa de Firestore por petición: `status = ACTIVE`, operación, tipo, ubicación, rango de precio y `destacada` con un único valor; orden `createdAt` desc con desempate por `id`, cursor `{ createdAt, id }`, límite 12 (máx. 50) | MUST |
-| US1.11 Insignia «Nuevo» derivada en el frontend | El frontend muestra la insignia cuando `createdAt` tiene menos de 30 días; no se persiste ninguna bandera ni hay tarea programada | SHOULD |
+| US1.11 Vigencia de la bandera «Nuevo» | Tarea diaria (03:00 `America/Bogota`) que apaga `nuevo` a los 30 días (`NEW_FLAG_DAYS`), idempotente y sin tocar `updatedAt` | SHOULD |
 | US1.12 Autorización por roles | Roles distintos de `admin` con 403 y UX de denegación. **En la v1 no aplica** (el rol siempre es `admin`) | COULD |
 
 ### Épica 2: Catálogo público y buscador
@@ -176,7 +176,7 @@ Resumen de la tabla de decisiones de `docs/TASKS.md`. Son vinculantes para el pr
 | D15 | Forma de errores | Envoltura estándar con `success`, `data` y `message`; validación = HTTP 422 `VALIDATION_ERROR` |
 | D16 | Hosting del frontend | Next.js en Firebase App Hosting, en el mismo proyecto de Firebase que Functions, Firestore y Auth |
 | D17 | Orden e índices | Orden siempre por `createdAt` descendente con desempate por `id`; dos consultas por pestaña (primero `true`, después `false`); cursor `{ createdAt, id }`; índices compuestos para las 4 combinaciones de igualdad con y sin rango de precio (8 índices de presets); los 8 presets nacen de activar o no el rango de precio |
-| D18 | Banderas | `destacada` manual (franja de portada) y la insignia «Nuevo» derivada en el frontend cuando `createdAt` tiene menos de 30 días; no se persiste ninguna bandera |
+| D18 | Banderas | `destacada` manual (franja de portada) y `nuevo` automática: se enciende al crear y una tarea diaria la apaga a los 30 días (`NEW_FLAG_DAYS`) |
 | D19 | Listados | Scroll infinito por cursor, de 12 en 12; sin paginación numerada |
 | D20 | Proyectos sobre planos | Operación propia (`PROYECTO_SOBRE_PLANOS`) con campos propios (`etapa`, `fechaEntregaEstimada`, `unidadesDisponibles`) |
 | D21 | Panorámicas 360° | Máximo 3 por inmueble |

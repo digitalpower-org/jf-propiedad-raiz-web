@@ -80,9 +80,9 @@
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
 | **MT2.1** | **Dominio de inmuebles y media** — ciclo de vida del inmueble + código secuencial, URLs presignadas de R2 y confirmación/generación de derivados. Los endpoints de media validan `X-User-Role: admin` (AC1.8.1, MT1.2) y el alta de inmuebles **traduce y revalida** (US0.3/US0.5, MT1.4), por eso depende de MT1.2 y MT1.4 | US1.7, US1.8, US1.9 | MT1.1, MT1.2, MT1.4, MT0.3 (R2) |
-| **MT2.2** | **Consulta pública** — filtros, orden por `createdAt` descendente, cursor e índices (tabla única en `./ARCHITECTURE.md`, AC1.10.4; su faceta de índices se verifica en MT6.1); y **endpoints públicos de lectura de contenido** (listado de servicios y documento Nosotros) que consume la portada/sitemap (US2.6, US2.7) y más tarde US5.1/US5.6 | US1.10, US7.4 (parte backend: `PropertyCard`, compresión, caché) | MT2.1, MT1.2, MT1.4 |
+| **MT2.2** | **Consulta pública y vigencia** — filtros, orden por `createdAt` descendente, cursor e índices (tabla única en `./ARCHITECTURE.md`, AC1.10.4; su faceta de índices se verifica en MT6.1); tarea programada de la bandera «Nuevo» (que **dispara la revalidación** de US0.3, AC1.11.4, y exige MT1.4); y **endpoints públicos de lectura de contenido** (listado de servicios y documento Nosotros) que consume la portada/sitemap (US2.6, US2.7) y más tarde US5.1/US5.6 | US1.10, US1.11, US7.4 (parte backend: `PropertyCard`, compresión, caché) | MT2.1, MT1.2, MT1.4, MT0.3 (Scheduler) |
 | **MT2.4** | **Seed de catálogo** — siembra los datos de ejemplo del catálogo (inmuebles repartidos por operación, servicios y documento Nosotros; AC6.1.2) **una vez existe el dominio** de MT2.1/MT2.2, para que el catálogo y el CMS se construyan contra datos reales. Idempotente (AC6.1.1) y con traductor falso (AC6.1.4) | US6.1 (catálogo) | MT2.1, MT2.2 |
-| **MT2.3** | **Catálogo público (UI)** — pestañas, buscador, scroll infinito, ficha técnica con SEO y puntos de interés, WhatsApp, portada y SEO técnico. La insignia «Nuevo» se deriva de `createdAt` en el cliente (US1.11). La portada usa los endpoints públicos de MT2.2 y el **sitemap cierra aquí** sus rutas de inmuebles; las rutas de **Servicios, Nosotros y legales** se incorporan cuando existen (MT5.1/MT3.2), y ese cierre completo se re-scopa a **MT5.1** (ver MT5.1) | US1.11, US2.1, US2.2, US2.3, US2.4, US2.5, US2.6, US2.7, US7.1, US7.3, US7.4 (parte cliente) | MT2.2, MT2.4, MT1.3, MT0.4 |
+| **MT2.3** | **Catálogo público (UI)** — pestañas, buscador, scroll infinito, ficha técnica con SEO y puntos de interés, WhatsApp, portada y SEO técnico. La portada usa los endpoints públicos de MT2.2 y el **sitemap cierra aquí** sus rutas de inmuebles; las rutas de **Servicios, Nosotros y legales** se incorporan cuando existen (MT5.1/MT3.2), y ese cierre completo se re-scopa a **MT5.1** (ver MT5.1) | US2.1, US2.2, US2.3, US2.4, US2.5, US2.6, US2.7, US7.1, US7.3, US7.4 (parte cliente) | MT2.2, MT2.4, MT1.3, MT0.4 |
 | **MT3.2** | **Páginas legales (adelantadas a Ola 2)** — aviso de privacidad, política de tratamiento de datos y términos. Solo dependen de las rutas de MT0.4 y (para la traducción de cortesía en inglés) del servicio de US0.5 → MT1.4. Se adelantan para que el **consentimiento de MT3.1** (Ola 3) y el **sitemap de MT2.3** apunten a rutas reales desde el principio | US5.3 | MT0.4, MT1.4 |
 
 ### OLA 3 — Consignación y correo
@@ -185,7 +185,7 @@ Esta tabla recoge toda prelación **no evidente** (las obvias están en las colu
 | :-- | :-- | :-- | :-- |
 | **MT1.2 (auth) → MT2.1, MT4.1, MT4.2** | Técnica | AC1.8.1 (media valida `X-User-Role`) y DoD §2.6 (guard de `/admin`) | La auth va en Ola 1, antes de cualquier ruta admin. |
 | **MT1.2 lleva el seed de `authorized_users`** | Técnica | US1.1/AC1.1.2 exigen la lista blanca para poder iniciar sesión; sin sembrarla, la auth no es verificable | El seed de admins **no** va en el seed de catálogo (MT2.4): pertenece a la auth. |
-| **MT1.4 (revalidación/traducción) → MT2.1, MT2.2, MT6.1** | Técnica | El alta de inmuebles traduce y revalida (US1.7/US0.3/US0.5); AC6.3.6 | US0.3/US0.5 preceden a toda escritura del dominio, no solo al CMS. |
+| **MT1.4 (revalidación/traducción) → MT2.1, MT2.2, MT6.1** | Técnica | El alta de inmuebles traduce y revalida (US1.7/US0.3/US0.5); AC1.11.4 y AC6.3.6 | US0.3/US0.5 preceden a toda escritura del dominio, no solo al CMS. |
 | **MT1.4 (traductor) → MT1.5, MT2.4 (seed)** | Técnica | AC6.1.4 (el seed usa el traductor falso de AC0.5.9) | El seed no llama al proveedor real de traducción. |
 | **MT2.1/MT2.2 → MT2.4 (seed de catálogo)** | Técnica | El seed siembra inmuebles (`JF-XXXX`), derivados de fotos y combinaciones de filtros que solo existen tras el dominio | El seed de catálogo va **después** del dominio y **antes** del catálogo (MT2.3). |
 | **MT2.2 (endpoints públicos de servicios/Nosotros) → MT2.3 (US2.6)** | Técnica | AC2.6.2/AC2.6.4 (portada) necesitan datos de contenido | **Rompe el cluster**: la portada cierra en Ola 2 sin esperar al CMS. |
@@ -259,7 +259,7 @@ Reglas:
 | US1.8 | Firmado de URLs presignadas para R2 | MT2.1 | 2 |
 | US1.9 | Confirmación de subida y generación de derivados | MT2.1 | 2 |
 | US1.10 | Consulta pública del catálogo (filtros, orden, cursor, índices) | MT2.2 | 2 |
-| US1.11 | Insignia «Nuevo» derivada de `createdAt` en el frontend | MT2.3 | 2 |
+| US1.11 | Vigencia de la bandera «Nuevo» (tarea programada) | MT2.2 | 2 |
 | US1.12 | Autorización por roles/permisos múltiples (**COULD**, extensión de MT1.2) | MT6.3 | 6 |
 | US2.1 | Navegación por pestañas independientes | MT2.3 | 2 |
 | US2.2 | Buscador con filtros, skeletons y estados de carga | MT2.3 | 2 |
