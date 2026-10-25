@@ -41,10 +41,7 @@ export function buildContext(request: NextRequest): BffContext {
 
 export function envelope<T>(body: T, status = 200): NextResponse {
   // Envoltura AC0.1.1 (éxito) / AC0.1.2 (error) — misma que el backend.
-  return NextResponse.json(
-    { success: status < 400, data: body, error: null },
-    { status },
-  );
+  return NextResponse.json({ success: status < 400, data: body, error: null }, { status });
 }
 
 export function errorEnvelope(code: string, message: string, status: number): NextResponse {
