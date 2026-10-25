@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "title": "JF Propiedad Raíz"
+  },
+  "nav": {
+    "home": "Home"
+  },
+  "home": {
+    "title": "Properties in the Aburrá Valley",
+    "intro": "Buy, sell and rent properties."
+  },
+  "localeSwitcher": {
+    "switchTo": "View in Spanish"
+  }
+}

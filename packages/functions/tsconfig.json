@@ -9,11 +9,14 @@
     "rootDir": "src",
     "sourceMap": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "target": "es2017",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@jf/shared-types": ["../shared-types/src/index"]
+    }
   },
   "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

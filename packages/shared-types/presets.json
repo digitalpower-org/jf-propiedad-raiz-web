@@ -1,0 +1,114 @@
+[
+  {
+    "preset": "1",
+    "igualdadesOpcionales": [],
+    "rangoPrecio": false,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  },
+  {
+    "preset": "1+2",
+    "igualdadesOpcionales": [],
+    "rangoPrecio": true,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "precio ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  },
+  {
+    "preset": "1+3",
+    "igualdadesOpcionales": ["tipo"],
+    "rangoPrecio": false,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "tipo ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  },
+  {
+    "preset": "1+4",
+    "igualdadesOpcionales": ["departamento", "municipio"],
+    "rangoPrecio": false,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "departamento ASC",
+      "municipio ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  },
+  {
+    "preset": "1+2+3",
+    "igualdadesOpcionales": ["tipo"],
+    "rangoPrecio": true,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "tipo ASC",
+      "precio ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  },
+  {
+    "preset": "1+2+4",
+    "igualdadesOpcionales": ["departamento", "municipio"],
+    "rangoPrecio": true,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "departamento ASC",
+      "municipio ASC",
+      "precio ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  },
+  {
+    "preset": "1+3+4",
+    "igualdadesOpcionales": ["tipo", "departamento", "municipio"],
+    "rangoPrecio": false,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "tipo ASC",
+      "departamento ASC",
+      "municipio ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  },
+  {
+    "preset": "1+2+3+4",
+    "igualdadesOpcionales": ["tipo", "departamento", "municipio"],
+    "rangoPrecio": true,
+    "indiceCompuesto": [
+      "status ASC",
+      "operacion ASC",
+      "destacada ASC",
+      "tipo ASC",
+      "departamento ASC",
+      "municipio ASC",
+      "precio ASC",
+      "createdAt DESC",
+      "__name__ DESC"
+    ]
+  }
+]
