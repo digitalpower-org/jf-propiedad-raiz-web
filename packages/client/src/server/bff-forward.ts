@@ -1,15 +1,13 @@
 /**
- * Helper de forwarding BFF → Functions (MT1.2).
+ * Helper de forwarding BFF → Functions (MT1.1 plenum estructural).
  *
- * MT1.2: validación real de la cookie `__session` (JWT HS256 + claims D34) y
- * propagación de identidad mediante cabeceras X-User-* con la sesión verificada
- * (AC1.3.2, AC1.3.5).
+ * MT1.1: expone el contrato interno con headers placeholder
+ * (`X-Internal-Key` + `X-User-*`) que MT1.2 poblará con la validación real
+ * (cookie `__session` + claims). Mientras tanto, este helper solo serializa
+ * la respuesta del backend sin transformarla.
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
-
-import { getInternalKey } from './bff-helper';
-import { extractSessionFromCookie } from './session/jwt';
 
 export interface ForwardContext {
   readonly internalKey: string;
@@ -18,57 +16,35 @@ export interface ForwardContext {
   readonly userRole?: string;
 }
 
-function forwardHeaders(ctx: ForwardContext): Headers {
+function forwardHeaders(request: NextRequest, ctx: ForwardContext): Headers {
   const headers = new Headers();
   headers.set('X-Internal-Key', ctx.internalKey);
   if (ctx.userId) headers.set('X-User-Id', ctx.userId);
   if (ctx.userEmail) headers.set('X-User-Email', ctx.userEmail);
   if (ctx.userRole) headers.set('X-User-Role', ctx.userRole);
 
+  const cookie = request.headers.get('cookie');
+  if (cookie) headers.set('cookie', cookie);
+  const authorization = request.headers.get('authorization');
+  if (authorization) headers.set('authorization', authorization);
+
   return headers;
 }
 
 export function respondWithEnvelope<T>(body: T, status: number): NextResponse {
   // Envolvente AC0.1.1 (éxito) / AC0.1.2 (error) — misma que el backend.
+  // TODO(MT1.1): usar catálogo de ErrorCode real desde shared-types.
   return NextResponse.json({ success: true, data: body, error: null }, { status });
 }
 
 export async function forwardToInternal(
   request: NextRequest,
   internalPath: string,
-  internalKeyOverride?: string,
-  session?: Awaited<ReturnType<typeof extractSessionFromCookie>>,
+  ctx: ForwardContext,
 ): Promise<NextResponse> {
-  // Validar sesión si no se pasa ya (para middleware)
-  const claims = session ?? (await extractSessionFromCookie(request));
-
-  if (!claims) {
-    // No autenticado → no propagar
-    return NextResponse.json(
-      {
-        success: false,
-        data: { code: 'UNAUTHORIZED', details: [], requestId: crypto.randomUUID() },
-        message: 'No autenticado',
-      },
-      { status: 401 },
-    );
-  }
-
-  const ctx: ForwardContext = {
-    internalKey: internalKeyOverride ?? getInternalKey(),
-    userId: claims.sub,
-    userEmail: claims.email,
-    userRole: claims.role,
-  };
-
-  const headers = forwardHeaders(ctx);
-
-  const cookie = request.headers.get('cookie');
-  if (cookie) headers.set('cookie', cookie);
-  const authorization = request.headers.get('authorization');
-  if (authorization) headers.set('authorization', authorization);
-
   const url = new URL(internalPath, request.url);
+  const headers = forwardHeaders(request, ctx);
+
   const init: RequestInit = { method: request.method, headers };
   if (!(request.method === 'GET' || request.method === 'HEAD')) {
     init.body = await request.clone().arrayBuffer();
