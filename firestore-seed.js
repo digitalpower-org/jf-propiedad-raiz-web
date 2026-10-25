@@ -4,15 +4,22 @@
 // Ejecutar: node firestore-seed.js
 
 const admin = require('firebase-admin');
-const serviceAccount = require('./firebase-service-key.json');
 
-// Inicializa Firebase Admin apuntando a emuladores locales
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+const isEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
+
+const config = {
   projectId: 'jf-propiedad-raiz',
   databaseURL: 'http://localhost:8080?ns=jf-propiedad-raiz',
   storageBucket: 'jf-propiedad-raiz.appspot.com',
-});
+};
+
+if (!isEmulator) {
+  const serviceAccount = require('./firebase-service-key.json');
+  config.credential = admin.credential.cert(serviceAccount);
+}
+
+// Inicializa Firebase Admin apuntando a emuladores locales
+admin.initializeApp(config);
 
 const db = admin.firestore();
 
@@ -21,7 +28,7 @@ async function seedAuthorizedUsers() {
 
   const testUsers = [
     {
-      email: 'admin@jfu24.com',
+      email: 'dpa70.dev@gmail.com',
       role: 'admin',
       active: true,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),

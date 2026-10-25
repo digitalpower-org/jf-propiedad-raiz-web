@@ -1122,6 +1122,56 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+  /api/health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Health check del BFF con agregación de Functions
+      description: |
+        MT1.1 — Health check agregado para verificar que el BFF (Next.js) responde y que
+        Functions está vivo. El BFF llama a `GET /health` en Functions con timeout de 5s y
+        responde `overall: ok` o `degraded`.
+      security: []
+      x-bff-internal-path: null
+      responses:
+        '200':
+          description: BFF y Functions OK.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          bff:
+                            type: object
+                            properties:
+                              status:
+                                type: string
+                              service:
+                                type: string
+                          functions:
+                            type: object
+                            properties:
+                              status:
+                                type: string
+                              service:
+                                type: string
+                              latencyMs:
+                                type: integer
+                          overall:
+                                type: string
+                                enum: [ok, degraded]
+        '503':
+          description: Degraded — Functions no responde o responde con error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 components:
   securitySchemes:
     session:

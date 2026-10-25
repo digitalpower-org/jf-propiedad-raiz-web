@@ -18,7 +18,11 @@
     "build": "npm run build --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
     "lhci": "lhci autorun",
-    "analyze:bundle": "node scripts/analyze-bundle.mjs"
+    "analyze:bundle": "node scripts/analyze-bundle.mjs",
+    "emulators": "firebase emulators:start --project=jf-propiedad-raiz --import=/home/daniel/.firebase/emulators/firestore-data --export-on-exit=/home/daniel/.firebase/emulators/firestore-data",
+    "emulators:clean": "rm -rf /home/daniel/.firebase/emulators/firestore-data && firebase emulators:start --project=jf-propiedad-raiz",
+    "emulators:only": "firebase emulators:start --only auth,firestore,functions,apphosting --project=jf-propiedad-raiz",
+    "seed:admins": "FIRESTORE_EMULATOR_HOST=localhost:8080 node firestore-seed.js"
   },
   "devEngines": {
     "packageManager": {
