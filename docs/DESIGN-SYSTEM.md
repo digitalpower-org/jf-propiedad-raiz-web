@@ -42,9 +42,9 @@ Estos principios gobiernan las decisiones del sistema por encima del gusto esté
 
 | Name | Value | Token | Role |
 |------|-------|-------|------|
-| Verde Bosque | `#277730` | `--color-verde-bosque` | Color principal de acento: CTAs primarios, enlaces, iconografía activa, footer, estados seleccionados. Contraste ≈5.5:1 sobre Marfil Elegante; apto para texto. |
+| Verde Bosque | `#277730` | `--color-verde-bosque` | Color principal de acento: CTAs primarios, enlaces, iconografía activa, footer, estados seleccionados, insignia "Destacado" (pill con texto Blanco Puro). Contraste ≈5.5:1 sobre Marfil Elegante; apto para texto. |
 | Verde Hoja | `#559433` | `--color-verde-hoja` | Acento secundario, similar pero más claro: hovers, gráficos, etiquetas, detalles decorativos, iconos grandes. Contraste ≈3.7:1 con blanco: solo para texto grande (≥24px, o ≥18.66px en negrita) y componentes de interfaz; nunca texto pequeño. |
-| Amarillo Sol | `#f9ea1b` | `--color-amarillo-sol` | Acento de alta visibilidad, escaso. CTA sobre fondos verdes u oscuros, insignias "Nuevo"/"Destacado", resaltados puntuales. Siempre con texto Tinta. Nunca como texto sobre fondo claro. |
+| Amarillo Sol | `#f9ea1b` | `--color-amarillo-sol` | Acento de alta visibilidad, escaso. CTA sobre fondos verdes u oscuros, insignia "Nuevo", resaltados puntuales. Siempre con texto Tinta. Nunca como texto sobre fondo claro. |
 | Tinta | `#111611` | `--color-tinta` | Titulares, texto de cuerpo, etiquetas de interfaz. Negro con matiz verde casi imperceptible. |
 | Blanco Puro | `#ffffff` | `--color-blanco-puro` | Texto sobre verde o fondos oscuros, texto de botones primarios. |
 | Marfil Elegante | `#fbfbf6` | `--color-marfil-elegante` | Fondo principal de página: el blanco elegante del cliente, cálido y nunca clínico. Derivado del marfil `#ddddd1` aclarado. |
@@ -58,7 +58,8 @@ Estos principios gobiernan las decisiones del sistema por encima del gusto esté
 
 ### Reglas de uso del color
 - Proporción aproximada por pantalla: Marfil/Piedra 80%, Tinta 12%, Verde Bosque 6%, Verde Hoja 1.5%, Amarillo Sol 0.5%.
-- El amarillo aparece como máximo una vez por pantalla visible.
+- El amarillo aparece como máximo una vez por pantalla visible, salvo en las insignias «Nuevo» de los listados (siempre máximo una insignia amarilla por tarjeta).
+- Insignias de tarjeta: «Nuevo» en pill Amarillo Sol con texto Tinta; «Destacado» en pill Verde Bosque con texto Blanco Puro (≈5.5:1, apto para texto pequeño). Nunca usar Amarillo Sol para «Destacado».
 - Texto sobre Verde Hoja: solo blanco y solo en tamaños grandes. Para texto pequeño sobre verde, usar Verde Bosque.
 - Texto Verde Bosque sobre Amarillo Sol ≈4.5:1: evitarlo; usar Tinta.
 - Estado de error recomendado: `#b3261e` (fuera de la paleta de marca, solo para validación de formularios).
@@ -186,7 +187,7 @@ Background: #efefe6 (Arena Suave) o #ffffff sobre bandas Piedra Clara. Radius: 1
 
 Estructura de arriba hacia abajo:
 1. **Imagen** en proporción 4:3 (esquinas superiores 12px), con carrusel discreto en hover/swipe, `loading="lazy"` y dimensiones explícitas. Equivale al derivado de 640 del listado (AC2.2.11).
-2. **Insignia** superpuesta arriba a la izquierda: tipo de negocio (Venta o Alquiler) en pill blanco con texto Tinta; "Nuevo" (cuando `createdAt` tiene menos de 30 días, AC2.2.11) o "Destacado" en pill Amarillo Sol con texto Tinta (máximo una insignia amarilla por tarjeta).
+2. **Insignia** superpuesta arriba a la izquierda: tipo de negocio (Venta o Alquiler) en pill blanco con texto Tinta; "Nuevo" (cuando `createdAt` tiene menos de 30 días, AC2.2.11) en pill Amarillo Sol con texto Tinta; "Destacado" (cuando `destacada = true`) en pill Verde Bosque con texto Blanco Puro. Ambas pueden convivir en la misma tarjeta (máximo una insignia amarilla y una verde por tarjeta).
 3. **Precio** en `body-lg` o `heading-sm`, peso 400, numerales tabulares. Administración (si aplica) en caption Grafito.
 4. **Código y título/ubicación** en body-sm: código del inmueble, tipo de inmueble y municipio (AC2.2.11).
 5. **Fila de datos** con íconos lineales Verde Bosque 20px y texto caption: área m², dormitorios, baños y estrato (AC2.2.11).
@@ -270,7 +271,7 @@ Background #277730 (Verde Bosque), texto blanco, enlaces con subrayado al hover,
 - Fijar el fondo principal en #fbfbf6 (Marfil Elegante), nunca #ffffff en áreas grandes.
 - Reservar #277730 (Verde Bosque) para elementos interactivos primarios: CTAs, enlaces, íconos activos, footer.
 - Usar #559433 (Verde Hoja) como apoyo: hovers, gráficos y detalles, siempre respetando sus límites de contraste.
-- Usar #f9ea1b (Amarillo Sol) como puntuación: una vez por pantalla, con texto Tinta.
+- Usar #f9ea1b (Amarillo Sol) como puntuación: una vez por pantalla, con texto Tinta (excepción: las insignias «Nuevo» de los listados).
 - Aplicar un radio de 12px a casi todos los botones, campos y tarjetas.
 - Dejar generoso espacio en blanco (96px a 120px) entre secciones principales (64px en móvil).
 - Usar sombras sutiles y cortas, como `rgba(0, 0, 0, 0.12) 0px 0.5px 2px 0px`, para elevar con delicadeza.
@@ -346,13 +347,15 @@ Portada, Venta, Alquiler y Proyectos (pestañas independientes), listado/resulta
 - **Primary CTA**: `#277730` (Verde Bosque), hover `#1f6227`
 - **Secondary accent**: `#559433` (Verde Hoja)
 - **Highlight (escaso)**: `#f9ea1b` (Amarillo Sol)
+- **Badge "Nuevo"**: `#f9ea1b` (Amarillo Sol), texto `#111611` (Tinta)
+- **Badge "Destacado"**: `#277730` (Verde Bosque), texto `#ffffff` (Blanco Puro)
 - **Surface / Card**: `#efefe6` (Arena Suave) y `#ddddd1` (Piedra Clara)
 - **Border**: `rgba(0, 0, 0, 0.1)`
 
 ### Example Component Prompts
 1. **Primary Button:** "Crea un botón con el texto 'Consignar propiedad'. Fondo #277730, texto blanco, radio de 12px, padding de 14px y altura mínima de 44px. Fuente según la decisión pendiente de Tipografía (regola o Plus Jakarta Sans, máximo 2 familias vía next/font) de 15px, peso 500. En hover, fondo #1f6227."
 2. **Display Headline:** "Crea un titular 'Tu hogar en el sur del Valle' con la fuente regola a 96px, peso 400 (light), color #111611, line-height 0.9 y letter-spacing -4.51px. En móvil, 48px."
-3. **Property Card:** "Crea una tarjeta de inmueble con fondo #efefe6, radio de 12px y sombra `rgba(0,0,0,0.12) 0px 0.5px 2px 0px`. Imagen 4:3 arriba con insignia 'Venta' en pill blanco. Precio '$ 450.000.000' en 23px con numerales tabulares. Debajo, código del inmueble y ubicación 'Apartamento en Envigado' en 16px y una fila de íconos lineales verdes (#277730) con '85 m²', '3 hab.', '2 baños' y 'Estrato 4'. Enlace 'Ver inmueble' en #277730."
+3. **Property Card:** "Crea una tarjeta de inmueble con fondo #efefe6, radio de 12px y sombra `rgba(0,0,0,0.12) 0px 0.5px 2px 0px`. Imagen 4:3 arriba con insignia 'Venta' en pill blanco. Precio '$ 450.000.000' en 23px con numerales tabulares. Debajo, código del inmueble y ubicación 'Apartamento en Envigado' en 16px y una fila de íconos lineales verdes (#277730) con '85 m²', '3 hab.', '2 baños' y 'Estrato 4'. Enlace 'Ver inmueble' en #277730. Insignias sobre la imagen: 'Venta' en pill blanco, 'Nuevo' en pill #f9ea1b con texto #111611 y 'Destacado' en pill #277730 con texto #ffffff."
 4. **Search Hero:** "Genera un hero a sangre completa con una fotografía de un apartamento luminoso, degradado inferior oscuro, titular blanco en 60px, accesos directos a Venta, Alquiler y Proyectos, y un buscador flotante blanco con radio de 18px y sombra `rgba(0,0,0,0.08) 0px 8px 30px 0px`, con los campos Tipo, Ubicación (departamento y municipio), Presupuesto y un botón primario 'Buscar' (#277730). Sin campo de zona ni control de orden."
 5. **Footer:** "Crea un footer con fondo #277730, texto blanco, los datos de contacto leídos de NEXT_PUBLIC_CONTACT_* (sin teléfonos ni direcciones literales), el sitio desde NEXT_PUBLIC_SITE_URL, el selector de idioma, los enlaces legales y un botón con fondo #f9ea1b, texto #111611 y radio de 12px que diga 'Hablemos por WhatsApp'."
 6. **Filter Chip:** "Crea chips de filtro (1, 2, 3, 4+ habitaciones) en pill de 24px; reposo con fondo rgba(0,0,0,0.04); seleccionado con fondo #e7efe3, borde 1px #277730 y texto #277730."
