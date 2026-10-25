@@ -176,9 +176,9 @@ paths:
       summary: Crear un inmueble (estado inicial HIDDEN)
       description: |
         PENDIENTE: definición pendiente en TASKS. Ruta deducida de US1.7 / AC1.7.1 y US4.1 /
-        AC4.1.2 (crear → `HIDDEN` con `codigo` `JF-XXXX` secuencial, `nuevo = true` y
+        AC4.1.2 (crear → `HIDDEN` con `codigo` `JF-XXXX` secuencial y
         `createdAt`, D6); TASKS define el caso de uso pero no la ruta HTTP ni el cuerpo exacto
-        de la respuesta. `codigo`, `nuevo`, `fechaPublicacion`, `createdAt` y `updatedAt` son de
+        de la respuesta. `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` son de
         solo lectura y no se envían (AC1.7.2); `autoTranslate` y `enPendiente` solo los escribe el
         backend (AC0.5.10).
       parameters:
@@ -1337,7 +1337,7 @@ components:
       description: >-
         Tarjeta de listado (AC7.4.1): `Property` sin `descripcion`, sin `puntosInteres` y sin la
         lista completa de fotos. Fuente TS: `shared-types/src/models` (`PropertyCard`).
-      required: [id, codigo, slug, operacion, tipo, titulo, precio, departamento, municipio, destacada, nuevo, createdAt]
+      required: [id, codigo, slug, operacion, tipo, titulo, precio, departamento, municipio, destacada, createdAt]
       properties:
         id:
           type: string
@@ -1369,9 +1369,6 @@ components:
           type: integer
         destacada:
           type: boolean
-        nuevo:
-          type: boolean
-          description: 'Bandera automática (D18); insignia «Nuevo» en la tarjeta (AC2.2.11).'
         createdAt:
           type: string
           format: date-time
@@ -1419,7 +1416,7 @@ components:
       type: object
       description: >-
         DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura
-        `codigo`, `nuevo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos
+        `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos
         que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10).
       required: [operacion, tipo, titulo, precio, departamento, municipio]
       properties:

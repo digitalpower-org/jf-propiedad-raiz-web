@@ -11,7 +11,7 @@
 - **`id` no es un campo almacenado:** el identificador de un documento es su id en Firestore. Ese id se usa además como desempate de `createdAt` en el orden del listado y como segunda componente del cursor `{ createdAt, id }` (D17, AC1.10.1, AC1.10.2). Por eso en los índices compuestos aparece como `__name__` y no como `id`.
 - **`Translatable`:** `{ es: string, en?: string, autoTranslate?: boolean, enPendiente?: boolean }`. `es` lo escribe el admin; `en` lo escribe el sistema con la traducción automática o el admin a mano; `autoTranslate` (activo por defecto, por campo) decide si el backend traduce al guardar; `enPendiente` lo mantiene el backend (US0.5).
 - **Campos obligatorios para pasar a `ACTIVE`:** `operacion`, `tipo`, `titulo` (`es`), `departamento`, `municipio`, `precio` y al menos una foto. Si falta alguno, 422 `VALIDATION_ERROR` listando los campos (AC1.7.3). El resto de los campos es opcional: en la ficha solo se muestra la fila del campo que existe (AC2.4.2).
-- **Campos de solo lectura** en la API y en el editor: `codigo`, `nuevo`, `createdAt`, `fechaPublicacion` y `updatedAt` (AC1.7.2). `updatedAt` además sostiene la concurrencia optimista: guardar con un valor desactualizado responde 409 `CONFLICT` y la UI conserva lo escrito (AC1.7.8, AC4.5.5).
+- **Campos de solo lectura** en la API y en el editor: `codigo`, `createdAt`, `fechaPublicacion` y `updatedAt` (AC1.7.2). `updatedAt` además sostiene la concurrencia optimista: guardar con un valor desactualizado responde 409 `CONFLICT` y la UI conserva lo escrito (AC1.7.8, AC4.5.5).
 - **Marcas de tiempo:** TASKS no fija el tipo de `createdAt`, `fechaPublicacion` ni `updatedAt` (Timestamp de Firestore u otra representación); esa elección se toma en `shared-types`.
 - **Valores de catálogo sin traducir:** `tipo`, `operacion`, `amenidades` y las categorías de puntos de interés se guardan tal cual y se traducen en pantalla con los diccionarios (AC0.4.6).
 - **Otras escrituras en Firestore que TASKS no modela:** los contadores del límite de envíos, con política TTL (AC3.4.2), y la configuración de contacto de US5.5 (historia COULD). Al no definir TASKS su forma, no se documentan aquí.
@@ -54,7 +54,6 @@ Un documento por inmueble. El listado público exige siempre `status = ACTIVE` m
 | `videos[]` | array de `string` | Máximo 2 URLs de YouTube (D13). |
 | `panoramas[]` | array de `string` | Archivos `.jpg` en R2, máximo 3 por inmueble (D14, D21); se cargan con Pannellum solo al abrir el visor. |
 | `destacada` | `boolean` | Bandera manual (D18). La portada pide `true` y las pestañas piden primero `true` y después `false`; nunca ambos a la vez en una consulta (D28). |
-| `nuevo` | `boolean` | Bandera automática: `true` al crear (AC1.7.1) y una tarea diaria la apaga cuando `createdAt` supera `NEW_FLAG_DAYS` días, 30 por defecto (D18, AC1.11.1, AC1.11.2). No es escribible desde la API y la tarea no cambia `updatedAt` (AC1.11.6). |
 | `proyecto?` | objeto | Solo si `operacion = PROYECTO_SOBRE_PLANOS`. Ver §1.1. |
 | `fechaPublicacion` | marca de tiempo | Solo lectura. Se fija en la primera activación; ocultar y reactivar no la cambia (AC1.7.5). Ordena las destacadas de portada (AC1.10.6). |
 | `createdAt` | marca de tiempo | Registrada al crear (AC1.7.1). Orden del listado (descendente) y componente del cursor (D17). |
@@ -164,7 +163,7 @@ Notas:
 - **Igualdades base fijas** de los presets 1 a 8: `status = ACTIVE`, la `operacion` de la pestaña y `destacada` con un único valor (`true` o `false`, nunca ambos). Opcionales: `tipo`; `departamento` + `municipio` siempre juntos (D24); y el rango `precioMin`/`precioMax` sobre `precio` (D9, D28).
 - **Un preset es un índice:** el rango de precio no comparte índice con el mismo preset sin precio, y el preset sin precio necesita su propia fila sin la columna `precio` (AC1.10.4).
 - **Combinación fuera de la tabla:** 422 `VALIDATION_ERROR` en el backend (AC1.10.5) y bloqueo previo en el cliente; nunca `FAILED_PRECONDITION` ni 500.
-- **Consulta de la tarea «Nuevo»** (US1.11): usa solo `nuevo == true` y no recorre el catálogo (AC1.11.5); no necesita índice compuesto propio.
+- **Consulta de la insignia «Nuevo» (US1.11):** se evalúa en el frontend con `isNewProperty(createdAt)`; no hay campo `nuevo` ni consulta en backend.
 - **Pendiente de validación en el emulador:** Firestore exige que el primer `orderBy` sea sobre el mismo campo del filtro de rango (`>=`/`<=`), por lo que la consulta con `precio` y `orderBy(createdAt desc)` de AC1.10.2 puede rechazarse o exigir otro orden (choque con AC1.10.7). Los 8 presets y sus 8 índices se mantienen tal como están; el orden exacto se confirma en el emulador antes de cerrar US1.10. No rediseñar presets.
 
 ---
