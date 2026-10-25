@@ -37,9 +37,7 @@ describe('health — lógica pura', () => {
 
   describe('getFunctionsBaseUrl', () => {
     it('usa default cuando no hay FUNCTIONS_BASE_URL', () => {
-      expect(getFunctionsBaseUrl()).toBe(
-        'http://127.0.0.1:5001/jf-propiedad-raiz/us-central1',
-      );
+      expect(getFunctionsBaseUrl()).toBe('http://127.0.0.1:5001/jf-propiedad-raiz/us-central1');
     });
 
     it('usa FUNCTIONS_BASE_URL cuando existe', () => {
@@ -49,11 +47,13 @@ describe('health — lógica pura', () => {
   });
 
   describe('checkFunctionsHealth', () => {
-    const makeResponse = (overrides: Partial<{
-      ok: boolean;
-      status: number;
-      json: unknown;
-    }> = {}) => ({
+    const makeResponse = (
+      overrides: Partial<{
+        ok: boolean;
+        status: number;
+        json: unknown;
+      }> = {},
+    ) => ({
       ok: overrides.ok ?? true,
       status: overrides.status ?? 200,
       json: vi.fn().mockResolvedValue(overrides.json ?? { status: 'ok', service: 'functions' }),
@@ -85,9 +85,9 @@ describe('health — lógica pura', () => {
     });
 
     it('resuelve error con HTTP 200 pero status no ok', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        makeResponse({ json: { status: 'degraded', service: 'functions' } }),
-      );
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(makeResponse({ json: { status: 'degraded', service: 'functions' } }));
       vi.stubGlobal('fetch', mockFetch);
 
       const result = await checkFunctionsHealth();
@@ -139,11 +139,13 @@ describe('health — lógica pura', () => {
   });
 
   describe('getHealth', () => {
-    const makeResponse = (overrides: Partial<{
-      ok: boolean;
-      status: number;
-      json: unknown;
-    }> = {}) => ({
+    const makeResponse = (
+      overrides: Partial<{
+        ok: boolean;
+        status: number;
+        json: unknown;
+      }> = {},
+    ) => ({
       ok: overrides.ok ?? true,
       status: overrides.status ?? 200,
       json: vi.fn().mockResolvedValue(overrides.json ?? { status: 'ok', service: 'functions' }),

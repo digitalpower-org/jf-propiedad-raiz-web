@@ -28,10 +28,7 @@ export const FUNCTIONS_HEALTH_TIMEOUT_MS = 5000;
  * - Producción: FUNCTIONS_BASE_URL (ej. https://us-central1-jf-propiedad-raiz.cloudfunctions.net)
  */
 export function getFunctionsBaseUrl(): string {
-  return (
-    process.env.FUNCTIONS_BASE_URL ??
-    'http://127.0.0.1:5001/jf-propiedad-raiz/us-central1'
-  );
+  return process.env.FUNCTIONS_BASE_URL ?? 'http://127.0.0.1:5001/jf-propiedad-raiz/us-central1';
 }
 
 /**
@@ -44,10 +41,7 @@ export async function checkFunctionsHealth(): Promise<ServiceHealth> {
   const start = Date.now();
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(
-    () => controller.abort(),
-    FUNCTIONS_HEALTH_TIMEOUT_MS,
-  );
+  const timeoutId = setTimeout(() => controller.abort(), FUNCTIONS_HEALTH_TIMEOUT_MS);
 
   try {
     const response = await fetch(url, {
