@@ -137,7 +137,7 @@ Navegador ──idToken (solo canje)──> BFF ──POST /internal/auth/verify
 
 | Capa | Contenido | Depende de |
 | :---- | :---- | :---- |
-| Dominio | Entidades, invariantes y reglas (precio en COP entero, una sola `operacion`, campos de solo lectura…) | nada |
+| Dominio | Entidades, invariantes y reglas (precio en COP entero, una sola `operacion`, `nuevo` no escribible…) | nada |
 | Aplicación | Casos de uso (consulta pública, CRUD de inmuebles, media, correo, traducción) | dominio |
 | Infraestructura | Firestore, R2, Resend, Cloud Scheduler | aplicación |
 | Interfaces | Handlers HTTP, validación contra las specs OpenAPI, mapeo al catálogo de errores | aplicación |
@@ -173,6 +173,8 @@ Notas:
 - Ampliar los presets exige actualizar **esta tabla**, `firestore.indexes.json` y `shared-types` a la vez (AC1.10.4).
 
 **Consulta propia de portada (destacadas):** `status = ACTIVE` + `destacada = true`, orden `fechaPublicacion` desc, hasta 12 (AC1.10.6) → índice nº 9: `status ASC, destacada ASC, fechaPublicacion DESC, __name__ ASC`.
+
+**Consulta de la tarea «Nuevo» (US1.11):** solo `nuevo == true` (AC1.11.5); no recorre el catálogo.
 
 ---
 
