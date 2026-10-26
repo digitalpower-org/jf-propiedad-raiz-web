@@ -23,7 +23,11 @@ export interface BffContext {
 
 export function getInternalKey(): string {
   // MT1.1: placeholder. MT1.2: usar secret de entorno (Secret Manager).
-  return process.env.BFF_INTERNAL_KEY ?? 'placeholder-internal-key';
+  const key = process.env.BFF_INTERNAL_KEY;
+  if (!key) {
+    throw new Error('BFF_INTERNAL_KEY no está configurada');
+  }
+  return key;
 }
 
 export function buildContext(request: NextRequest): BffContext {
