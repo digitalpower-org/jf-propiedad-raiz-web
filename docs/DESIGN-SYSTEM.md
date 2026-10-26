@@ -367,7 +367,7 @@ Portada, Venta, Alquiler y Proyectos (pestañas independientes), listado/resulta
 ## Quick Start
 
 ### CSS Custom Properties
-
+- **estilos**: nunca por ninguna razon se debe usar tailwind css, solo css modules, incluso para editar o personalizar los componentes de librerias externas como mantine.
 ```css
 :root {
   /* Colors - Brand */
