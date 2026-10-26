@@ -24,9 +24,7 @@
     }
   ],
   "emulators": {
-    "auth": {
-      "port": 9099
-    },
+    "auth": {"role": "admin"},
     "functions": {
       "port": 5001
     },

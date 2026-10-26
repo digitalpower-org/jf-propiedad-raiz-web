@@ -117,4 +117,8 @@ export const ROUTES = [
   { method: 'GET', path: '/api/about', auth: 'public', internalPath: '/api/v1/about' },
   { method: 'PUT', path: '/api/about', auth: 'session', internalPath: '/api/v1/about' },
   { method: 'POST', path: '/api/revalidate', auth: 'internal', internalPath: null },
+<<<<<<< HEAD
+=======
+  { method: 'GET', path: '/api/health', auth: 'public', internalPath: null },
+>>>>>>> origin/dev
 ] as const satisfies readonly BffRoute[];
