@@ -43,7 +43,7 @@
 
 ### MT0.3 — Infraestructura, cuentas y entornos
 - **Objetivo:** toda la plataforma externa contratada y conectable.
-- **Contenido:** proyecto **Firebase** + plan **Blaze** (requerido por Functions/App Hosting) + habilitar Auth/Firestore/Functions/App Hosting; **sin** activar Identity Platform; **emuladores** (Auth/Firestore/Functions) para dev y test; cuentas externas (**Cloudflare R2** bucket + credenciales, **Resend** API key + dominio verificado, **Google Cloud Translation**, **Cloud Scheduler**); **Secret Manager** para los secretos y entornos (dev/staging/prod) + `.env` + `apphosting.yaml`; **dominio/DNS** público y de correo. Incluye la **alerta de presupuesto (US6.2, AC6.2.1)** que exige el plan Blaze: debe crearse aquí, al activar Blaze, no en una ola posterior.
+- **Contenido:** proyecto **Firebase** + plan **Blaze** (requerido por Functions/App Hosting) + habilitar Auth/Firestore/Functions/App Hosting; **sin** activar Identity Platform; **emuladores** (Auth/Firestore/Functions) para dev y test; cuentas externas (**Cloudflare R2** bucket + credenciales, **Resend** API key + dominio verificado, **Google Cloud Translation**); **Secret Manager** para los secretos y entornos (dev/staging/prod) + `.env` + `apphosting.yaml`; **dominio/DNS** público y de correo. Incluye la **alerta de presupuesto (US6.2, AC6.2.1)** que exige el plan Blaze: debe crearse aquí, al activar Blaze, no en una ola posterior.
 - **Depende de:** MT0.1.
 - **Salida:** entornos operativos y credenciales inyectables; alerta de presupuesto activa; proyecto Firebase accesible por emuladores y por App Hosting.
 
