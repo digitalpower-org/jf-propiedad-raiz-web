@@ -6,9 +6,7 @@ import { NoopLogger } from '../../infrastructure/logging/logger';
 
 describe('TranslationService (US0.5)', () => {
   const makeDeps = (translatorOverride?: {
-    translate: (
-      inputs: readonly { fieldPath: string; text: string }[],
-    ) => Promise<{
+    translate: (inputs: readonly { fieldPath: string; text: string }[]) => Promise<{
       outputs: { fieldPath: string; translated: string }[];
       hasErrors: boolean;
       error?: string;
