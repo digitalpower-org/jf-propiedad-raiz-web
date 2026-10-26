@@ -39,7 +39,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   }
 
   // 2. Construir URL del backend interno
-  const internalKey = process.env.BFF_INTERNAL_KEY ?? 'placeholder-internal-key';
+  const internalKey = process.env.BFF_INTERNAL_KEY;
+  if (!internalKey) {
+    console.error('[SESSION] BFF_INTERNAL_KEY no está configurada');
+    return errorEnvelope('INTERNAL', 'Configuración interna no válida', 500);
+  }
   const backendUrl = new URL('/internal/auth/verify', request.url);
 
   // 3. Llamar al backend
