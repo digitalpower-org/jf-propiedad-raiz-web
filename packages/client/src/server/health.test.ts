@@ -6,43 +6,67 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
-import {
-  getFunctionsBaseUrl,
-  checkFunctionsHealth,
-  getHealth,
-  BFF_HEALTH,
-  type ServiceHealth,
-  type HealthResponse,
-} from './health';
+// server-only lanza al importarse fuera de Server Component de Next.js.
+// En Vitest (entorno Node) se mockea como no-op para que no rompa los tests puros.
+vi.mock('server-only', () => ({ default: undefined }));
 
 const originalEnv = process.env.FUNCTIONS_BASE_URL;
+
+// server-config hace Zod parse() en nivel de módulo: requiere BFF_INTERNAL_KEY
+// y SESSION_JWT_SECRET definidos ANTES de importar ./health.
+beforeAll(() => {
+  process.env.BFF_INTERNAL_KEY = 'test-key-with-at-least-32-chars!!!';
+  process.env.SESSION_JWT_SECRET = 'test-secret-with-at-least-32-chars!!!';
+});
+
+afterAll(() => {
+  if (originalEnv !== undefined) {
+    process.env.FUNCTIONS_BASE_URL = originalEnv;
+  } else {
+    delete process.env.FUNCTIONS_BASE_URL;
+  }
+});
+
+async function importHealth() {
+  vi.resetModules();
+  return await import('./health');
+}
+
+async function importConfig() {
+  vi.resetModules();
+  return await import('./config/server-config');
+}
+
+type HealthModule = Awaited<ReturnType<typeof importHealth>>;
 
 describe('health — lógica pura', () => {
   // Mock global de fetch
   const originalFetch = globalThis.fetch;
 
-  beforeEach(() => {
+  let health: HealthModule;
+  let config: Awaited<ReturnType<typeof importConfig>>;
+
+  beforeEach(async () => {
     vi.stubGlobal('fetch', vi.fn());
-    vi.resetModules();
     delete process.env.FUNCTIONS_BASE_URL;
+    health = await importHealth();
+    config = await importConfig();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    delete process.env.FUNCTIONS_BASE_URL;
   });
 
-  afterAll(() => {
-    process.env.FUNCTIONS_BASE_URL = originalEnv;
-  });
-
-  describe('getFunctionsBaseUrl', () => {
+  describe('functionsBaseUrl', () => {
     it('usa default cuando no hay FUNCTIONS_BASE_URL', () => {
-      expect(getFunctionsBaseUrl()).toBe('http://127.0.0.1:5001/jf-propiedad-raiz/us-central1');
+      expect(config.functionsBaseUrl).toBe('http://127.0.0.1:5001/jf-propiedad-raiz/us-central1');
     });
 
-    it('usa FUNCTIONS_BASE_URL cuando existe', () => {
+    it('usa FUNCTIONS_BASE_URL cuando existe', async () => {
       process.env.FUNCTIONS_BASE_URL = 'https://custom.example.com/functions';
-      expect(getFunctionsBaseUrl()).toBe('https://custom.example.com/functions');
+      config = await importConfig();
+      expect(config.functionsBaseUrl).toBe('https://custom.example.com/functions');
     });
   });
 
@@ -63,7 +87,7 @@ describe('health — lógica pura', () => {
       const mockFetch = vi.fn().mockResolvedValue(makeResponse());
       vi.stubGlobal('fetch', mockFetch);
 
-      const result = await checkFunctionsHealth();
+      const result = await health.checkFunctionsHealth();
 
       expect(result.status).toBe('ok');
       expect(result.service).toBe('functions');
@@ -76,7 +100,7 @@ describe('health — lógica pura', () => {
       const mockFetch = vi.fn().mockResolvedValue(makeResponse({ ok: false, status: 500 }));
       vi.stubGlobal('fetch', mockFetch);
 
-      const result = await checkFunctionsHealth();
+      const result = await health.checkFunctionsHealth();
 
       expect(result.status).toBe('error');
       expect(result.service).toBe('functions');
@@ -90,7 +114,7 @@ describe('health — lógica pura', () => {
         .mockResolvedValue(makeResponse({ json: { status: 'degraded', service: 'functions' } }));
       vi.stubGlobal('fetch', mockFetch);
 
-      const result = await checkFunctionsHealth();
+      const result = await health.checkFunctionsHealth();
 
       expect(result.status).toBe('error');
       expect(result.error).toContain('Unexpected response');
@@ -100,7 +124,7 @@ describe('health — lógica pura', () => {
       const mockFetch = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
       vi.stubGlobal('fetch', mockFetch);
 
-      const result = await checkFunctionsHealth();
+      const result = await health.checkFunctionsHealth();
 
       expect(result.status).toBe('error');
       expect(result.error).toBe('ECONNREFUSED');
@@ -112,7 +136,7 @@ describe('health — lógica pura', () => {
       const mockFetch = vi.fn().mockRejectedValue(abortError);
       vi.stubGlobal('fetch', mockFetch);
 
-      const result = await checkFunctionsHealth();
+      const result = await health.checkFunctionsHealth();
 
       expect(result.status).toBe('error');
       expect(result.error).toBe('Timeout');
@@ -131,7 +155,7 @@ describe('health — lógica pura', () => {
       );
       vi.stubGlobal('fetch', mockFetch);
 
-      const result = await checkFunctionsHealth();
+      const result = await health.checkFunctionsHealth();
 
       expect(result.latencyMs).toBeGreaterThanOrEqual(10);
       expect(result.latencyMs).toBeLessThan(100);
@@ -155,9 +179,9 @@ describe('health — lógica pura', () => {
       const mockFetch = vi.fn().mockResolvedValue(makeResponse());
       vi.stubGlobal('fetch', mockFetch);
 
-      const { body, status } = await getHealth();
+      const { body, status } = await health.getHealth();
 
-      expect(body.bff).toEqual(BFF_HEALTH);
+      expect(body.bff).toEqual(health.BFF_HEALTH);
       expect(body.functions.status).toBe('ok');
       expect(body.overall).toBe('ok');
       expect(status).toBe(200);
@@ -167,9 +191,9 @@ describe('health — lógica pura', () => {
       const mockFetch = vi.fn().mockResolvedValue(makeResponse({ ok: false, status: 503 }));
       vi.stubGlobal('fetch', mockFetch);
 
-      const { body, status } = await getHealth();
+      const { body, status } = await health.getHealth();
 
-      expect(body.bff).toEqual(BFF_HEALTH);
+      expect(body.bff).toEqual(health.BFF_HEALTH);
       expect(body.functions.status).toBe('error');
       expect(body.overall).toBe('degraded');
       expect(status).toBe(503);
@@ -179,7 +203,7 @@ describe('health — lógica pura', () => {
       const mockFetch = vi.fn().mockResolvedValue(makeResponse({ ok: false, status: 500 }));
       vi.stubGlobal('fetch', mockFetch);
 
-      const { body } = await getHealth();
+      const { body } = await health.getHealth();
 
       expect(body.bff).toEqual({ status: 'ok', service: 'bff' });
     });

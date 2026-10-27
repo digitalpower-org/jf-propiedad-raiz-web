@@ -13,18 +13,14 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { env } from '@/server/config/server-config';
 
 import { errorEnvelope } from '@/server/bff-helper';
 
 export const POST = async (request: NextRequest): Promise<NextResponse> => {
   // Validar internal key (AC0.3.3: sin secreto → 401)
   const internalKey = request.headers.get('x-internal-key');
-  const expectedKey = process.env.BFF_INTERNAL_KEY;
-
-  if (!expectedKey) {
-    console.error('[REVALIDATE] BFF_INTERNAL_KEY no está configurada');
-    return errorEnvelope('INTERNAL', 'Configuración interna no válida', 500);
-  }
+  const expectedKey = env.BFF_INTERNAL_KEY;
 
   if (!internalKey || internalKey !== expectedKey) {
     return errorEnvelope('UNAUTHORIZED', 'Clave interna inválida o ausente', 401);

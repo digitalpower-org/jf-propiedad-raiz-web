@@ -13,21 +13,13 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { env } from '@/server/config/server-config';
 
 export interface BffContext {
   readonly internalKey: string;
   readonly userId: string | undefined;
   readonly userEmail: string | undefined;
   readonly userRole: string | undefined;
-}
-
-export function getInternalKey(): string {
-  // MT1.1: placeholder. MT1.2: usar secret de entorno (Secret Manager).
-  const key = process.env.BFF_INTERNAL_KEY;
-  if (!key) {
-    throw new Error('BFF_INTERNAL_KEY no está configurada');
-  }
-  return key;
 }
 
 export function buildContext(request: NextRequest): BffContext {
@@ -39,7 +31,7 @@ export function buildContext(request: NextRequest): BffContext {
   // Si se proporciona X-User-* desde el BFF, preferirlo.
   // El BFF sobrescribe los headers con el JWT verificado (AC1.3.5).
   return {
-    internalKey: getInternalKey(),
+    internalKey: env.BFF_INTERNAL_KEY,
     userId: userId ?? undefined,
     userEmail: userEmail ?? undefined,
     userRole: userRole ?? undefined,
