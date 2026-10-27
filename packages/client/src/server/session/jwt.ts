@@ -18,8 +18,8 @@ export interface SessionClaims {
 
 export const SESSION_JWT_SECRET = env.SESSION_JWT_SECRET;
 export const SESSION_JWT_SECRET_PREVIOUS = env.SESSION_JWT_SECRET_PREVIOUS;
-export const SESSION_TTL = 3900; // 65 min en segundos (D34)
-export const SESSION_SKEW = 60; // 60 segundos de tolerancia (D34)
+export const SESSION_TTL = env.SESSION_TTL; // 65 min en segundos (D34)
+export const SESSION_SKEW = env.SESSION_SKEW; // 60 segundos de tolerancia (D34)
 export const SESSION_ISS = 'jf-bff';
 export const SESSION_AUD = 'jf-web';
 

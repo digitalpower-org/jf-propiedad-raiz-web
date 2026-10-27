@@ -7,6 +7,8 @@ const EnvSchema = z.object({
   SESSION_JWT_SECRET: z.string().min(32, 'SESSION_JWT_SECRET debe tener al menos 32 caracteres'),
   SESSION_JWT_SECRET_PREVIOUS: z.string().default(''),
   FUNCTIONS_BASE_URL: z.string().url().optional(),
+  SESSION_TTL: z.coerce.number().default(3900),
+  SESSION_SKEW: z.coerce.number().default(60),
   NEXT_PUBLIC_FUNCTIONS_EMULATOR_HOST: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_REGION: z.string().optional(),
