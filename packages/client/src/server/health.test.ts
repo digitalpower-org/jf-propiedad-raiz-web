@@ -60,9 +60,7 @@ describe('health — lógica pura', () => {
 
   describe('functionsBaseUrl', () => {
     it('usa default cuando no hay FUNCTIONS_BASE_URL', () => {
-      expect(config.functionsBaseUrl).toBe(
-        'http://127.0.0.1:5001/jf-propiedad-raiz/us-central1',
-      );
+      expect(config.functionsBaseUrl).toBe('http://127.0.0.1:5001/jf-propiedad-raiz/us-central1');
     });
 
     it('usa FUNCTIONS_BASE_URL cuando existe', async () => {
