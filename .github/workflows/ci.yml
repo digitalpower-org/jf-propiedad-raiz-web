@@ -27,6 +27,8 @@ concurrency:
 
 env:
   NEXT_TELEMETRY_DISABLED: 1
+  BFF_INTERNAL_KEY: ${{ secrets.BFF_INTERNAL_KEY }}
+  SESSION_JWT_SECRET: ${{ secrets.SESSION_JWT_SECRET }}
 
 jobs:
   gates:
