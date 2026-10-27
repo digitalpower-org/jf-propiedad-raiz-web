@@ -4,6 +4,7 @@
 
 import { type NextRequest } from 'next/server';
 import crypto from 'crypto';
+import { env } from '@/server/config/server-config';
 
 export interface SessionClaims {
   readonly sub: string; // UID de Firebase Auth
@@ -15,8 +16,8 @@ export interface SessionClaims {
   readonly exp: number; // expira en segundos
 }
 
-export const SESSION_JWT_SECRET = process.env.SESSION_JWT_SECRET || 'dev-secret-key-change-in-prod';
-export const SESSION_JWT_SECRET_PREVIOUS = process.env.SESSION_JWT_SECRET_PREVIOUS || '';
+export const SESSION_JWT_SECRET = env.SESSION_JWT_SECRET;
+export const SESSION_JWT_SECRET_PREVIOUS = env.SESSION_JWT_SECRET_PREVIOUS;
 export const SESSION_TTL = 3900; // 65 min en segundos (D34)
 export const SESSION_SKEW = 60; // 60 segundos de tolerancia (D34)
 export const SESSION_ISS = 'jf-bff';

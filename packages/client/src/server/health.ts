@@ -5,6 +5,8 @@
  * Los route handlers no son puros (config de vitest lo excluye).
  */
 
+import { functionsBaseUrl } from './config/server-config';
+
 export type ServiceHealth = {
   readonly status: 'ok' | 'error';
   readonly service: string;
@@ -23,21 +25,12 @@ export const BFF_HEALTH: ServiceHealth = { status: 'ok', service: 'bff' };
 export const FUNCTIONS_HEALTH_TIMEOUT_MS = 5000;
 
 /**
- * Devuelve la base URL del endpoint de Functions.
- * - Local (emulador): default http://127.0.0.1:5001/jf-propiedad-raiz/us-central1
- * - Producción: FUNCTIONS_BASE_URL (ej. https://us-central1-jf-propiedad-raiz.cloudfunctions.net)
- */
-export function getFunctionsBaseUrl(): string {
-  return process.env.FUNCTIONS_BASE_URL ?? 'http://127.0.0.1:5001/jf-propiedad-raiz/us-central1';
-}
-
-/**
  * Verifica el endpoint /health de Functions.
  * - Resolve "ok" si responde { status: 'ok', service: 'functions' }
  * - Reject con ServiceHealth { status: 'error' } en fallos, timeout o HTTP no-200.
  */
 export async function checkFunctionsHealth(): Promise<ServiceHealth> {
-  const url = `${getFunctionsBaseUrl()}/health`;
+  const url = `${functionsBaseUrl}/health`;
   const start = Date.now();
 
   const controller = new AbortController();
