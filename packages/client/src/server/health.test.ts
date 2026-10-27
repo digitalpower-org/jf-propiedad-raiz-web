@@ -32,6 +32,11 @@ async function importHealth() {
   return await import('./health');
 }
 
+async function importConfig() {
+  vi.resetModules();
+  return await import('./config/server-config');
+}
+
 type HealthModule = Awaited<ReturnType<typeof importHealth>>;
 
 describe('health — lógica pura', () => {
@@ -39,11 +44,13 @@ describe('health — lógica pura', () => {
   const originalFetch = globalThis.fetch;
 
   let health: HealthModule;
+  let config: Awaited<ReturnType<typeof importConfig>>;
 
   beforeEach(async () => {
     vi.stubGlobal('fetch', vi.fn());
     delete process.env.FUNCTIONS_BASE_URL;
     health = await importHealth();
+    config = await importConfig();
   });
 
   afterEach(() => {
@@ -51,17 +58,17 @@ describe('health — lógica pura', () => {
     delete process.env.FUNCTIONS_BASE_URL;
   });
 
-  describe('getFunctionsBaseUrl', () => {
+  describe('functionsBaseUrl', () => {
     it('usa default cuando no hay FUNCTIONS_BASE_URL', () => {
-      expect(health.getFunctionsBaseUrl()).toBe(
+      expect(config.functionsBaseUrl).toBe(
         'http://127.0.0.1:5001/jf-propiedad-raiz/us-central1',
       );
     });
 
     it('usa FUNCTIONS_BASE_URL cuando existe', async () => {
       process.env.FUNCTIONS_BASE_URL = 'https://custom.example.com/functions';
-      health = await importHealth();
-      expect(health.getFunctionsBaseUrl()).toBe('https://custom.example.com/functions');
+      config = await importConfig();
+      expect(config.functionsBaseUrl).toBe('https://custom.example.com/functions');
     });
   });
 
