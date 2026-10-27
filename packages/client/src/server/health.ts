@@ -24,6 +24,10 @@ export const BFF_HEALTH: ServiceHealth = { status: 'ok', service: 'bff' };
 
 export const FUNCTIONS_HEALTH_TIMEOUT_MS = 5000;
 
+export function getFunctionsBaseUrl(): string {
+  return functionsBaseUrl;
+}
+
 /**
  * Verifica el endpoint /health de Functions.
  * - Resolve "ok" si responde { status: 'ok', service: 'functions' }
