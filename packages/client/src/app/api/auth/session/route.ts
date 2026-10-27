@@ -11,7 +11,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { errorEnvelope } from '@/server/bff-helper';
-import { signSession, SESSION_TTL } from '@/server/session/jwt';
+import { signSession } from '@/server/session/jwt';
 import { env } from '@/server/config/server-config';
 
 interface VerifyResponse {
@@ -98,7 +98,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     'Secure',
     'SameSite=Strict',
     'Path=/',
-    `Max-Age=${SESSION_TTL}`,
+    `Max-Age=${env.SESSION_TTL}`,
   ].join('; ');
 
   response.headers.set('Set-Cookie', cookieAttributes);
