@@ -27,7 +27,11 @@
   - [ ] US0.1 `[D1]` Contrato API (2 OpenAPI), `shared-types`, catálogo de errores y helper `buildWhatsAppUrl` (D35)
   - [ ] US0.4 `[D2]` Internacionalización por rutas `/es` y `/en`
   - [ ] US7.6 `[D1+D2]` (arranque) Playwright móvil/escritorio, `lighthouserc.json`, análisis de bundles (gates informativos)
-- [ ] **MT0.5** `[D1]` Esqueleto desplegable (App Hosting + Functions + Firestore, health + función trivial) ← MT0.3, MT0.4
+- [x] **MT0.5** `[D1]` Esqueleto desplegable (App Hosting + Functions + Firestore, health + función trivial) ← MT0.3, MT0.4
+  - Emulators: `firebase emulators:start --only apphosting,firestore,functions,auth` levanta exitosamente
+  - Health: Endpoints `/health` (Functions) y health check BFF probados con éxito
+  - `apphosting.yaml`: creado en raíz, compatible con `firebase.json` sin conflictos
+  - Datos seed: persisten en `/home/daniel/.firebase/emulators/`, volatilidad conocida (usar `--import/--export` para fijar)
 
 > **Hito 0:** repo, CI, Firebase/emuladores, cuentas, secretos, alerta de presupuesto, contratos, i18n base y esqueleto desplegado.
 
