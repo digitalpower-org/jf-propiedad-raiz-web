@@ -54,16 +54,6 @@ export const BILLABLE_SERVICES = {
       // No limits - free tier
     },
   },
-  // Cloud Scheduler - charges based on number of jobs and executions
-  cloudScheduler: {
-    name: 'Cloud Scheduler',
-    // Free tier: 3 jobs, 3.6M executions/month
-    // See: https://cloud.google.com/scheduler/pricing
-    monthlyFreeTier: {
-      jobs: 3,
-      executionsPerMonth: 3600000, // 1000/day
-    },
-  },
   // Cloud Translation - charges per character translated
   cloudTranslation: {
     name: 'Google Cloud Translation',
@@ -101,7 +91,6 @@ export const firebase = {
   appHosting: BILLABLE_SERVICES.appHosting,
   firestore: BILLABLE_SERVICES.firestore,
   auth: BILLABLE_SERVICES.auth,
-  cloudScheduler: BILLABLE_SERVICES.cloudScheduler,
   cloudTranslation: BILLABLE_SERVICES.cloudTranslation,
 } as const;
 
@@ -206,7 +195,6 @@ export function isWithinFreeTier(usage: {
   writesPerDay?: number;
   charactersPerMonth?: number;
   emailsPerMonth?: number;
-  executionsPerMonth?: number;
   egressGB?: number;
 }): boolean {
   // Check Firestore storage
@@ -246,15 +234,6 @@ export function isWithinFreeTier(usage: {
     usage.functionInvocations &&
     usage.functionInvocations >
       (BILLABLE_SERVICES.appHosting?.monthlyFreeTier?.functionInvocations ?? 100000)
-  ) {
-    return false;
-  }
-
-  // Check Cloud Scheduler executions
-  if (
-    usage.executionsPerMonth &&
-    usage.executionsPerMonth >
-      (BILLABLE_SERVICES.cloudScheduler?.monthlyFreeTier?.executionsPerMonth ?? 3600000)
   ) {
     return false;
   }
