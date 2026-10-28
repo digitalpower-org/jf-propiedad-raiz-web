@@ -15,7 +15,7 @@ Plataforma web bilingüe (español de Colombia por defecto, inglés generado o e
 - **Frontend + BFF:** Next.js (App Hosting de Firebase) — `packages/client`.
 - **Backend de dominio:** Functions (Firebase) con Clean Architecture — `packages/functions`.
 - **Datos:** Firestore (documentos) y Cloudflare R2 (imágenes, videos referenciados y panorámicas 360°).
-- **Correo:** Resend. **Traducción:** Google Cloud Translation, detrás del puerto `Translator`. **Tareas programadas:** Cloud Scheduler.
+- **Correo:** Resend. **Traducción:** Google Cloud Translation, detrás del puerto `Translator`. **Tareas programadas:** NO USADO (eliminado de v1).
 - **Contratos:** dos specs OpenAPI (D26) — interna (BFF ↔ Functions) y pública (navegador ↔ BFF).
 
 ---
@@ -40,7 +40,7 @@ jf-propiedad-raiz-web/
 │   │       ├── health.ts        # Cuerpo tipado del health; consume @jf/shared-types
 │   │       ├── domain/          # Entidades, reglas e invariantes (sin dependencias de infraestructura)
 │   │       ├── application/     # Casos de uso (consulta pública, propiedad, media, correo, traducción)
-│   │       ├── infrastructure/  # Repositorios Firestore, R2, Resend, Scheduler
+│   │       ├── infrastructure/  # Repositorios Firestore, R2, Resend (sin Scheduler)
 │   │       └── presentation/     # Handlers HTTP, validación de contrato (OpenAPI), mapeo de errores
 │   └── client/              # Next.js: UI + BFF
 │       ├── messages/        # Diccionarios es.json / en.json (US0.4, D36)
@@ -139,7 +139,7 @@ Navegador ──idToken (solo canje)──> BFF ──POST /internal/auth/verify
 | :---- | :---- | :---- |
 | Dominio | Entidades, invariantes y reglas (precio en COP entero, una sola `operacion`…) | nada |
 | Aplicación | Casos de uso (consulta pública, CRUD de inmuebles, media, correo, traducción) | dominio |
-| Infraestructura | Firestore, R2, Resend, Cloud Scheduler | aplicación |
+| Infraestructura | Firestore, R2, Resend | aplicación |
 | Interfaces | Handlers HTTP, validación contra las specs OpenAPI, mapeo al catálogo de errores | aplicación |
 
 - Las respuestas de error siguen el catálogo estándar (`VALIDATION_ERROR`, `PERMISSION_DENIED`, etc.), nunca códigos crudos de infraestructura.

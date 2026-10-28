@@ -43,7 +43,7 @@
 
 ### MT0.3 — Infraestructura, cuentas y entornos
 - **Objetivo:** toda la plataforma externa contratada y conectable.
-- **Contenido:** proyecto **Firebase** + plan **Blaze** (requerido por Functions/App Hosting) + habilitar Auth/Firestore/Functions/App Hosting; **sin** activar Identity Platform; **emuladores** (Auth/Firestore/Functions) para dev y test; cuentas externas (**Cloudflare R2** bucket + credenciales, **Resend** API key + dominio verificado, **Google Cloud Translation**, **Cloud Scheduler**); **Secret Manager** para los secretos y entornos (dev/staging/prod) + `.env` + `apphosting.yaml`; **dominio/DNS** público y de correo. Incluye la **alerta de presupuesto (US6.2, AC6.2.1)** que exige el plan Blaze: debe crearse aquí, al activar Blaze, no en una ola posterior.
+- **Contenido:** proyecto **Firebase** + plan **Blaze** (requerido por Functions/App Hosting) + habilitar Auth/Firestore/Functions/App Hosting; **sin** activar Identity Platform; **emuladores** (Auth/Firestore/Functions) para dev y test; cuentas externas (**Cloudflare R2** bucket + credenciales, **Resend** API key + dominio verificado, **Google Cloud Translation**); **Secret Manager** reemplazado por `.env` en desarrollo (pendiente tarjeta de crédito para producción); **dominio/DNS** público y de correo. **NO USADO: Cloud Scheduler** (eliminado de v1). Incluye la **alerta de presupuesto (US6.2, AC6.2.1)** pendiente por falta de tarjeta de crédito.
 - **Depende de:** MT0.1.
 - **Salida:** entornos operativos y credenciales inyectables; alerta de presupuesto activa; proyecto Firebase accesible por emuladores y por App Hosting.
 
@@ -80,7 +80,7 @@
 | MT | Macro tarea | Historias | Depende de |
 | :-- | :-- | :-- | :-- |
 | **MT2.1** | **Dominio de inmuebles y media** — ciclo de vida del inmueble + código secuencial, URLs presignadas de R2 y confirmación/generación de derivados. Los endpoints de media validan `X-User-Role: admin` (AC1.8.1, MT1.2) y el alta de inmuebles **traduce y revalida** (US0.3/US0.5, MT1.4), por eso depende de MT1.2 y MT1.4 | US1.7, US1.8, US1.9 | MT1.1, MT1.2, MT1.4, MT0.3 (R2) |
-| **MT2.2** | **Consulta pública y vigencia** — filtros, orden por `createdAt` descendente, cursor e índices (tabla única en `./ARCHITECTURE.md`, AC1.10.4; su faceta de índices se verifica en MT6.1); tarea programada de la bandera «Nuevo» (que **dispara la revalidación** de US0.3, AC1.11.4, y exige MT1.4); y **endpoints públicos de lectura de contenido** (listado de servicios y documento Nosotros) que consume la portada/sitemap (US2.6, US2.7) y más tarde US5.1/US5.6 | US1.10, US1.11, US7.4 (parte backend: `PropertyCard`, compresión, caché) | MT2.1, MT1.2, MT1.4, MT0.3 (Scheduler) |
+| **MT2.2** | **Consulta pública y vigencia** — filtros, orden por `createdAt` descendente, cursor e índices (tabla única en `./ARCHITECTURE.md`, AC1.10.4; su faceta de índices se verifica en MT6.1); bandera «Nuevo» evaluada en frontend (`isNewProperty(createdAt)`, AC1.11) y revalidada por escritura (`US0.3`, AC1.11.4); y **endpoints públicos de lectura de contenido** (listado de servicios y documento Nosotros) que consume la portada/sitemap (US2.6, US2.7) y más tarde US5.1/US5.6 | US1.10, US1.11, US7.4 (parte backend: `PropertyCard`, compresión, caché) | MT2.1, MT1.2, MT1.4 |
 | **MT2.4** | **Seed de catálogo** — siembra los datos de ejemplo del catálogo (inmuebles repartidos por operación, servicios y documento Nosotros; AC6.1.2) **una vez existe el dominio** de MT2.1/MT2.2, para que el catálogo y el CMS se construyan contra datos reales. Idempotente (AC6.1.1) y con traductor falso (AC6.1.4) | US6.1 (catálogo) | MT2.1, MT2.2 |
 | **MT2.3** | **Catálogo público (UI)** — pestañas, buscador, scroll infinito, ficha técnica con SEO y puntos de interés, WhatsApp, portada y SEO técnico. La portada usa los endpoints públicos de MT2.2 y el **sitemap cierra aquí** sus rutas de inmuebles; las rutas de **Servicios, Nosotros y legales** se incorporan cuando existen (MT5.1/MT3.2), y ese cierre completo se re-scopa a **MT5.1** (ver MT5.1) | US2.1, US2.2, US2.3, US2.4, US2.5, US2.6, US2.7, US7.1, US7.3, US7.4 (parte cliente) | MT2.2, MT2.4, MT1.3, MT0.4 |
 | **MT3.2** | **Páginas legales (adelantadas a Ola 2)** — aviso de privacidad, política de tratamiento de datos y términos. Solo dependen de las rutas de MT0.4 y (para la traducción de cortesía en inglés) del servicio de US0.5 → MT1.4. Se adelantan para que el **consentimiento de MT3.1** (Ola 3) y el **sitemap de MT2.3** apunten a rutas reales desde el principio | US5.3 | MT0.4, MT1.4 |
@@ -137,7 +137,7 @@ OLA 1
 
 OLA 2
   MT1.1 ──> MT2.1            MT1.2 ──> MT2.1        MT1.4 ──> MT2.1   (alta traduce/revalida)
-  MT2.1 ──> MT2.2            MT1.2 ──> MT2.2        MT1.4 ──> MT2.2   (tarea «Nuevo» → revalidación)
+  MT2.1 ──> MT2.2            MT1.2 ──> MT2.2        MT1.4 ──> MT2.2   (bandera «Nuevo» → evaluación frontend + revalidación por escritura)
   MT2.1 ──> MT2.4            MT2.2 ──> MT2.4        (seed de catálogo tras el dominio)
   MT2.2 ──> MT2.3            MT2.4 ──> MT2.3        MT1.3 ──> MT2.3   MT0.4 ──> MT2.3
   MT0.4 ──> MT3.2            MT1.4 ──> MT3.2        (legales adelantadas)
