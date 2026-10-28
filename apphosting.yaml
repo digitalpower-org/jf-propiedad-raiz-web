@@ -1,0 +1,80 @@
+hosting:
+  appHosting:
+    region: us-central
+
+  rewrites:
+    # BFF API routes: /api/* → Functions (con X-Internal-Key header)
+    - source: '/api/**'
+      function: 'functions'
+    # Health check endpoint: /health → Functions
+    - source: '/health'
+      function: 'functions'
+    # Ruta pública para About (sin sesión, alimenta portada + página /nosotros)
+    - source: '/api/about'
+      function: 'functions'
+    # Ruta de revalidación under demand
+    - source: '/api/revalidate'
+      function: 'functions'
+    # Media endpoints (presigned URLs, confirm upload)
+    - source: '/api/media/**'
+      function: 'functions'
+    # Services CRUD endpoints
+    - source: '/api/services/**'
+      function: 'functions'
+    # About endpoint for CMS
+    - source: '/api/about/**(/.+)?'
+      function: 'functions'
+
+  headers:
+    # Evitar que el sitio se incruste en frames (clickjacking protection)
+    - source: '/frameguard-protection'
+      headers:
+        frameguard: deny
+    # Headers de seguridad del contenido
+    - source: '/content-security-policy'
+      content-security-policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https; font-src 'self'; connect-src 'self'; frame-src 'none'"
+    # Cache control para assets estáticos de Next.js
+    - source: '/_next/static/**'
+      headers:
+        Cache-Control: 'public, max-age=31536000, immutable'
+    - source: '/images/**'
+      headers:
+        Cache-Control: 'public, max-age=86400'
+    # CORS para endpoints de media (complementa reglas R2)
+    - source: '/api/media/presigned-url'
+      Access-Control-Allow-Origin: '*'
+      Access-Control-Allow-Methods: 'PUT, POST, GET'
+      Access-Control-Allow-Headers: 'Content-Type, X-Internal-Key, X-User-Role'
+    # Security headers para routes de admin
+    - source: '/api/auth'
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+    # HSTS solo en producción (no en localhost)
+    - source: '!.localhost'
+      Strict-Transport-Security: 'max-age=31536000; includeSubDomains; preload'
+    # Permitir solo los orígenes configurados para R2 uploads
+    - source: '/api/media/confirm'
+      Access-Control-Allow-Origin: '*'
+      Access-Control-Allow-Methods: 'PUT, POST'
+      Access-Control-Allow-Headers: 'Content-Type'
+
+  redirects:
+    # Redirigir / a la ruta según Accept-Language (307 Temporary Redirect)
+    # Según D36: / resuelto por app/route.ts por Accept-Language, es español por defecto
+    - source: '/'
+      destination: '/es'
+      type: 307
+    # Asegurar rutas /admin con headers de contexto
+    - source: '/admin'
+      headers:
+        X-Cloud-Trace-Context: 'app-hosting;o11y-context'
+
+functions:
+  # Versión de runtime de Node.js (proyecto declara Node.js 24)
+  nodejs: 24
+
+  # Configuración de emulación para desarrollo local
+  emulators:
+    functions: 'http://localhost:5001'
+    firestore: 'http://localhost:8080'
+    apphosting: 'http://localhost:5002'
