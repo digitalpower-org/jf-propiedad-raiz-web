@@ -683,7 +683,7 @@
   - AC6.2.1 **Dado** el proyecto en Blaze **Cuando** está listo para desplegar **Entonces** existe una alerta de presupuesto creada. `[manual]`  
   - AC6.2.2 **Dado** el diseño de datos **Entonces** solo hay índices compuestos para las combinaciones documentadas (US1.10) y cero (0) `AggregationQuery`. `[agente]`  
   - AC6.2.3 **Dado** la documentación **Entonces** deja claro que la alerta de presupuesto no corta el consumo ni los cargos. `[agente]`  
-  - AC6.2.4 **Dado** la documentación **Entonces** lista los servicios facturables (Firebase App Hosting, Functions, Firestore, Cloud Scheduler para la tarea de «Nuevo», **Google Cloud Translation**, Cloudflare R2, Resend…) y aclara que el objetivo de \$0 mensual depende de mantenerse dentro de las cuotas gratuitas vigentes bajo uso normal. `[agente]`  
+  - AC6.2.4 **Dado** la documentación **Entonces** lista los servicios facturables (Firebase App Hosting, Functions, Firestore, **Google Cloud Translation**, Cloudflare R2, Resend…) y aclara que el objetivo de \$0 mensual depende de mantenerse dentro de las cuotas gratuitas vigentes bajo uso normal. **Nota:** Cloud Scheduler eliminado de v1; la tarea de «Nuevo» se evalúa en el frontend (`createdAt`) y se revalida por escritura (`US0.3`). `[agente]`  
   - AC6.2.5 **\[Debe NOT\]** Ningún secreto en texto plano en el repositorio. `[agente]`
 
 ### US6.3 — Despliegue y Documentación
