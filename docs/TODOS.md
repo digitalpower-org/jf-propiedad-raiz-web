@@ -20,8 +20,8 @@
 
 ## FASE 0 — Habilitadores
 
-- [ ] **MT0.1** `[D1+D2]` Planificación, proceso y decisiones (DoD, ramas, commits, QA, flujos de auth) ← —
-- [ ] **MT0.2** `[D1+D2]` Repositorio y tooling (monorepo, lint/format, CI con 7 gates) ← MT0.1
+- [x] **MT0.1** `[D1+D2]` Planificación, proceso y decisiones (DoD, ramas, commits, QA, flujos de auth) ← —
+- [x] **MT0.2** `[D1+D2]` Repositorio y tooling (monorepo, lint/format, CI con 7 gates) ← MT0.1
 - [ ] **MT0.3** `[D1]` Infraestructura, cuentas y entornos (Firebase Blaze, R2, Resend, Translation, Scheduler, Secret Manager, DNS, alerta de presupuesto AC6.2.1) ← MT0.1
 - [ ] **MT0.4** `[D1+D2]` Andamiaje técnico: contratos y base i18n ← MT0.2
   - [ ] US0.1 `[D1]` Contrato API (2 OpenAPI), `shared-types`, catálogo de errores y helper `buildWhatsAppUrl` (D35)
