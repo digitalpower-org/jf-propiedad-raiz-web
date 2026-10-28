@@ -56,9 +56,9 @@
   - [x] US0.3 `[D1]` Revalidación bajo demanda
   - [x] US0.5 `[D1]` Traducción ES→EN selectiva por campo + edición manual
 - [ ] **MT1.5** `[D1]` Operación base y despliegue temprano ← MT0.5, MT1.1, MT1.4
-  - [ ] US6.1 `[D1]` (andamiaje) Datos de ejemplo reproducibles
-  - [ ] US6.2 `[D1]` Costos y presupuesto bajo control
-  - [ ] US6.3 `[D1]` (despliegue temprano)
+  - [x] US6.1 `[D1]` (andamiaje) Datos de ejemplo reproducibles ← Paquete: `packages/functions/src/seed/sample-data.ts`
+  - [x] US6.2 `[D1]` Costos y presupuesto bajo control ← Paquete: `packages/functions/src/budget-config.ts`
+  - [x] US6.3 `[D1]` (despliegue temprano) ← Paquete: `packages/functions/src/seed/early-deployment.ts`
 
 ---
 
