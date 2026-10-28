@@ -8,7 +8,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { getInternalKey } from './bff-helper';
+import { env } from '@/server/config/server-config';
 import { extractSessionFromCookie } from './session/jwt';
 
 export interface ForwardContext {
@@ -55,7 +55,7 @@ export async function forwardToInternal(
   }
 
   const ctx: ForwardContext = {
-    internalKey: internalKeyOverride ?? getInternalKey(),
+    internalKey: internalKeyOverride ?? env.BFF_INTERNAL_KEY,
     userId: claims.sub,
     userEmail: claims.email,
     userRole: claims.role,

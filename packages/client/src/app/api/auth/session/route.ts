@@ -11,7 +11,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { errorEnvelope } from '@/server/bff-helper';
-import { signSession, SESSION_TTL } from '@/server/session/jwt';
+import { signSession } from '@/server/session/jwt';
+import { env } from '@/server/config/server-config';
 
 interface VerifyResponse {
   success: boolean;
@@ -39,7 +40,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   }
 
   // 2. Construir URL del backend interno
-  const internalKey = process.env.BFF_INTERNAL_KEY ?? 'placeholder-internal-key';
+  const internalKey = env.BFF_INTERNAL_KEY;
   const backendUrl = new URL('/internal/auth/verify', request.url);
 
   // 3. Llamar al backend
@@ -97,7 +98,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     'Secure',
     'SameSite=Strict',
     'Path=/',
-    `Max-Age=${SESSION_TTL}`,
+    `Max-Age=${env.SESSION_TTL}`,
   ].join('; ');
 
   response.headers.set('Set-Cookie', cookieAttributes);
