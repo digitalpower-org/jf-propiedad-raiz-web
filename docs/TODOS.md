@@ -41,7 +41,7 @@
 
 - [x] **MT1.1** `[D1]` BFF y seguridad interna ← MT0.3, MT0.4, MT0.5
   - [x] US0.2 `[D1]` BFF de Next.js, `routes.ts` generado, `proxy.ts` (404/405), `X-Internal-Key`
-- [ ] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
+- [x] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
   - [x] US1.1 `[D1]` Lista blanca verificada por el backend
   - [x] US1.2 `[D1]` `POST /api/auth/session` (BFF route handler)
   - [x] US1.3 `[D1]` Guard y propagación de identidad (`X-User-*`) (BFF)

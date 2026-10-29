@@ -163,4 +163,4 @@ session-*.md
 firebase-adminsdk*.json
 
 # Patch files generated for MT1.1 handoff review
-.patches/
+.patches/oh-my-opencode.jsonc
