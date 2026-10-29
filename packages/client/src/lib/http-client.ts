@@ -6,9 +6,9 @@
 
 export class ApiError extends Error {
   code: string;
-  details?: Record<string, string[]>;
-  requestId?: string;
-  status?: number;
+  details?: Record<string, string[]> | undefined;
+  requestId?: string | undefined;
+  status?: number | undefined;
 
   constructor({
     code,
@@ -19,9 +19,9 @@ export class ApiError extends Error {
   }: {
     code: string;
     message: string;
-    details?: Record<string, string[]>;
-    requestId?: string;
-    status?: number;
+    details?: Record<string, string[]> | undefined;
+    requestId?: string | undefined;
+    status?: number | undefined;
   }) {
     super(message);
     this.code = code;
