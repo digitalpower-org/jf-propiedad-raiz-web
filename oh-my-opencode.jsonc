@@ -1,0 +1,101 @@
+{
+  // Frontend Next.js 16 · modelos gratuitos de OpenRouter (solo los de tu lista)
+  "agents": {
+    // Orquestador: el mejor en código/agentes según BenchLM (sin verificar)
+    "sisyphus": {
+      "model": "openrouter/thinkingmachines/inkling-small:free",
+      "fallback_models": [
+        "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+        "openrouter/google/gemma-4-31b-it:free",
+      ],
+      "prompt_append": "Proyecto frontend: Next.js 16 App Router. Usa solo npm. Reglas: proxy.ts (no middleware.ts), revalidateTag(tag, perfil) con 2 argumentos, sin 'next lint'. Mobile first (estilos base móvil, solo min-width). Ningún texto literal en JSX: todo vía i18n es/en. WhatsApp solo con buildWhatsAppUrl. Código server-only no se importa en componentes cliente. Antes de dar algo por hecho corre lint, typecheck y test.",
+    },
+
+    // Consultor de arquitectura de solo lectura: razonamiento largo, contexto 1M
+    "oracle": {
+      "model": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "fallback_models": [
+        "openrouter/thinkingmachines/inkling:free",
+        "openrouter/google/gemma-4-31b-it:free",
+      ],
+      "reasoningEffort": "high",
+    },
+
+    // Planificador y consultor de planes
+    "prometheus": {
+      "model": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "fallback_models": ["openrouter/thinkingmachines/inkling:free"],
+    },
+    "metis": {
+      "model": "openrouter/thinkingmachines/inkling:free",
+      "fallback_models": ["openrouter/google/gemma-4-31b-it:free"],
+    },
+
+    // Revisor: familia distinta a la del orquestador para no coincidir por inercia
+    "momus": {
+      "model": "openrouter/google/gemma-4-31b-it:free",
+      "fallback_models": ["openrouter/thinkingmachines/inkling-small:free"],
+    },
+
+    // Docs de Next, Mantine y TanStack Query
+    "librarian": {
+      "model": "openrouter/google/gemma-4-26b-a4b-it:free",
+      "fallback_models": ["openrouter/cohere/north-mini-code:free"],
+    },
+
+    // Búsquedas en el código: rápido y barato
+    "explore": {
+      "model": "openrouter/cohere/north-mini-code:free",
+      "fallback_models": ["openrouter/google/gemma-4-26b-a4b-it:free"],
+    },
+
+    // Capturas de pantalla (Playwright, Lighthouse, maquetas): necesita entrada de imagen
+    "multimodal-looker": {
+      "model": "openrouter/google/gemma-4-31b-it:free",
+      "fallback_models": ["openrouter/thinkingmachines/inkling:free"],
+    },
+  },
+
+  "categories": {
+    "visual-engineering": {
+      "model": "openrouter/thinkingmachines/inkling-small:free",
+      "fallback_models": [
+        "openrouter/google/gemma-4-31b-it:free",
+        "openrouter/cohere/north-mini-code:free",
+      ],
+      "prompt_append": "UI con Mantine, mobile first, objetivos táctiles ≥44px, skeletons de carga, imágenes bajo demanda. Verifica con el proyecto Playwright móvil (375x667) y axe.",
+    },
+    "quick": {
+      "model": "openrouter/cohere/north-mini-code:free",
+      "fallback_models": ["openrouter/google/gemma-4-26b-a4b-it:free"],
+    },
+    "unspecified-low": {
+      "model": "openrouter/cohere/north-mini-code:free",
+      "fallback_models": ["openrouter/google/gemma-4-26b-a4b-it:free"],
+    },
+    "unspecified-high": {
+      "model": "openrouter/thinkingmachines/inkling-small:free",
+      "fallback_models": [
+        "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+        "openrouter/google/gemma-4-31b-it:free",
+      ],
+    },
+    "deep": {
+      "model": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "fallback_models": ["openrouter/thinkingmachines/inkling:free"],
+    },
+    "ultrabrain": {
+      "model": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "fallback_models": ["openrouter/thinkingmachines/inkling:free"],
+    },
+    "artistry": {
+      "model": "openrouter/google/gemma-4-31b-it:free",
+      "fallback_models": ["openrouter/thinkingmachines/inkling:free"],
+    },
+    // Textos es/en, documentación y copy: Gemma cubre 140+ idiomas
+    "writing": {
+      "model": "openrouter/google/gemma-4-31b-it:free",
+      "fallback_models": ["openrouter/google/gemma-4-26b-a4b-it:free"],
+    },
+  },
+}
