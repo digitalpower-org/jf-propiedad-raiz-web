@@ -6,6 +6,7 @@
 
 export class ApiError extends Error {
   code: string;
+
   details?: Record<string, string[]> | undefined;
   requestId?: string | undefined;
   status?: number | undefined;
