@@ -251,9 +251,8 @@ export function isWithinFreeTier(usage: Usage): boolean {
   // Check App Hosting function invocations
   if (
     usage.functionInvocations &&
-    usage.functionInvocations > (
-      BILLABLE_SERVICES.appHosting?.monthlyFreeTier?.functionInvocations ?? 100000
-    )
+    usage.functionInvocations >
+      (BILLABLE_SERVICES.appHosting?.monthlyFreeTier?.functionInvocations ?? 100000)
   ) {
     return false;
   }
@@ -261,7 +260,8 @@ export function isWithinFreeTier(usage: Usage): boolean {
   // Check Cloud Scheduler executions
   if (
     usage.executionsPerMonth &&
-    usage.executionsPerMonth > (BILLABLE_SERVICES.cloudScheduler?.monthlyFreeTier?.executionsPerMonth ?? 3600000)
+    usage.executionsPerMonth >
+      (BILLABLE_SERVICES.cloudScheduler?.monthlyFreeTier?.executionsPerMonth ?? 3600000)
   ) {
     return false;
   }
@@ -269,7 +269,8 @@ export function isWithinFreeTier(usage: Usage): boolean {
   // Check Cloud Translation characters
   if (
     usage.charactersPerMonth &&
-    usage.charactersPerMonth > (BILLABLE_SERVICES.cloudTranslation?.monthlyFreeTier?.charactersPerMonth ?? 500000)
+    usage.charactersPerMonth >
+      (BILLABLE_SERVICES.cloudTranslation?.monthlyFreeTier?.charactersPerMonth ?? 500000)
   ) {
     return false;
   }
