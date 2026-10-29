@@ -1,39 +1,44 @@
 'use client';
 
-import { signInWithPopup, GoogleAuthProvider, signOut, getIdToken } from 'firebase/auth';
-import { auth } from './firebase';
+// AC1.5.2: Ciclo de sesión vía BFF (D32) — no importa firebase/auth directo
+// Usa fetch a /api/auth/session con Authorization: Bearer <idToken>
+// El idToken se obtiene fuera de este módulo (Firebase SDK del cliente)
 
-export async function startSession() {
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const idToken = await result.user.getIdToken();
-  // AC1.5.3: blanquear idToken tras canje, no persistir
-  const res = await fetch('/api/auth/session', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${idToken}` },
-  });
-  if (!res.ok) throw new Error('Session failed');
-  return res.json();
+export async function startSession(idToken: string): Promise<boolean> {
+  // AC1.5.3: idToken usado solo en memoria, no persiste
+  try {
+    const res = await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    if (res.ok) {
+      // AC1.5.3: blanquear tras canje — no guardar idToken
+      return true;
+    }
+  } catch {
+    // Fallo de red; no exponer detalle
+  }
+  return false;
 }
 
-export function syncSessionOnTokenChange() {
-  // AC1.5.5: onIdTokenChanged re-sincroniza cookie BFF
-  auth.onIdTokenChanged(async (user) => {
-    if (user) await startSession();
-  });
+export async function renewSessionSingleFlight(): Promise<boolean> {
+  // AC1.5.4: single-flight — solo una petición concurrente
+  if (renewalPromise) return renewalPromise;
+  renewalPromise = (async () => {
+    try {
+      const res = await fetch('/api/auth/session', { method: 'POST' });
+      return res.ok;
+    } finally {
+      renewalPromise = null;
+    }
+  })();
+  return renewalPromise;
 }
 
-export async function renewSession() {
-  const idToken = await auth.currentUser?.getIdToken(true);
-  if (!idToken) throw new Error('No token');
-  const res = await fetch('/api/auth/session', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${idToken}` },
-  });
-  return res.ok;
-}
+let renewalPromise: Promise<boolean> | null = null;
 
 export async function logoutSession(): Promise<void> {
-  await signOut(auth); // AC1.5.7: limpiar sesión Firebase
-  await fetch('/api/auth/logout', { method: 'POST' }); // AC1.5.7: borrar cookie __session
+  // AC1.5.7: logout bidireccional
+  await fetch('/api/auth/logout', { method: 'POST' });
+  // AC1.5.6: sincronizar con BFF (cookie __session borrada)
 }
