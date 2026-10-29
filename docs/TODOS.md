@@ -46,9 +46,9 @@
   - [x] US1.2 `[D1]` `POST /api/auth/session` (BFF route handler)
   - [x] US1.3 `[D1]` Guard y propagación de identidad (`X-User-*`) (BFF)
   - [x] US1.4 `[D1]` `POST /api/auth/logout` (BFF route handler)
-  - [ ] US1.5 `[D1+D2]` Front: ciclo de sesión, renovación, protección de `/admin`
+  - [x] US1.5 `[D1+D2]` Front: ciclo de sesión, renovación, protección de `/admin`
     - [x] `[D1]` Endpoints BFF: `/api/auth/session`, `/api/auth/me`, `/api/auth/logout` + JWT `__session` + propagación `X-User-*`
-    - [ ] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
+    - [x] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
   - [x] US1.6 `[D1]` `GET /api/auth/me` (BFF route handler)
 - [ ] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
   - [ ] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError`
