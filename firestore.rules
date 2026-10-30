@@ -15,10 +15,8 @@ service cloud.firestore {
     //       Aquí solo se controla el acceso desde el SDK cliente (emulador).
     // ================================================================
     match /authorized_users/{docId} {
-      // Lectura pública (verificación de lista blanca)
-      allow read: if true;
-      // Escritura solo para usuarios autenticados (en producción solo Admin SDK/seed)
-      allow write: if request.auth != null;
+      // Solo Admin SDK: la lista blanca no se lee ni se escribe desde el cliente
+      allow read, write: if false;
     }
 
     // ================================================================
@@ -27,8 +25,8 @@ service cloud.firestore {
     match /properties/{propertyId} {
       // Lectura pública: solo inmuebles con status ACTIVE (catálogo público)
       allow read: if resource.data.status == 'ACTIVE';
-      // Escritura: solo usuarios autenticados (administradores)
-      allow write: if request.auth != null;
+      // Escritura solo por Admin SDK/BFF (el cliente no escribe)
+      allow write: if false;
     }
 
     // ================================================================
@@ -37,8 +35,8 @@ service cloud.firestore {
     match /services/{serviceId} {
       // Lectura pública: solo servicios con status ACTIVE
       allow read: if resource.data.status == 'ACTIVE';
-      // Escritura: solo usuarios autenticados (administradores)
-      allow write: if request.auth != null;
+      // Escritura solo por Admin SDK/BFF (el cliente no escribe)
+      allow write: if false;
     }
 
     // ================================================================
@@ -47,8 +45,8 @@ service cloud.firestore {
     match /pages/{pageId} {
       // Lectura pública solo del documento nosotros
       allow read: if pageId == 'nosotros';
-      // Escritura: solo usuarios autenticados (administradores)
-      allow write: if request.auth != null;
+      // Escritura solo por Admin SDK/BFF (el cliente no escribe)
+      allow write: if false;
     }
 
   }
