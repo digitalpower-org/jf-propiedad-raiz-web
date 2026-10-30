@@ -30,8 +30,37 @@ firebase emulators:start \
 | **Firestore** | 8080 | http://localhost:4000/firestore |
 | **Emulator UI** | 4000 | http://localhost:4000 |
 | **Emulator Hub** | 4400 | — |
+| **R2 (Silo)** | 9000 (API) / 9001 (consola) | — |
 
 > El Emulator UI **sí arranca** aunque uses `--only`; aparece en el log pero no en la tabla si no está en la lista.
+
+Para el día a día sin App Hosting usa `npm run emulators:be` (auth, firestore, functions).
+El emulador de App Hosting solo se necesita para el smoke de integración.
+
+---
+
+## 🪣 R2 local (pgsty/silo)
+
+El contenedor vive fuera del repo, en `../../docker-services/minio/docker-compose.yml`
+(nombre `local_r2_minio`). Arranque e inicialización:
+
+```bash
+npm run r2:up      # docker compose up -d
+npm run r2:init    # bucket + CORS + lifecycle + lectura anónima
+```
+
+`scripts/r2-init.sh` es idempotente y aplica:
+
+| Elemento | Valor |
+|---|---|
+| Bucket | `jf-media` |
+| Endpoint | `http://127.0.0.1:9000` |
+| Consola | `http://127.0.0.1:9001` (`minioadmin` / `minioadmin`) |
+| CORS | `infra/r2/cors.xml` (orígenes 3000 y 5002) |
+| Lifecycle | `pending/` expira a 1 día (AC1.9.16) |
+| Lectura pública | `mc anonymous set download` (emula el dominio público de R2) |
+
+Verificación: `mc cors get local/jf-media` y `mc ilm rule ls local/jf-media`.
 
 ---
 
@@ -78,6 +107,16 @@ NEXT_PUBLIC_FUNCTIONS_EMULATOR_HOST=localhost:5001
 ```
 
 > Sin esto, el cliente intentará conectarse a producción.
+
+### `packages/functions/.env` (backend)
+
+El emulador de Functions **no lee** `packages/client/.env.local` ni el `.env.local` de la raíz.
+Solo inyecta `FIREBASE_AUTH_EMULATOR_HOST` y `FIRESTORE_EMULATOR_HOST`; el resto
+(R2, traductor, `BFF_INTERNAL_KEY`) va en `packages/functions/.env` (gitignored).
+Plantilla: `packages/functions/.env.example`.
+
+> `BFF_INTERNAL_KEY` debe ser idéntica en `packages/client/.env.local` y
+> `packages/functions/.env`. Si difieren, `/internal/auth/verify` devolverá 401.
 
 ---
 
@@ -128,29 +167,41 @@ service cloud.firestore {
 ## 🌱 Seed de administradores — `firestore-seed.js`
 
 ```bash
-# Ejecutar con emuladores ARRIBA
-node firestore-seed.js
+# Ejecutar con emuladores ARRIBA (inyecta FIRESTORE_EMULATOR_HOST)
+npm run seed:admins
 ```
 
 ### Qué hace:
 1. Conecta a `http://localhost:8080?ns=jf-propiedad-raiz` (emulador Firestore)
 2. **Borra** documentos existentes en `authorized_users` (idempotente)
-3. **Crea** 5 usuarios admin con rol `admin` y `active: true`
+3. **Crea** 6 usuarios admin con rol `admin` y `active: true`
 4. Usa `admin.firestore.FieldValue.serverTimestamp()` para `createdAt`
+5. Usa el email en minúsculas como **docId** (`doc(email.toLowerCase())`)
 
 ### Requisitos:
 - Emuladores corriendo (`firebase emulators:start ...`)
-- Archivo `firebase-service-key.json` en la raíz del proyecto
-- Proyecto `jf-propiedad-raiz` en `.firebaserc`
+- `FIRESTORE_EMULATOR_HOST` definido (lo hace `npm run seed:admins`)
+- `firebase-service-key.json` solo si se ejecuta contra un proyecto real
 
 ### Usuarios que crea:
-| Email | Rol | Activo |
+| Email (= docId) | Rol | Activo |
 |-------|-----|--------|
-| admin@jfu24.com | admin | true |
+| admin@test.local | admin | true |
+| dpa70.dev@gmail.com | admin | true |
 | santiago.santifer@gmail.com | admin | true |
 | emilio.ortiz234@gmail.com | admin | true |
 | michellecorrea.all@gmail.com | admin | true |
 | aylynandres2019@gmail.com | admin | true |
+
+### Identidad de pruebas E2E
+
+```bash
+curl -s -X POST "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key" \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@test.local","password":"password123","returnSecureToken":true}'
+```
+
+Devuelve un `idToken` que el backend puede verificar con el Admin SDK en el emulador.
 
 ---
 
@@ -176,7 +227,7 @@ firebase emulators:start \
 | `--import` | Carga datos guardados al iniciar |
 | `--export-on-exit` | Guarda datos al cerrar (Ctrl+C) |
 
-### Scripts npm sugeridos (añadir a `package.json` root):
+### Scripts npm (ya en `package.json` root):
 
 ```json
 {
@@ -184,15 +235,22 @@ firebase emulators:start \
     "emulators": "firebase emulators:start --project=jf-propiedad-raiz --import=~/.firebase/emulators/firestore-data --export-on-exit=~/.firebase/emulators/firestore-data",
     "emulators:clean": "rm -rf ~/.firebase/emulators/firestore-data && firebase emulators:start --project=jf-propiedad-raiz",
     "emulators:only": "firebase emulators:start --only auth,firestore,functions,apphosting --project=jf-propiedad-raiz",
-    "seed:admins": "node firestore-seed.js"
+    "emulators:be": "firebase emulators:start --only auth,firestore,functions --project=jf-propiedad-raiz",
+    "r2:up": "docker compose -f ${R2_COMPOSE_FILE:-../../docker-services/minio/docker-compose.yml} up -d",
+    "r2:down": "docker compose -f ${R2_COMPOSE_FILE:-../../docker-services/minio/docker-compose.yml} down",
+    "r2:init": "bash scripts/r2-init.sh",
+    "seed:admins": "FIRESTORE_EMULATOR_HOST=localhost:8080 node firestore-seed.js"
   }
 }
 ```
 
 ```bash
 npm run emulators       # desarrollo diario con persistencia
+npm run emulators:be    # solo backend (sin App Hosting)
 npm run emulators:clean # borra datos y arranca limpio
-npm run seed:admins     # reseed de admins
+npm run r2:up           # R2 local
+npm run r2:init         # bucket + CORS + lifecycle
+npm run seed:admins     # reseed de admins (6 usuarios)
 ```
 
 ---
