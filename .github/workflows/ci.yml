@@ -2,13 +2,18 @@
 # (el protocolo exige «falla en el primer gate rojo»: un job secuencial lo garantiza;
 # jobs paralelos con `needs:` ejecutarían todos los gates aunque el 1 ya esté rojo).
 #
-# ALCANCE ACTUAL (andamiaje, Fase 0): los gates 5 y 7 pasan EN VACÍO a propósito.
+# ALCANCE ACTUAL (Fase 0): el gate 5 pasa EN VACÍO a propósito.
 #   · 4:   ya hay tests reales en `@jf/client` y `@jf/functions`.
 #   · 5:   `@jf/functions` no declara `coverage.thresholds`, así que el «≥ 80 %»
 #          de QA §5.1 aún no puede fallar.
-#   · 7:   el único spec es `packages/client/e2e/placeholder.spec.ts` y está `test.skip`.
+#   · 7:   corre `admin-guard.spec.ts`; `placeholder.spec.ts` sigue `test.skip`.
 # Verde aquí significa «compila, formatea, tipa y no rompe nada», NO «probado».
 # La suite real y los umbrales se cierran en MT6.2 (AC7.2.8, AC7.6.3).
+#
+# GATE 7 OPT-OUT: si el PR lleva la etiqueta `e2e-skip` o `e2e-omit`, el gate 7
+# (y su preparación: cache + Chromium) se omite. Es una decisión explícita del
+# autor del PR, no una heurística sobre los archivos cambiados. En push a main y
+# en workflow_dispatch (sin PR) el gate siempre se ejecuta.
 
 name: CI
 
@@ -69,6 +74,10 @@ jobs:
 
       # Preparación del gate 7 (los navegadores no forman parte del orden de gates).
       - name: Cache de navegadores de Playwright
+        if: >-
+          github.event_name != 'pull_request'
+          || (!contains(github.event.pull_request.labels.*.name, 'e2e-skip')
+          && !contains(github.event.pull_request.labels.*.name, 'e2e-omit'))
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
@@ -77,10 +86,19 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Instalar Chromium (Playwright)
+        if: >-
+          github.event_name != 'pull_request'
+          || (!contains(github.event.pull_request.labels.*.name, 'e2e-skip')
+          && !contains(github.event.pull_request.labels.*.name, 'e2e-omit'))
         run: npx playwright install --with-deps chromium
         working-directory: packages/client
 
       - name: 'Gate 7/7 · E2E móvil (Playwright + axe)'
+        if: >-
+          github.event_name != 'pull_request'
+          || (!contains(github.event.pull_request.labels.*.name, 'e2e-skip')
+          && !contains(github.event.pull_request.labels.*.name, 'e2e-omit'))
+        working-directory: packages/client
         run: |
           PORT=3001 npx next start -p 3001 &
           # Wait for server to start (max 60 seconds)
