@@ -50,7 +50,7 @@
     - [x] `[D1]` Endpoints BFF: `/api/auth/session`, `/api/auth/me`, `/api/auth/logout` + JWT `__session` + propagación `X-User-*`
     - [x] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
   - [x] US1.6 `[D1]` `GET /api/auth/me` (BFF route handler)
-- [ ] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
+- [x] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
   - [ ] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError`
 - [x] **MT1.4** `[D1]` Revalidación y traducción ← MT1.1, MT0.3
   - [x] US0.3 `[D1]` Revalidación bajo demanda
