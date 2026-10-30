@@ -52,8 +52,8 @@ export interface paths {
          *     AC4.1.2 (crear → `HIDDEN` con `codigo` `JF-XXXX` secuencial y
          *     `createdAt`, D6); TASKS define el caso de uso pero no la ruta HTTP ni el cuerpo exacto
          *     de la respuesta. `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` son de
-         *     solo lectura y no se envían (AC1.7.2); `autoTranslate` y `enPendiente` solo los escribe el
-         *     backend (AC0.5.10).
+         *     solo lectura y no se envían (AC1.7.2); `enPendiente` solo lo escribe el backend y
+         *     `autoTranslate` se envía por campo traducible (AC0.5.10, D-A).
          */
         post: operations["createProperty"];
         delete?: never;
@@ -484,15 +484,17 @@ export interface components {
             es: string;
             /** @description Texto en inglés; vacío o ausente = traducción pendiente (AC0.4.5). */
             en?: string;
-            /** @description Solo lo escribe el backend; el admin no lo envía en el DTO (AC0.5.10). */
+            /** @description Interruptor por campo (activo por defecto) que decide si el backend traduce al guardar; lo envía el admin en `TranslatableInput` y el backend lo persiste (AC4.1.4, D-A). */
             autoTranslate?: boolean;
-            /** @description Solo lo escribe el backend (regla de estado de AC0.5.11); el admin no lo envía en el DTO (AC0.5.10). */
+            /** @description Solo lo escribe el backend (regla de estado de AC0.5.11); nunca se acepta en el DTO de entrada (AC0.5.10). */
             enPendiente?: boolean;
         };
-        /** @description DTO de entrada de un campo traducible: el admin escribe `es` y puede editar `en` (AC0.5.4); `autoTranslate` y `enPendiente` no se envían (AC0.5.10). */
+        /** @description DTO de entrada de un campo traducible: el admin escribe `es`, puede editar `en` (AC0.5.4) y envía el interruptor `autoTranslate` del campo (AC4.1.4, D-A); `enPendiente` no se envía (AC0.5.10). */
         TranslatableInput: {
             es: string;
             en?: string;
+            /** @description Interruptor individual de traducción automática para este campo; por defecto `true`. Solo lo acepta una petición autenticada de administrador (D-A). */
+            autoTranslate?: boolean;
         };
         /** @description Identidad verificada por el backend para que el BFF emita su cookie (US1.2, D27). */
         Identity: {
@@ -520,6 +522,7 @@ export interface components {
             areaConstruida?: number;
             estrato?: number;
             destacada: boolean;
+            /** Format: date-time */
             createdAt: string;
             /** @description Derivados WebP de la foto en posición 1, indexados por lado mayor en px (US1.9). */
             portada?: {
@@ -549,7 +552,7 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
+        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y el campo que solo escribe el backend `enPendiente` (AC0.5.10). `autoTranslate` se envía por campo dentro de cada `TranslatableInput` (D-A). */
         PropertyInput: {
             operacion: components["schemas"]["Operacion"];
             tipo: components["schemas"]["TipoInmueble"];

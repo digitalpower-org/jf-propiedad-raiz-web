@@ -28,6 +28,12 @@ async function seedAuthorizedUsers() {
 
   const testUsers = [
     {
+      email: 'admin@test.local',
+      role: 'admin',
+      active: true,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    {
       email: 'dpa70.dev@gmail.com',
       role: 'admin',
       active: true,
@@ -51,12 +57,6 @@ async function seedAuthorizedUsers() {
       active: true,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     },
-    {
-      email: 'aylynandres2019@gmail.com',
-      role: 'admin',
-      active: true,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    },
   ];
 
   // Borrar documentos existentes (para idempotencia)
@@ -67,7 +67,9 @@ async function seedAuthorizedUsers() {
 
   // Escribir nuevos documentos
   console.log(`Creando ${testUsers.length} usuarios autorizados...`);
-  const writePromises = testUsers.map((user) => db.collection('authorized_users').add(user));
+  const writePromises = testUsers.map((user) =>
+    db.collection('authorized_users').doc(user.email.toLowerCase()).set(user),
+  );
   await Promise.all(writePromises);
 
   // Verificar que los documentos se crearon
