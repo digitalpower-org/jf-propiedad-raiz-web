@@ -29,6 +29,32 @@ Regla: si un AC dice *qué*, el DoD dice *cuándo cuenta como hecho* y este docu
 - Las pruebas de integración backend y el seed (US6.1) corren **contra emuladores**, nunca contra producción.
 - El frontend E2E apunta al servidor Next (`npm run build && npm start`) conectado a los emuladores (`FIRESTORE_EMULATOR_HOST` etc. en `.env.local`).
 
+#### Reglas de Firestore (Fase 1)
+`firestore.rules` cierra toda escritura del SDK cliente: `properties`, `services` y `pages` solo se escriben desde el Admin SDK/BFF (`allow write: if false`), y `authorized_users` no se lee ni se escribe desde el cliente. El seed (`npm run seed:admins`) usa el Admin SDK y omite las reglas.
+
+Con los emuladores arriba (`npm run emulators:be`):
+
+```bash
+BASE="http://127.0.0.1:8080/v1/projects/jf-propiedad-raiz/databases/(default)/documents"
+AUTH="http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key"
+
+# 1) escritura anónima → 403
+curl -s -o /dev/null -w '%{http_code}\n' -X PATCH "$BASE/properties/rule-test" \
+  -H 'Content-Type: application/json' -d '{"fields":{"status":{"stringValue":"ACTIVE"}}}'
+
+# 2) lectura anónima de la lista blanca → 403
+curl -s -o /dev/null -w '%{http_code}\n' "$BASE/authorized_users/admin@test.local"
+
+# 3) escritura con usuario autenticado (no admin) → 403
+TOKEN=$(curl -s -X POST "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"email":"intruso@test.local","password":"password123","returnSecureToken":true}' | jq -r .idToken)
+curl -s -o /dev/null -w '%{http_code}\n' -X PATCH "$BASE/properties/rule-test" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"fields":{"status":{"stringValue":"ACTIVE"}}}'
+```
+
+Esperado: `403`, `403`, `403`.
+
 #### Mocks de Resend (US3.2)
 - El envío de correo pasa por un puerto `EmailSender` (mismo patrón que `Translator` e `ImageProcessor`).
 - En tests: **falso capturador** que registra asunto/destinatario/HTML en memoria → aserciones sobre el contenido sin red ni API key.

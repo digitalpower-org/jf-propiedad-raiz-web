@@ -1,9 +1,15 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 // Node-environment unit tests for pure logic under src/lib/**, src/i18n/** and
 // src/server/** (matcher del Proxy; los route handlers no son puros).
 // E2E (Playwright) is intentionally NOT part of this config or the gates.
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   test: {
     environment: 'node',
     include: [

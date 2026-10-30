@@ -1,14 +1,7 @@
 /**
- * MT1.1 PLENUM ESTRUCTURAL — POST /api/media/confirm.
- *
- * MT1.2: validación `X-User-Role: admin` (AC1.8.1).
+ * POST /api/media/confirm → /api/v1/media/confirm (session).
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
+import { bffRoute, delegateToBackend } from '@/server/bff-helper';
 
-import { delegateToBackend, buildContext } from '@/server/bff-helper';
-
-export const POST = async (request: NextRequest): Promise<NextResponse> => {
-  const ctx = buildContext(request);
-  return delegateToBackend(request, '/api/v1/media/confirm', ctx);
-};
+export const POST = bffRoute((request, ctx) => delegateToBackend(request, ctx));

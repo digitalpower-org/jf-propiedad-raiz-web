@@ -1,51 +1,20 @@
 /**
- * MT1.1 PLENUM ESTRUCTURAL — endpoints de servicio por idOrSlug.
+ * Endpoints de servicio por idOrSlug.
  *
- * GET    /api/services/{idOrSlug} → /api/v1/services/{idOrSlug}
- * PUT    /api/services/{idOrSlug} → /api/v1/services/{idOrSlug}
- * DELETE /api/services/{idOrSlug} → /api/v1/services/{idOrSlug}
- * POST   /api/services/{idOrSlug}/activate → /api/v1/.../activate
- * POST   /api/services/{idOrSlug}/hide     → /api/v1/.../hide
- *
- * MT1.2: PUT/DELETE/activate/hide exigen `security: session`.
+ * GET    /api/services/{idOrSlug} → /api/v1/services/{idOrSlug} (public)
+ * PUT    /api/services/{idOrSlug} → /api/v1/services/{idOrSlug} (session)
+ * DELETE /api/services/{idOrSlug} → /api/v1/services/{idOrSlug} (session)
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
+import { bffRoute, delegateToBackend } from '@/server/bff-helper';
 
-import { delegateToBackend, buildContext } from '@/server/bff-helper';
+const handler = bffRoute(
+  async (request, ctx, { params }: { params: Promise<{ idOrSlug: string }> }) => {
+    const { idOrSlug } = await params;
+    return delegateToBackend(request, ctx, { idOrSlug });
+  },
+);
 
-export const GET = async (
-  request: NextRequest,
-  { params }: { params: Promise<{ idOrSlug: string }> },
-): Promise<NextResponse> => {
-  const { idOrSlug } = await params;
-  const ctx = buildContext(request);
-  return delegateToBackend(request, `/api/v1/services/${idOrSlug}`, ctx);
-};
-
-export const PUT = async (
-  request: NextRequest,
-  { params }: { params: Promise<{ idOrSlug: string }> },
-): Promise<NextResponse> => {
-  const { idOrSlug } = await params;
-  const ctx = buildContext(request);
-  return delegateToBackend(request, `/api/v1/services/${idOrSlug}`, ctx);
-};
-
-export const DELETE = async (
-  request: NextRequest,
-  { params }: { params: Promise<{ idOrSlug: string }> },
-): Promise<NextResponse> => {
-  const { idOrSlug } = await params;
-  const ctx = buildContext(request);
-  return delegateToBackend(request, `/api/v1/services/${idOrSlug}`, ctx);
-};
-
-export const POST = async (
-  request: NextRequest,
-  { params }: { params: Promise<{ idOrSlug: string }> },
-): Promise<NextResponse> => {
-  const { idOrSlug } = await params;
-  const ctx = buildContext(request);
-  return delegateToBackend(request, `/api/v1/services/${idOrSlug}`, ctx);
-};
+export const GET = handler;
+export const PUT = handler;
+export const DELETE = handler;

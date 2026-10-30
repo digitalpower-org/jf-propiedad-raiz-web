@@ -1,22 +1,12 @@
 /**
- * MT1.1 PLENUM ESTRUCTURAL — endpoints de la página Nosotros.
+ * Endpoints de la página Nosotros.
  *
- * GET  /api/about → /api/v1/about
- * PUT /api/about → /api/v1/about
- *
- * MT1.2: PUT exige `security: session`.
+ * GET /api/about → /api/v1/about (public)
+ * PUT /api/about → /api/v1/about (session)
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
+import { bffRoute, delegateToBackend } from '@/server/bff-helper';
 
-import { delegateToBackend, buildContext } from '@/server/bff-helper';
+export const GET = bffRoute((request, ctx) => delegateToBackend(request, ctx));
 
-export const GET = async (request: NextRequest): Promise<NextResponse> => {
-  const ctx = buildContext(request);
-  return delegateToBackend(request, '/api/v1/about', ctx);
-};
-
-export const PUT = async (request: NextRequest): Promise<NextResponse> => {
-  const ctx = buildContext(request);
-  return delegateToBackend(request, '/api/v1/about', ctx);
-};
+export const PUT = bffRoute((request, ctx) => delegateToBackend(request, ctx));
