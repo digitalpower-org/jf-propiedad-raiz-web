@@ -8,9 +8,9 @@
 // 4. Si autorizado, BFF firma su propio JWT y establece cookie __session (HttpOnly)
 // 5. Responde 200 con { success: true, data: { uid, email, role } }
 
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-import { errorEnvelope } from '@/server/bff-helper';
+import { bffRoute, errorEnvelope } from '@/server/bff-helper';
 import { signSession } from '@/server/session/jwt';
 import { env } from '@/server/config/server-config';
 
@@ -27,7 +27,7 @@ interface VerifyResponse {
   };
 }
 
-export const POST = async (request: NextRequest): Promise<NextResponse> => {
+export const POST = bffRoute(async (request): Promise<NextResponse> => {
   // 1. Validar Authorization header
   const authHeader = request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -105,4 +105,4 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   response.headers.set('Cache-Control', 'no-store');
 
   return response;
-};
+});
