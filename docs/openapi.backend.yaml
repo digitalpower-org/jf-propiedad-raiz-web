@@ -179,8 +179,8 @@ paths:
         AC4.1.2 (crear → `HIDDEN` con `codigo` `JF-XXXX` secuencial y
         `createdAt`, D6); TASKS define el caso de uso pero no la ruta HTTP ni el cuerpo exacto
         de la respuesta. `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` son de
-        solo lectura y no se envían (AC1.7.2); `autoTranslate` y `enPendiente` solo los escribe el
-        backend (AC0.5.10).
+        solo lectura y no se envían (AC1.7.2); `enPendiente` solo lo escribe el backend y
+        `autoTranslate` se envía por campo traducible (AC0.5.10, D-A).
       parameters:
         - $ref: '#/components/parameters/XUserId'
         - $ref: '#/components/parameters/XUserRole'
@@ -1306,19 +1306,22 @@ components:
           description: Texto en inglés; vacío o ausente = traducción pendiente (AC0.4.5).
         autoTranslate:
           type: boolean
-          description: 'Solo lo escribe el backend; el admin no lo envía en el DTO (AC0.5.10).'
+          description: 'Interruptor por campo (activo por defecto) que decide si el backend traduce al guardar; lo envía el admin en `TranslatableInput` y el backend lo persiste (AC4.1.4, D-A).'
         enPendiente:
           type: boolean
-          description: 'Solo lo escribe el backend (regla de estado de AC0.5.11); el admin no lo envía en el DTO (AC0.5.10).'
+          description: 'Solo lo escribe el backend (regla de estado de AC0.5.11); nunca se acepta en el DTO de entrada (AC0.5.10).'
     TranslatableInput:
       type: object
-      description: 'DTO de entrada de un campo traducible: el admin escribe `es` y puede editar `en` (AC0.5.4); `autoTranslate` y `enPendiente` no se envían (AC0.5.10).'
+      description: 'DTO de entrada de un campo traducible: el admin escribe `es`, puede editar `en` (AC0.5.4) y envía el interruptor `autoTranslate` del campo (AC4.1.4, D-A); `enPendiente` no se envía (AC0.5.10).'
       required: [es]
       properties:
         es:
           type: string
         en:
           type: string
+        autoTranslate:
+          type: boolean
+          description: 'Interruptor individual de traducción automática para este campo; por defecto `true`. Solo lo acepta una petición autenticada de administrador (D-A).'
     Identity:
       type: object
       description: 'Identidad verificada por el backend para que el BFF emita su cookie (US1.2, D27).'
@@ -1416,8 +1419,9 @@ components:
       type: object
       description: >-
         DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura
-        `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos
-        que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10).
+        `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y el campo
+        que solo escribe el backend `enPendiente` (AC0.5.10). `autoTranslate` se envía por
+        campo dentro de cada `TranslatableInput` (D-A).
       required: [operacion, tipo, titulo, precio, departamento, municipio]
       properties:
         operacion:

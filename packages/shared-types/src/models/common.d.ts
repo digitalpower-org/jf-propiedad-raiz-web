@@ -8,7 +8,7 @@
 export interface Translatable {
     readonly es: string;
     readonly en?: string;
-    /** Solo lo escribe el backend; el admin no lo envía en el DTO (AC0.5.10). */
+    /** Lo envía el admin en el DTO de entrada y el backend lo persiste (AC4.1.4, D-A). */
     readonly autoTranslate?: boolean;
     /** Solo lo escribe el backend; regla de estado de AC0.5.11 (Pendiente/Actualizada). */
     readonly enPendiente?: boolean;
