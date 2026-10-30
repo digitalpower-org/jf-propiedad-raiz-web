@@ -18,9 +18,10 @@ export interface paths {
          * @description US1.2 / AC1.2.1. El front envía el idToken en `Authorization: Bearer` una sola vez; el
          *     BFF lo reenvía al backend por `POST /internal/auth/verify` con `X-Internal-Key` (D26,
          *     D30), y solo si el backend confirma identidad y lista blanca (US1.1, AC1.2.3) el BFF
-         *     responde 200 y establece una cookie `HttpOnly; Secure; SameSite=Strict; Path=/` con su
-         *     propio JWT `{ sub, email, role, iat, exp }` (exp = 65 min, HS256 con secreto de servidor,
-         *     AC1.2.4). El idToken no se persiste ni queda en la cookie (AC1.2.5, AC1.2.6).
+         *     responde 200 y establece la cookie `__session` (`HttpOnly; Secure; SameSite=Strict;
+         *     Path=/`) con su propio JWT `{ sub, email, role, iss, aud, iat, exp }` (`exp − iat = 3900 s`,
+         *     HS256 con secreto de servidor, AC1.2.4, D34). El idToken no se persiste ni queda en la
+         *     cookie (AC1.2.5, AC1.2.6).
          *
          *     - idToken inválido/expirado/revocado → 401 `UNAUTHORIZED` sin cookie (AC1.2.2).
          *     - Fuera de la lista blanca → 403 `PERMISSION_DENIED` sin cookie (AC1.1.1, AC1.1.3).
@@ -44,7 +45,7 @@ export interface paths {
         put?: never;
         /**
          * Cerrar la sesión (borrado de cookie en el BFF)
-         * @description US1.4 / AC1.4.1. Borra la cookie de sesión (`Max-Age=0` con el mismo
+         * @description US1.4 / AC1.4.1. Borra la cookie `__session` (`Max-Age=0` con el mismo
          *     `Path`/`Domain`/`Secure`/`SameSite`) y responde **204 sin cuerpo** (excepción a la
          *     envoltura AC0.1.1). El logout es bidireccional: el front además ejecuta
          *     `signOut(auth)` (AC1.4.2); hacer solo `signOut()` dejaría la cookie viva hasta su
@@ -515,6 +516,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health check del BFF con agregación de Functions
+         * @description MT1.1 — Health check agregado para verificar que el BFF (Next.js) responde y que
+         *     Functions está vivo. El BFF llama a `GET /health` en Functions con timeout de 5s y
+         *     responde `overall: ok` o `degraded`.
+         */
+        get: operations["getHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -598,9 +621,9 @@ export interface components {
             es: string;
             /** @description Texto en inglés; vacío o ausente = traducción pendiente (AC0.4.5). */
             en?: string;
-            /** @description Solo lo escribe el backend; el admin no lo envía en el DTO (AC0.5.10). */
+            /** @description Interruptor por campo (activo por defecto) que decide si el backend traduce al guardar; lo envía el admin en `TranslatableInput` y el backend lo persiste (AC4.1.4, D-A). */
             autoTranslate?: boolean;
-            /** @description Solo lo escribe el backend (regla de estado de AC0.5.11); el admin no lo envía en el DTO (AC0.5.10). */
+            /** @description Solo lo escribe el backend (regla de estado de AC0.5.11); nunca se acepta en el DTO de entrada (AC0.5.10). */
             enPendiente?: boolean;
         };
         /** @description Tarjeta de listado (AC7.4.1): `Property` sin `descripcion`, sin `puntosInteres` y sin la lista completa de fotos. Fuente TS: `shared-types/src/models` (`PropertyCard`). */
@@ -621,6 +644,7 @@ export interface components {
             areaConstruida?: number;
             estrato?: number;
             destacada: boolean;
+            /** Format: date-time */
             createdAt: string;
             /** @description Derivados WebP de la foto en posición 1, indexados por lado mayor en px (US1.9). */
             portada?: {
@@ -641,17 +665,19 @@ export interface components {
             /** @description Cursor `{ createdAt, id }` de la siguiente página; `null` al final (AC1.10.2). */
             nextCursor: string | null;
         };
-        /** @description DTO de entrada de un campo traducible: el admin escribe `es` y puede editar `en` (AC0.5.4); `autoTranslate` y `enPendiente` no se envían (AC0.5.10). */
+        /** @description DTO de entrada de un campo traducible: el admin escribe `es`, puede editar `en` (AC0.5.4) y envía el interruptor `autoTranslate` del campo (AC4.1.4, D-A); `enPendiente` no se envía (AC0.5.10). */
         TranslatableInput: {
             es: string;
             en?: string;
+            /** @description Interruptor individual de traducción automática para este campo; por defecto `true`. Solo lo acepta una petición autenticada de administrador (D-A). */
+            autoTranslate?: boolean;
         };
         /**
          * @description Estados de inmuebles y servicios (D7). Sin `DRAFT` ni estados de disponibilidad.
          * @enum {string}
          */
         EstadoPropiedad: "ACTIVE" | "HIDDEN" | "DELETED";
-        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y los campos que solo escribe el backend `autoTranslate`/`enPendiente` (AC0.5.10). */
+        /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y el campo que solo escribe el backend `enPendiente` (AC0.5.10). `autoTranslate` se envía por campo dentro de cada `TranslatableInput` (D-A). */
         PropertyInput: {
             operacion: components["schemas"]["Operacion"];
             tipo: components["schemas"]["TipoInmueble"];
@@ -957,10 +983,10 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Sesión emitida; la cabecera `Set-Cookie` transporta la cookie HttpOnly de sesión (AC1.2.1). */
+            /** @description Sesión emitida; la cabecera `Set-Cookie` transporta la cookie HttpOnly `__session` (AC1.2.1). */
             200: {
                 headers: {
-                    /** @description Cookie de sesión: `HttpOnly; Secure; SameSite=Strict; Path=/`, JWT propio, 65 min (AC1.2.1). */
+                    /** @description Cookie `__session`: `HttpOnly; Secure; SameSite=Strict; Path=/`, JWT propio, 65 min (AC1.2.1). */
                     "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
@@ -987,7 +1013,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Cookie de sesión borrada; sin cuerpo (AC1.4.1). */
+            /** @description Cookie `__session` borrada; sin cuerpo (AC1.4.1). */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -1755,6 +1781,49 @@ export interface operations {
             };
             /** @description 401 `UNAUTHORIZED`: `X-Internal-Key` ausente o incorrecto (AC0.3.3). */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description BFF y Functions OK. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccess"] & {
+                        data: {
+                            bff?: {
+                                status?: string;
+                                service?: string;
+                            };
+                            functions?: {
+                                status?: string;
+                                service?: string;
+                                latencyMs?: number;
+                            };
+                            /** @enum {string} */
+                            overall?: "ok" | "degraded";
+                        };
+                    };
+                };
+            };
+            /** @description Degraded — Functions no responde o responde con error. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
