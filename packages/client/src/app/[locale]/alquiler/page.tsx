@@ -13,13 +13,14 @@ export default async function AlquilerPage({ params }: AlquilerPageProps) {
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">{locale === 'es' ? 'Alquiler' : 'For Rent'}</h1>
       <p className="mt-2">{locale === 'es' ? 'Inmuebles en alquiler.' : 'Properties for rent.'}</p>
-      <a href={`/${otherLocale}/rent`} className="mt-4 inline-block text-blue-600 underline">
+      <a
+        href={locale === 'es' ? '/en/rent' : '/es/alquiler'}
+        className="mt-4 inline-block text-blue-600 underline"
+      >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
       </a>
     </div>

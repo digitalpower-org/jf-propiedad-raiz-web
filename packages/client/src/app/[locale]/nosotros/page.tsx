@@ -13,8 +13,6 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">{locale === 'es' ? 'Nosotros' : 'About Us'}</h1>
@@ -23,7 +21,10 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
           ? 'Conoce más sobre JF Propiedad Raíz.'
           : 'Learn more about JF Propiedad Raíz.'}
       </p>
-      <a href={`/${otherLocale}/about-us`} className="mt-4 inline-block text-blue-600 underline">
+      <a
+        href={locale === 'es' ? '/en/about-us' : '/es/nosotros'}
+        className="mt-4 inline-block text-blue-600 underline"
+      >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
       </a>
     </div>

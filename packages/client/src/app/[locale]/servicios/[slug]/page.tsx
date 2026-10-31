@@ -13,8 +13,6 @@ export default async function ServicioDetailPage({ params }: ServicioDetailPageP
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">{locale === 'es' ? 'Servicio' : 'Service'}</h1>
@@ -22,7 +20,7 @@ export default async function ServicioDetailPage({ params }: ServicioDetailPageP
         {locale === 'es' ? `Detalle del servicio: ${slug}` : `Service detail: ${slug}`}
       </p>
       <a
-        href={`/${otherLocale}/services/${slug}`}
+        href={locale === 'es' ? `/en/services/${slug}` : `/es/servicios/${slug}`}
         className="mt-4 inline-block text-blue-600 underline"
       >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}

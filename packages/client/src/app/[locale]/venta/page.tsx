@@ -13,13 +13,14 @@ export default async function VentaPage({ params }: VentaPageProps) {
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">{locale === 'es' ? 'Venta' : 'For Sale'}</h1>
       <p className="mt-2">{locale === 'es' ? 'Inmuebles en venta.' : 'Properties for sale.'}</p>
-      <a href={`/${otherLocale}/sale`} className="mt-4 inline-block text-blue-600 underline">
+      <a
+        href={locale === 'es' ? '/en/sale' : '/es/venta'}
+        className="mt-4 inline-block text-blue-600 underline"
+      >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
       </a>
     </div>

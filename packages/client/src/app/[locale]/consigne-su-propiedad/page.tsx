@@ -13,8 +13,6 @@ export default async function ConsignPage({ params }: ConsignPageProps) {
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">
@@ -26,7 +24,7 @@ export default async function ConsignPage({ params }: ConsignPageProps) {
           : 'List your property in our catalog.'}
       </p>
       <a
-        href={`/${otherLocale}/list-your-property`}
+        href={locale === 'es' ? '/en/list-your-property' : '/es/consigne-su-propiedad'}
         className="mt-4 inline-block text-blue-600 underline"
       >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}

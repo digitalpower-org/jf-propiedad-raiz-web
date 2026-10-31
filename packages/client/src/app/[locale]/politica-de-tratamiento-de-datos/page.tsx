@@ -13,8 +13,6 @@ export default async function PoliticaPage({ params }: PoliticaPageProps) {
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">
@@ -24,7 +22,9 @@ export default async function PoliticaPage({ params }: PoliticaPageProps) {
         {locale === 'es' ? 'Tratamiento de datos personales.' : 'Personal data processing.'}
       </p>
       <a
-        href={`/${otherLocale}/data-processing-policy`}
+        href={
+          locale === 'es' ? '/en/data-processing-policy' : '/es/politica-de-tratamiento-de-datos'
+        }
         className="mt-4 inline-block text-blue-600 underline"
       >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}

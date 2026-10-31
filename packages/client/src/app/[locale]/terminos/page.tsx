@@ -13,15 +13,16 @@ export default async function TerminosPage({ params }: TerminosPageProps) {
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">{locale === 'es' ? 'Términos' : 'Terms'}</h1>
       <p className="mt-2">
         {locale === 'es' ? 'Términos y condiciones de uso.' : 'Terms and conditions of use.'}
       </p>
-      <a href={`/${otherLocale}/terms`} className="mt-4 inline-block text-blue-600 underline">
+      <a
+        href={locale === 'es' ? '/en/terms' : '/es/terminos'}
+        className="mt-4 inline-block text-blue-600 underline"
+      >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
       </a>
     </div>

@@ -13,8 +13,6 @@ export default async function PrivacidadPage({ params }: PrivacidadPageProps) {
 
   setRequestLocale(locale);
 
-  const otherLocale = locale === 'es' ? 'en' : 'es';
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">
@@ -26,7 +24,7 @@ export default async function PrivacidadPage({ params }: PrivacidadPageProps) {
           : 'Privacy policy of JF Propiedad Raíz.'}
       </p>
       <a
-        href={`/${otherLocale}/privacy-notice`}
+        href={locale === 'es' ? '/en/privacy-notice' : '/es/aviso-de-privacidad'}
         className="mt-4 inline-block text-blue-600 underline"
       >
         {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
