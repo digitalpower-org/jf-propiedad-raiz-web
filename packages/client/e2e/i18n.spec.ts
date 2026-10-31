@@ -16,7 +16,7 @@ const LANGUAGE_SWITCH_CASES = [
 
 for (const { from, to } of LANGUAGE_SWITCH_CASES) {
   test(`cambia de ${from} a ${to}`, async ({ page }) => {
-    await page.goto(from);
+    await page.goto(from, { waitUntil: 'networkidle' });
     await expect(page).toHaveURL(from);
 
     // Busca el enlace de cambio de idioma (texto "Ver en inglés" o "View in Spanish")
