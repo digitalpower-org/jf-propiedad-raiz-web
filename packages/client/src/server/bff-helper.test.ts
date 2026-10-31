@@ -216,6 +216,34 @@ describe('bffRoute — política de sesión', () => {
     expect(response.status).toBe(204);
     expect(await response.text()).toBe('');
   });
+
+  it('ignora X-User-Role spoofeado cuando no hay cookie válida: 401 sin llamar al backend (AC1.3.5)', async () => {
+    const { helper } = await load();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const handler = helper.bffRoute((req, ctx) => helper.delegateToBackend(req, ctx));
+    const response = await handler(
+      request('/api/properties', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-user-id': 'attacker',
+          'x-user-email': 'attacker@evil.test',
+          'x-user-role': 'admin',
+        },
+        body: '{"title":"Casa"}',
+      }),
+      {},
+    );
+
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.success).toBe(false);
+    expect(body.data.code).toBe('UNAUTHORIZED');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('bffRoute — política internal (AC1.3.6)', () => {

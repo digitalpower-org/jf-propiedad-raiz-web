@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
 
 import { bffRoute, errorEnvelope } from '@/server/bff-helper';
 import { signSession } from '@/server/session/jwt';
-import { env } from '@/server/config/server-config';
+import { env, functionsBaseUrl } from '@/server/config/server-config';
 
 interface VerifyResponse {
   success: boolean;
@@ -39,9 +39,10 @@ export const POST = bffRoute(async (request): Promise<NextResponse> => {
     return errorEnvelope('UNAUTHORIZED', 'El idToken no puede estar vacío', 401);
   }
 
-  // 2. Construir URL del backend interno
+  // 2. Llamar al backend interno usando functionsBaseUrl (3.1). Nunca se resuelve
+  // sobre request.url: eso apuntaría a la propia app Next.js, no al backend.
   const internalKey = env.BFF_INTERNAL_KEY;
-  const backendUrl = new URL('/internal/auth/verify', request.url);
+  const backendUrl = `${functionsBaseUrl.replace(/\/+$/, '')}/internal/auth/verify`;
 
   // 3. Llamar al backend
   let backendResponse: Response;
