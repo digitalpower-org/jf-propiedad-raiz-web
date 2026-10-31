@@ -26,7 +26,7 @@
   **GAP:** Firebase Blaze plan no provisionado (requerido para App Hosting en producción). R2, Resend, Translation y Secret Manager no están configurados en el proyecto real. Alerta de presupuesto pendiente. Sin estas cuentas, MT0.5 y MT1.5 no pueden desplegarse.
 - [x] **MT0.4** `[D1+D2]` Andamiaje técnico: contratos y base i18n ← MT0.2
   - [x] US0.1 `[D1]` Contrato API (2 OpenAPI), `shared-types`, catálogo de errores y helper `buildWhatsAppUrl` (D35)
-  - [ ] US0.4 `[D2]` Internacionalización por rutas `/es` y `/en`
+  - [x] US0.4 `[D2]` Internacionalización por rutas `/es` y `/en`
   - [ ] US7.6 `[D1+D2]` (arranque) Playwright móvil/escritorio, `lighthouserc.json`, análisis de bundles (gates informativos)
 - [x] **MT0.5** `[D1]` Esqueleto desplegable (App Hosting + Functions + Firestore, health + función trivial) ← MT0.3, MT0.4
   - Emulators: `firebase emulators:start --only apphosting,firestore,functions,auth` levanta exitosamente
