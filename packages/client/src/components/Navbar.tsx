@@ -32,15 +32,17 @@ export default function Navbar({ locale }: NavbarProps) {
           <div className="flex items-center">
             <span className="text-xl font-bold text-gray-900">JF Propiedad Raíz</span>
           </div>
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex space-x-10">
             {links.map((link) => {
               const href = getRoute(link.key, locale as 'es' | 'en');
               return (
                 <a
                   key={link.key}
                   href={href}
-                  className={`text-sm font-medium ${
-                    link.key === 'home' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    link.key === 'home'
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                   }`}
                 >
                   {link.label.es === link.label.en
