@@ -44,6 +44,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       ? 'text-blue-600 bg-blue-50'
                       : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                   }`}
+                  style={{ marginRight: '1.5rem' }}
                 >
                   {link.label.es === link.label.en
                     ? link.label.es
