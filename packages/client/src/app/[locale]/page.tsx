@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { isLocale } from '@/i18n/config';
+import Navbar from '@/components/Navbar';
 
 import styles from './page.module.css';
 
@@ -22,6 +23,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <div className={styles.page}>
+      <Navbar locale={locale} />
       <main className={styles.main}>
         <div className={styles.intro}>
           <h1>{t('home.title')}</h1>

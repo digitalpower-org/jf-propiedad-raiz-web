@@ -22,11 +22,12 @@
 
 - [x] **MT0.1** `[D1+D2]` Planificación, proceso y decisiones (DoD, ramas, commits, QA, flujos de auth) ← —
 - [x] **MT0.2** `[D1+D2]` Repositorio y tooling (monorepo, lint/format, CI con 7 gates) ← MT0.1
-- [x] **MT0.3** `[D1]` Infraestructura, cuentas y entornos (Firebase Blaze, R2, Resend, Translation, Secret Manager → .env, Scheduler eliminado, alerta presupuesto pendiente) ← MT0.1
-- [/] MT0.4 [D1+D2] Andamiaje técnico: contratos y base i18n (US0.1/US0.4/US7.6 pendientes verificación) ← MT0.2
-  - [ ] US0.1 `[D1]` Contrato API (2 OpenAPI), `shared-types`, catálogo de errores y helper `buildWhatsAppUrl` (D35)
-  - [ ] US0.4 `[D2]` Internacionalización por rutas `/es` y `/en`
-  - [ ] US7.6 `[D1+D2]` (arranque) Playwright móvil/escritorio, `lighthouserc.json`, análisis de bundles (gates informativos)
+- [ ] **MT0.3** `[D1]` Infraestructura, cuentas y entornos (Firebase Blaze, R2, Resend, Translation, Secret Manager → .env, Scheduler eliminado, alerta presupuesto pendiente) ← MT0.1
+  **GAP:** Firebase Blaze plan no provisionado (requerido para App Hosting en producción). R2, Resend, Translation y Secret Manager no están configurados en el proyecto real. Alerta de presupuesto pendiente. Sin estas cuentas, MT0.5 y MT1.5 no pueden desplegarse.
+- [x] **MT0.4** `[D1+D2]` Andamiaje técnico: contratos y base i18n ← MT0.2
+  - [x] US0.1 `[D1]` Contrato API (2 OpenAPI), `shared-types`, catálogo de errores y helper `buildWhatsAppUrl` (D35)
+  - [x] US0.4 `[D2]` Internacionalización por rutas `/es` y `/en`
+  - [x] US7.6 `[D1+D2]` (arranque) Playwright móvil/escritorio, `lighthouserc.json`, análisis de bundles (gates informativos)
 - [x] **MT0.5** `[D1]` Esqueleto desplegable (App Hosting + Functions + Firestore, health + función trivial) ← MT0.3, MT0.4
   - Emulators: `firebase emulators:start --only apphosting,firestore,functions,auth` levanta exitosamente
   - Health: Endpoints `/health` (Functions) y health check BFF probados con éxito
@@ -39,9 +40,11 @@
 
 ## OLA 1 — Núcleo: autenticación, BFF y operación base
 
-- [x] **MT1.1** `[D1]` BFF y seguridad interna ← MT0.3, MT0.4, MT0.5
+- [ ] **MT1.1** `[D1]` BFF y seguridad interna ← MT0.3, MT0.4, MT0.5
+  **GAP:** No hay evidencia de que las 22 rutas reenviadas lleguen a Functions con `X-Internal-Key` correcto y que el guard de sesión rechace 401 sin llamar al backend en todas las rutas `session`. `proxy.ts` no verificado contra `routes.ts`.
   - [x] US0.2 `[D1]` BFF de Next.js, `routes.ts` generado, `proxy.ts` (404/405), `X-Internal-Key`
-- [x] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
+- [ ] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
+  **GAP:** No hay evidencia E2E de que `POST /api/auth/session` devuelva 200 + `Set-Cookie __session` para `admin@test.local` con emuladores levantados. El caso email no sembrado → 403 no verificado end-to-end. Seed de `authorized_users` no ejecutado contra emulador Firestore.
   - [x] US1.1 `[D1]` Lista blanca verificada por el backend
   - [x] US1.2 `[D1]` `POST /api/auth/session` (BFF route handler)
   - [x] US1.3 `[D1]` Guard y propagación de identidad (`X-User-*`) (BFF)
@@ -50,9 +53,10 @@
     - [x] `[D1]` Endpoints BFF: `/api/auth/session`, `/api/auth/me`, `/api/auth/logout` + JWT `__session` + propagación `X-User-*`
     - [x] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
   - [x] US1.6 `[D1]` `GET /api/auth/me` (BFF route handler)
-- [x] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
+- [ ] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
   - [ ] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError`
-- [x] **MT1.4** `[D1]` Revalidación y traducción ← MT1.1, MT0.3
+- [ ] **MT1.4** `[D1]` Revalidación y traducción ← MT1.1, MT0.3
+  **GAP:** `revalidation-client` existe y está testeado, pero `revalidate-content.ts` no está cableado en los flujos de escritura de inmuebles/servicios (MT2.1 pendiente). No hay evidencia de que `POST /api/revalidate` se invoque tras una escritura real.
   - [x] US0.3 `[D1]` Revalidación bajo demanda
   - [x] US0.5 `[D1]` Traducción ES→EN selectiva por campo + edición manual
 - [x] **MT1.5** `[D1]` Operación base y despliegue temprano ← MT0.5, MT1.1, MT1.4
@@ -109,7 +113,7 @@
     - [ ] `[D1]` BFF/Functions CRUD (`/api/properties`, dominio, validación, transiciones)
     - [ ] `[D2]` UI panel `/admin/inmuebles` (listado, formulario, guardar)
   - [ ] US4.2 `[D1+D2]` Uploader de fotos con reordenamiento y portada
-    - [ ] `[D1]` Presigned URL + confirmación R2 (`/api/media/presign`, `/api/media/confirm`)
+    - [ ] `[D1]` Presigned URL + confirmación R2 (`/api/media/presigned-url`, `/api/media/confirm`)
     - [ ] `[D2]` Uploader UI (drag&drop, reordenamiento, portada)
   - [ ] US4.3 `[D1+D2]` Videos y panorámicas 360°
     - [ ] `[D1]` Endpoints/media BFF/Functions

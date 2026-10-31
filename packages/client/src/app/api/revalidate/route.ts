@@ -1,40 +1,28 @@
 /**
- * MT1.1 PLENUM ESTRUCTURAL — POST /api/revalidate.
+ * POST /api/revalidate — revalidación interna tras escrituras (AC0.3.1–AC0.3.4).
  *
- * Ruta protegida por `security: internal` (X-Internal-Key).
- * Consumida por Cloud Functions para revalidar tras escrituras (AC0.3.1, AC0.3.3).
- * No exige cookie de sesión.
- *
- * Ejecuta revalidatePath/revalidateTag de Next.js sobre las rutas/etiquetas
- * afectadas en ambos idiomas (es/en). Si falta body o validación, devuelve error.
- * Si la revalidación falla, la escritura no se revierte; solo se registra (AC0.3.4).
+ * La `X-Internal-Key` la exige el envoltorio del catálogo (`auth: internal`).
+ * Si la revalidación falla, la escritura no se revierte; solo se registra.
  */
 
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { NextResponse } from 'next/server';
 
-import { type NextRequest, NextResponse } from 'next/server';
-import { env } from '@/server/config/server-config';
+import { bffRoute, envelope, errorEnvelope } from '@/server/bff-helper';
 
-import { errorEnvelope } from '@/server/bff-helper';
+interface RevalidateBody {
+  paths?: string[];
+  tags?: string[];
+}
 
-export const POST = async (request: NextRequest): Promise<NextResponse> => {
-  // Validar internal key (AC0.3.3: sin secreto → 401)
-  const internalKey = request.headers.get('x-internal-key');
-  const expectedKey = env.BFF_INTERNAL_KEY;
-
-  if (!internalKey || internalKey !== expectedKey) {
-    return errorEnvelope('UNAUTHORIZED', 'Clave interna inválida o ausente', 401);
-  }
-
-  // Parsear body: { paths?: string[], tags?: string[] }
-  let body: { paths?: string[]; tags?: string[] };
+export const POST = bffRoute(async (request) => {
+  let body: RevalidateBody;
   try {
-    body = (await request.json()) as { paths?: string[]; tags?: string[] };
+    body = (await request.json()) as RevalidateBody;
   } catch {
-    return errorEnvelope('BAD_REQUEST', 'Cuerpo JSON inválido', 400);
+    return errorEnvelope('VALIDATION_ERROR', 'Cuerpo JSON inválido.', 422, ['body: JSON inválido']);
   }
 
-  // Ejecutar revalidación
   const revalidateErrors: string[] = [];
   let revalidatedCount = 0;
 
@@ -64,19 +52,18 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     }
   }
 
-  // Responder
+  const data = {
+    revalidated: revalidatedCount,
+    failed: revalidateErrors.length,
+    errors: revalidateErrors,
+  };
+
   if (revalidateErrors.length > 0) {
-    const data = {
-      revalidated: revalidatedCount,
-      failed: revalidateErrors.length,
-      errors: revalidateErrors,
-    };
-    return NextResponse.json({ success: false, data, error: null }, { status: 200 });
+    return NextResponse.json({ success: false, data, message: 'Revalidación parcial' });
   }
 
-  const data = { revalidated: revalidatedCount, failed: 0, errors: [] as string[] };
-  return NextResponse.json({ success: true, data, error: null }, { status: 200 });
-};
+  return envelope(data, 200, 'Revalidación completada');
+});
 
 /**
  * Genera las variantes en ambos idiomas (/es y /en) de una ruta.

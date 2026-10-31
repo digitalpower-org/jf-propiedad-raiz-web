@@ -24,6 +24,12 @@ export const SESSION_JWT_SECRET_PREVIOUS = env.SESSION_JWT_SECRET_PREVIOUS;
 export const SESSION_ISS = 'jf-bff';
 export const SESSION_AUD = 'jf-web';
 
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
+
 export function signSession(claims: Pick<SessionClaims, 'sub' | 'email' | 'role'>): string {
   const now = Math.floor(Date.now() / 1000);
   const payload: SessionClaims = {
@@ -111,16 +117,14 @@ export function verifySession(cookie: string): SessionClaims | null {
     .update(headerB64 + '.' + bodyB64)
     .digest('base64url');
 
-  if (!crypto.timingSafeEqual(Buffer.from(signatureB64), Buffer.from(expectedSignature))) {
+  if (!safeEqual(signatureB64, expectedSignature)) {
     // Intentar con el secreto anterior si existe
     if (SESSION_JWT_SECRET_PREVIOUS) {
       const expectedSignaturePrevious = crypto
         .createHmac('sha256', SESSION_JWT_SECRET_PREVIOUS)
         .update(headerB64 + '.' + bodyB64)
         .digest('base64url');
-      if (
-        crypto.timingSafeEqual(Buffer.from(signatureB64), Buffer.from(expectedSignaturePrevious))
-      ) {
+      if (safeEqual(signatureB64, expectedSignaturePrevious)) {
         return verifySessionWithBody(bodyJson, true); // true = used previous secret
       }
     }
