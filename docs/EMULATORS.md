@@ -62,6 +62,15 @@ npm run r2:init    # bucket + CORS + lifecycle + lectura anónima
 
 Verificación: `mc cors get local/jf-media` y `mc ilm rule ls local/jf-media`.
 
+### ⚠️ Riesgos de fidelidad R2 (Fase 4)
+
+| Riesgo | Descripción | Mitigación |
+|--------|-------------|------------|
+| CORS/lifecycle | Se configuran por dashboard/API de Cloudflare, no necesariamente por S3 API. MinIO/Silo emula parcialmente pero no es idéntico. | Probar en staging real antes de promover a producción. |
+| Dominio público | `r2.dev` / custom domain no se emula en local. | Mantener `R2_PUBLIC_BASE_URL` en config; nunca hardcodear URLs públicas. |
+| Checksums | El SDK 3.1160+ firma `x-amz-checksum-crc32` dentro de URLs presignadas. Silo lo tolera; R2 en producción puede rechazarlas. | `requestChecksumCalculation: 'WHEN_REQUIRED'` y `responseChecksumValidation: 'WHEN_REQUIRED'` en `r2-client.ts`. |
+| Presigned URL expiración | `X-Amz-Expires` debe respetarse; R2 en producción aplica límites propios. | Usar `expiresIn=900` (15 min) por defecto en `presignPut`. |
+
 ---
 
 ## 📁 Configuración clave
