@@ -1,11 +1,8 @@
-/**
- * FakeTranslator (US0.5, AC0.5.9)
- *
- * Implementación del puerto Translator para desarrollo local, pruebas y seed.
- * No invoca credenciales reales ni genera costo.
- * Simula una traducción añadiendo el sufijo " (EN)" al texto original.
- * Respetan el short-circuit: inputs vacíos → sin salida; textos vacíos → "".
- */
+// FakeTranslator extendido (5.2)
+// Implementación del puerto Translator para desarrollo local, pruebas y seed.
+// Además del modo normal (sufijo " (EN)"), soporta TRANSLATOR_FAKE_MODE=error
+// para simular fallos de traducción y probar AC0.5.11 (campo queda Pendiente)
+// y AC0.5.12 (edición manual no se re-traduce).
 
 import type {
   Translator,
@@ -14,17 +11,28 @@ import type {
   TranslationOutput,
 } from './translator';
 
+const FAKE_MODE = process.env.TRANSLATOR_FAKE_MODE;
+
 export class FakeTranslator implements Translator {
   readonly translate = async (inputs: readonly TranslationInput[]): Promise<TranslateResult> => {
-    // Short-circuit: lote vacío → salida vacía, sin invocar nada (Corrección C.1)
+    // Short-circuit: lote vacío → salida vacía, sin invocar nada
     if (!inputs || inputs.length === 0) {
       return { outputs: [], hasErrors: false };
+    }
+
+    // Modo error: simula fallo total del proveedor (AC0.5.5, AC0.5.11)
+    if (FAKE_MODE === 'error') {
+      return {
+        outputs: [],
+        hasErrors: true,
+        error: 'simulated translation failure',
+      };
     }
 
     const outputs: TranslationOutput[] = [];
 
     for (const input of inputs) {
-      // Short-circuit: texto vacío → salida vacía sin procesar (Corrección C.2)
+      // Short-circuit: texto vacío → salida vacía sin procesar
       if (!input.text) {
         outputs.push({ fieldPath: input.fieldPath, translated: '' });
         continue;
