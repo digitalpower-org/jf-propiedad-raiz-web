@@ -19,6 +19,7 @@ export const ROUTES = [
     internalPath: '/internal/auth/verify',
   },
   { method: 'POST', path: '/api/auth/logout', auth: 'public', internalPath: null },
+  { method: 'POST', path: '/api/auth/refresh', auth: 'session', internalPath: null },
   { method: 'GET', path: '/api/auth/me', auth: 'session', internalPath: null },
   { method: 'GET', path: '/api/properties', auth: 'public', internalPath: '/api/v1/properties' },
   { method: 'POST', path: '/api/properties', auth: 'session', internalPath: '/api/v1/properties' },
