@@ -40,8 +40,7 @@
 
 ## OLA 1 — Núcleo: autenticación, BFF y operación base
 
-- [ ] **MT1.1** `[D1]` BFF y seguridad interna ← MT0.3, MT0.4, MT0.5
-  **GAP:** No hay evidencia de que las 22 rutas reenviadas lleguen a Functions con `X-Internal-Key` correcto y que el guard de sesión rechace 401 sin llamar al backend en todas las rutas `session`. `proxy.ts` no verificado contra `routes.ts`.
+- [x] **MT1.1** `[D1]` BFF y seguridad interna ← MT0.3, MT0.4, MT0.5
   - [x] US0.2 `[D1]` BFF de Next.js, `routes.ts` generado, `proxy.ts` (404/405), `X-Internal-Key`
 - [ ] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
   **GAP:** No hay evidencia E2E de que `POST /api/auth/session` devuelva 200 + `Set-Cookie __session` para `admin@test.local` con emuladores levantados. El caso email no sembrado → 403 no verificado end-to-end. Seed de `authorized_users` no ejecutado contra emulador Firestore.
