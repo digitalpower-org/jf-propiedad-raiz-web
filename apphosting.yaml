@@ -2,28 +2,16 @@ hosting:
   appHosting:
     region: us-central
 
-  rewrites:
-    # BFF API routes: /api/* → Functions (con X-Internal-Key header)
-    - source: '/api/**'
-      function: 'functions'
-    # Health check endpoint: /health → Functions
-    - source: '/health'
-      function: 'functions'
-    # Ruta pública para About (sin sesión, alimenta portada + página /nosotros)
-    - source: '/api/about'
-      function: 'functions'
-    # Ruta de revalidación under demand
-    - source: '/api/revalidate'
-      function: 'functions'
-    # Media endpoints (presigned URLs, confirm upload)
-    - source: '/api/media/**'
-      function: 'functions'
-    # Services CRUD endpoints
-    - source: '/api/services/**'
-      function: 'functions'
-    # About endpoint for CMS
-    - source: '/api/about/**(/.+)?'
-      function: 'functions'
+  # NOTA D32: No existen rewrites /api/** → functions aquí.
+  # hosting.rewrites con `function: 'functions'` es sintaxis de Firebase Hosting,
+  # NO de App Hosting. Si se aplicara, /api/** iría directo a Functions y
+  # saltaría el BFF (Next.js route handlers en packages/client/src/app/api/)
+  # y el guard de sesión (bffRoute). Todas las rutas /api/* son manejadas por
+  # Next.js, que reenvía a Functions vía bffRoute() con X-Internal-Key y
+  # propagación de identidad (X-User-*). Ver D32 en docs/TASKS.md.
+  #
+  # Los endpoints internos (/internal/auth/verify) son alcanzables solo desde
+  # el BFF, nunca desde el navegador (D30).
 
   headers:
     # Evitar que el sitio se incruste en frames (clickjacking protection)

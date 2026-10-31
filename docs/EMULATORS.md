@@ -264,6 +264,39 @@ npm run seed:admins     # reseed de admins (6 usuarios)
 
 ---
 
+## 🔐 Endpoint interno `internalAuth` (`/internal/auth/verify`)
+
+Este endpoint solo es alcanzable desde el BFF (lleva `X-Internal-Key`). **No se expone al navegador** (D26, D30).
+
+```bash
+# Verificar un idToken contra la lista blanca (usar idToken obtenido del emulador Auth)
+curl -s -X POST "http://127.0.0.1:5001/jf-propiedad-raiz/us-central1/internal/auth/verify" \
+  -H 'Content-Type: application/json' \
+  -H 'X-Internal-Key: 4s0Blfo4c0Zr7pfCYOAcpEaD8Zs/cppx0Jm4ozsmBgM=' \
+  -d '{"idToken":"<idToken_de_Firebase>"}'
+```
+
+Respuesta esperada (200):
+```json
+{"success":true,"data":{"uid":"...","email":"admin@test.local","role":"admin"},"message":"Autenticación exitosa"}
+```
+
+Email no sembrado → 403 `PERMISSION_DENIED`. idToken inválido → 401 `UNAUTHORIZED`.
+
+---
+
+## 🍪 Nota sobre la cookie `__session` y el atributo `Secure`
+
+La cookie `__session` se establece con `Secure; SameSite=Strict; HttpOnly` (D33, AC1.2.1). El atributo `Secure` significa que **el navegador solo la envía sobre HTTPS**. En localhost sobre `http://` (puerto 5002 del emulador App Hosting), el navegador **no almacenará ni enviará** la cookie.
+
+Para probar el flujo de sesión con curl directamente contra el BFF, el atributo `Secure` no impide que `curl` reciba la cabecera `Set-Cookie`, pero sí impide que `curl` la reenvíe en peticiones subsiguientes a `http://localhost:5002`. Opciones:
+
+1. Usar `curl --insecure` contra una URL `https://` (solo si hay terminación TLS).
+2. Para pruebas E2E reales, usar Playwright (gate 7) que maneja las cookies del navegador correctamente.
+3. En desarrollo local, el flujo se valida a través de `/api/auth/me` (200 con cookie válida, 401 sin ella) en el emulador App Hosting.
+
+---
+
 ## 🛑 Detener emuladores
 
 ```bash
