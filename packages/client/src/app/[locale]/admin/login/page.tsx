@@ -1,10 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'es';
   const [authOk, setAuthOk] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -12,13 +14,13 @@ export default function LoginPage() {
     fetch('/api/auth/me', { credentials: 'same-origin' })
       .then((res) => {
         if (res.ok) {
-          router.replace('/admin');
+          router.replace(`/${locale}/admin`);
         } else {
           setAuthOk(true);
         }
       })
       .catch(() => setAuthOk(true));
-  }, [router]);
+  }, [router, locale]);
 
   if (authOk === null) return null;
 
