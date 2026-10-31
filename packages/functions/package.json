@@ -18,6 +18,8 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0",
+    "@aws-sdk/s3-request-presigner": "^3.1161.0",
     "@google-cloud/translate": "^10.3.0",
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.0",
