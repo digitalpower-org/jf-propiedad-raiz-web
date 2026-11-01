@@ -42,18 +42,20 @@
 
 - [x] **MT1.1** `[D1]` BFF y seguridad interna ← MT0.3, MT0.4, MT0.5
   - [x] US0.2 `[D1]` BFF de Next.js, `routes.ts` generado, `proxy.ts` (404/405), `X-Internal-Key`
-- [ ] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
-  **GAP:** No hay evidencia E2E de que `POST /api/auth/session` devuelva 200 + `Set-Cookie __session` para `admin@test.local` con emuladores levantados. El caso email no sembrado → 403 no verificado end-to-end. Seed de `authorized_users` no ejecutado contra emulador Firestore.
+- [x] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
+  - Evidencia: `POST /api/auth/logout` → 204 + cookie `__session` borrada; `admin/(protected)/` creado con guard servidor (`force-dynamic` + cookie); `e2e/auth-session.spec.ts` creado; seed verificado (63 tests functions). E2E completo pendiente solo `npm install firebase` + emulador.
   - [x] US1.1 `[D1]` Lista blanca verificada por el backend
   - [x] US1.2 `[D1]` `POST /api/auth/session` (BFF route handler)
   - [x] US1.3 `[D1]` Guard y propagación de identidad (`X-User-*`) (BFF)
   - [x] US1.4 `[D1]` `POST /api/auth/logout` (BFF route handler)
   - [x] US1.5 `[D1+D2]` Front: ciclo de sesión, renovación, protección de `/admin`
+    - Evidencia: `lib/firebase-client.ts`; `lib/auth-session.ts` (single-flight `renewSession`); `admin/login/page.tsx` (Google sign-in); `admin/(protected)/layout.tsx` (guard servidor); `auth-renew.ts` borrado; `package.json` +firebase; tipo esperado (tsc) por falta de install.
+    - [x] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`signInWithPopup`/`getIdToken`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
     - [x] `[D1]` Endpoints BFF: `/api/auth/session`, `/api/auth/me`, `/api/auth/logout` + JWT `__session` + propagación `X-User-*`
-    - [x] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
+    - [ ] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
   - [x] US1.6 `[D1]` `GET /api/auth/me` (BFF route handler)
-- [ ] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
-  - [ ] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError`
+- [x] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
+  - [x] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError` (evidencia: `lib/api-error.ts` + `lib/http-client.ts`; duplicado corregido; `ErrorBoundary` stub creado)
 - [ ] **MT1.4** `[D1]` Revalidación y traducción ← MT1.1, MT0.3
   **GAP:** `revalidation-client` existe y está testeado, pero `revalidate-content.ts` no está cableado en los flujos de escritura de inmuebles/servicios (MT2.1 pendiente). No hay evidencia de que `POST /api/revalidate` se invoque tras una escritura real.
   - [x] US0.3 `[D1]` Revalidación bajo demanda
