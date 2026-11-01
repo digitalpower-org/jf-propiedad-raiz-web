@@ -110,12 +110,27 @@ Crea este archivo para que el cliente Next.js se conecte a los emuladores:
 
 ```env
 # packages/client/.env.local
+# Secretos del BFF (obligatorios: `server-config.ts` valida longitud >= 32 y
+# `next build` falla sin ellos). Genera cada uno con: openssl rand -hex 32
+BFF_INTERNAL_KEY=
+SESSION_JWT_SECRET=
+
+# Emuladores
 NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
 NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST=localhost:8080
 NEXT_PUBLIC_FUNCTIONS_EMULATOR_HOST=localhost:5001
+
+# Identidad del proyecto y URL canónica local
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=jf-propiedad-raiz
+NEXT_PUBLIC_FIREBASE_REGION=us-central1
+NEXT_PUBLIC_SITE_URL=http://localhost:3001
+
+# Traductor falso (AC0.5.9)
+TRANSLATOR_FAKE=1
 ```
 
 > Sin esto, el cliente intentará conectarse a producción.
+> `BFF_INTERNAL_KEY` debe ser **idéntica** a la de `packages/functions/.env`.
 
 ### `packages/functions/.env` (backend)
 

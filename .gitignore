@@ -164,3 +164,6 @@ firebase-adminsdk*.json
 
 # Patch files generated for MT1.1 handoff review
 .patches/oh-my-opencode.jsonc
+
+# Firebase App Hosting emulator overrides (auto-generated)
+apphosting.emulator.yaml

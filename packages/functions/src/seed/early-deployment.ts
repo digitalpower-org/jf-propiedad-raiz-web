@@ -24,6 +24,7 @@ import {
   isWithinFreeTier,
   type BudgetAlert,
   BILLABLE_SERVICES,
+  FIRESTORE_INDEXES,
   R2,
   RESEND,
 } from '../budget-config';
@@ -162,13 +163,7 @@ export async function initializeEarlyDeployment(dryRun: boolean = true): Promise
 
   // 5. Validar índices (AC6.2.2)
   console.log('5. Validando índices de Firestore (AC6.2.2)...');
-  console.log(
-    '   - Índices documentados:',
-    Object.keys(
-      // @ts-expect-error - accessing internal structure
-      FIRESTORE_INDEXES,
-    ).join(', '),
-  );
+  console.log('   - Índices documentados:', Object.keys(FIRESTORE_INDEXES).join(', '));
   console.log('   - No hay AggregationQuery (✓)');
   console.log('');
 
