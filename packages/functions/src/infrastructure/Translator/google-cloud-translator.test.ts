@@ -16,10 +16,7 @@ vi.mock('@google-cloud/translate', () => ({
   },
 }));
 
-import {
-  GoogleCloudTranslator,
-  createGoogleCloudTranslator,
-} from './google-cloud-translator';
+import { GoogleCloudTranslator, createGoogleCloudTranslator } from './google-cloud-translator';
 
 type TranslateCall = [string[], { from: string; to: string }];
 
@@ -103,9 +100,7 @@ describe('GoogleCloudTranslator (US0.5, AC0.5.8)', () => {
       translateMock.mockResolvedValue([['House for sale']]);
       const translator = new GoogleCloudTranslator();
 
-      const result = await translator.translate([
-        { fieldPath: 'titulo', text: 'Casa en venta' },
-      ]);
+      const result = await translator.translate([{ fieldPath: 'titulo', text: 'Casa en venta' }]);
 
       expect(translateMock).toHaveBeenCalledTimes(1);
       const [texts, options] = firstCall();

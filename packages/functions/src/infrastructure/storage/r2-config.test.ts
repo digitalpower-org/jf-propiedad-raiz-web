@@ -25,10 +25,7 @@ const VALID_ENV: Record<EnvKey, string> = {
   R2_PUBLIC_BASE_URL: 'https://media.example.com',
 };
 
-const originalEnv: Record<EnvKey, string | undefined> = {} as Record<
-  EnvKey,
-  string | undefined
->;
+const originalEnv: Record<EnvKey, string | undefined> = {} as Record<EnvKey, string | undefined>;
 
 for (const key of ENV_KEYS) {
   originalEnv[key] = process.env[key];
@@ -92,9 +89,7 @@ describe('r2Config (4.2)', () => {
   it.each(ENV_KEYS)('lanza error cuando falta %s', async (key) => {
     applyEnv({ [key]: undefined });
 
-    await expect(importConfig()).rejects.toThrow(
-      'Fallo al validar variables de entorno de R2.',
-    );
+    await expect(importConfig()).rejects.toThrow('Fallo al validar variables de entorno de R2.');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Configuración de R2 inválida:');
     const messages = consoleErrorSpy.mock.calls.map((call) => String(call[0]));
@@ -104,17 +99,13 @@ describe('r2Config (4.2)', () => {
   it.each(ENV_KEYS)('lanza error cuando %s está vacía', async (key) => {
     applyEnv({ [key]: '' });
 
-    await expect(importConfig()).rejects.toThrow(
-      'Fallo al validar variables de entorno de R2.',
-    );
+    await expect(importConfig()).rejects.toThrow('Fallo al validar variables de entorno de R2.');
   });
 
   it('rechaza R2_ENDPOINT que no es una URL', async () => {
     applyEnv({ R2_ENDPOINT: 'no-es-una-url' });
 
-    await expect(importConfig()).rejects.toThrow(
-      'Fallo al validar variables de entorno de R2.',
-    );
+    await expect(importConfig()).rejects.toThrow('Fallo al validar variables de entorno de R2.');
     const messages = consoleErrorSpy.mock.calls.map((call) => String(call[0]));
     expect(messages.some((message) => message.includes('R2_ENDPOINT'))).toBe(true);
   });
@@ -122,13 +113,9 @@ describe('r2Config (4.2)', () => {
   it('rechaza R2_PUBLIC_BASE_URL que no es una URL', async () => {
     applyEnv({ R2_PUBLIC_BASE_URL: 'media.example.com' });
 
-    await expect(importConfig()).rejects.toThrow(
-      'Fallo al validar variables de entorno de R2.',
-    );
+    await expect(importConfig()).rejects.toThrow('Fallo al validar variables de entorno de R2.');
     const messages = consoleErrorSpy.mock.calls.map((call) => String(call[0]));
-    expect(messages.some((message) => message.includes('R2_PUBLIC_BASE_URL'))).toBe(
-      true,
-    );
+    expect(messages.some((message) => message.includes('R2_PUBLIC_BASE_URL'))).toBe(true);
   });
 
   it('usa "(root)" cuando el problema no tiene ruta asociada', async () => {
@@ -138,9 +125,7 @@ describe('r2Config (4.2)', () => {
     Object.defineProperty(process, 'env', { value: [], configurable: true });
 
     try {
-      await expect(importConfig()).rejects.toThrow(
-        'Fallo al validar variables de entorno de R2.',
-      );
+      await expect(importConfig()).rejects.toThrow('Fallo al validar variables de entorno de R2.');
     } finally {
       if (originalDescriptor) {
         Object.defineProperty(process, 'env', originalDescriptor);
@@ -161,9 +146,7 @@ describe('r2Config (4.2)', () => {
       R2_PUBLIC_BASE_URL: 'no-es-una-url',
     });
 
-    await expect(importConfig()).rejects.toThrow(
-      'Fallo al validar variables de entorno de R2.',
-    );
+    await expect(importConfig()).rejects.toThrow('Fallo al validar variables de entorno de R2.');
 
     const messages = consoleErrorSpy.mock.calls.map((call) => String(call[0]));
     for (const key of ENV_KEYS) {

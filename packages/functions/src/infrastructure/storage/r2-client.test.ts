@@ -4,10 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { S3ClientMock } = vi.hoisted(() => {
   const instanceConfigs: unknown[] = [];
-  const S3ClientMock = vi.fn(function (
-    this: { constructorConfig: unknown },
-    config: unknown,
-  ) {
+  const S3ClientMock = vi.fn(function (this: { constructorConfig: unknown }, config: unknown) {
     this.constructorConfig = config;
     instanceConfigs.push(config);
   });
@@ -38,10 +35,7 @@ const VALID_ENV: Record<EnvKey, string> = {
   R2_PUBLIC_BASE_URL: 'https://media.example.com',
 };
 
-const originalEnv: Record<EnvKey, string | undefined> = {} as Record<
-  EnvKey,
-  string | undefined
->;
+const originalEnv: Record<EnvKey, string | undefined> = {} as Record<EnvKey, string | undefined>;
 
 for (const key of ENV_KEYS) {
   originalEnv[key] = process.env[key];
