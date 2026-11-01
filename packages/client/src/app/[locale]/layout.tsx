@@ -1,4 +1,3 @@
-import { AuthProvider } from './AuthProvider';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';

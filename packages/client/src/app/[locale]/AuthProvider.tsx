@@ -10,8 +10,8 @@
 'use client';
 import React, { ReactNode } from 'react';
 import { getAuth, onIdTokenChanged } from 'firebase/auth';
-import { firebaseApp } from '../lib/firebase-client';
-import { renewSession } from '../lib/auth-session';
+import { firebaseApp } from '../../lib/firebase-client';
+import { renewSession } from '../../lib/auth-session';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   React.useEffect(() => {
