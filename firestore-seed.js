@@ -38,6 +38,11 @@ async function seedAuthorizedUsers() {
       role: 'admin',
       active: true,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    },{
+      email: 'dev.diegopacheco@gmail.com',
+      role: 'admin',
+      active: true,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     },
     {
       email: 'santiago.santifer@gmail.com',
