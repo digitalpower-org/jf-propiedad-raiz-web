@@ -10,6 +10,6 @@ export default async function ProtectedLayout({
 }) {
   const { locale } = await params;
   const cookieStore = await cookies();
-  if (!cookieStore.get('__session')) redirect(`/${locale}/admin/login`);
+  if (!cookieStore.get('__session')) redirect(`/${locale}/`);
   return <>{children}</>;
 }
