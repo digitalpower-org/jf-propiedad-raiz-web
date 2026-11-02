@@ -143,7 +143,7 @@ describe('bffRoute — política de sesión', () => {
     );
 
     const call = fetchMock.mock.calls[0];
-    expect(call?.[0]).toBe('https://functions.test/api/v1/properties');
+    expect(call?.[0]).toBe('https://functions.test/api/api/v1/properties');
 
     const headers = forwardedHeaders(fetchMock);
     expect(headers.get('x-internal-key')).toBe(INTERNAL_KEY);
@@ -196,7 +196,7 @@ describe('bffRoute — política de sesión', () => {
     });
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      'https://functions.test/api/v1/properties/casa%20arb%C3%B3rea',
+      'https://functions.test/api/api/v1/properties/casa%20arb%C3%B3rea',
     );
   });
 

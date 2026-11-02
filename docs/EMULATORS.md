@@ -285,7 +285,7 @@ Este endpoint solo es alcanzable desde el BFF (lleva `X-Internal-Key`). **No se 
 
 ```bash
 # Verificar un idToken contra la lista blanca (usar idToken obtenido del emulador Auth)
-curl -s -X POST "http://127.0.0.1:5001/jf-propiedad-raiz/us-central1/internal/auth/verify" \
+curl -s -X POST "http://127.0.0.1:5001/jf-propiedad-raiz/us-central1/internalAuth/internal/auth/verify" \
   -H 'Content-Type: application/json' \
   -H 'X-Internal-Key: 4s0Blfo4c0Zr7pfCYOAcpEaD8Zs/cppx0Jm4ozsmBgM=' \
   -d '{"idToken":"<idToken_de_Firebase>"}'
@@ -404,6 +404,11 @@ GET http://localhost:5002/api/health
 ```
 
 **Variable de entorno:** `FUNCTIONS_BASE_URL` (opcional, default: `http://127.0.0.1:5001/jf-propiedad-raiz/us-central1`)
+
+> El emulador (y producción) montan cada función exportada bajo `/<projectId>/<region>/<functionName>`.
+> `FUNCTIONS_BASE_URL` es solo la base proyecto+región; la URL final debe incluir el nombre de la función:
+> `.../us-central1/internalAuth/internal/auth/verify` (sesión) y `.../us-central1/health` (health).
+> El mapeo prefijo→función vive en `packages/client/src/server/backend-url.ts`.
 
 ---
 
