@@ -26,9 +26,10 @@ export async function httpClient<T = unknown>(
     if (!res.ok && res.status === 401) {
       // AC1.5.4 / AC5.4.7: redirigir al login ante 401 sin exponer error técnico
       if (typeof window !== 'undefined') {
-        window.location.replace('/admin/login');
+        const locale = window.location.pathname.split('/')[1] || 'es';
+        window.location.replace(`/${locale}/admin/login`);
       }
-      throw new ApiError({ code: 'UNAUTHORIZED', message: 'Sesión expirada', status: 401 });
+      throw new ApiError({ code: 'UNAUTHORIZED', message: 'Sesión expida', status: 401 });
     }
 
     const data = await res.json().catch(() => ({}));

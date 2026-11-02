@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import '@mantine/core/styles.css';
 import { ColorSchemeScript, MantineProvider, createTheme } from '@mantine/core';
 
+import { AuthProvider } from './AuthProvider';
 import { isLocale, locales } from '@/i18n/config';
 import { loadMessages } from '@/i18n/messages';
 
@@ -50,9 +51,11 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <ColorSchemeScript />
       </head>
       <body>
-        <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Bogota">
-          <MantineProvider theme={theme}>{children}</MantineProvider>
-        </NextIntlClientProvider>
+        <AuthProvider>
+          <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Bogota">
+            <MantineProvider theme={theme}>{children}</MantineProvider>
+          </NextIntlClientProvider>
+        </AuthProvider>
       </body>
     </html>
   );

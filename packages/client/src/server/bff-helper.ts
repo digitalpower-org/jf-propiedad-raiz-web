@@ -11,7 +11,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import type { ErrorCode } from '@jf/shared-types';
 
-import { env, functionsBaseUrl } from '@/server/config/server-config';
+import { backendUrl } from '@/server/backend-url';
+import { env } from '@/server/config/server-config';
 import { matchRoute } from '@/server/match-route';
 import type { BffRoute } from '@/server/routes';
 import { extractSessionFromCookie, type SessionClaims } from '@/server/session/jwt';
@@ -105,7 +106,7 @@ export async function delegateToBackend(
   const path = internalPath.replace(/\{(\w+)\}/g, (_segment, name: string) =>
     encodeURIComponent(params[name] ?? ''),
   );
-  const url = `${functionsBaseUrl.replace(/\/+$/, '')}${path}`;
+  const url = backendUrl(path);
 
   const headers = new Headers({ 'X-Internal-Key': ctx.internalKey });
   const contentType = request.headers.get('content-type');
