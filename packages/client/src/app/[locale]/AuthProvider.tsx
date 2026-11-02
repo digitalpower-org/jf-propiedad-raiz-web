@@ -14,7 +14,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await renewSession();
           } catch {
             if (typeof window !== 'undefined') {
-              window.location.replace(`/${window.location.pathname.split('/')[1] || 'es'}/admin/login`);
+              const locale = window.location.pathname.split('/')[1] || 'es';
+              const loginPath = `/${locale}/admin/login`;
+              // El provider también envuelve la página de login: si ya estamos
+              // allí, redirigir otra vez re-dispara onIdTokenChanged y crea un bucle.
+              if (window.location.pathname !== loginPath) {
+                window.location.replace(loginPath);
+              }
             }
           }
         }
