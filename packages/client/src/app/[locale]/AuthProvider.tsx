@@ -15,11 +15,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } catch {
             if (typeof window !== 'undefined') {
               const locale = window.location.pathname.split('/')[1] || 'es';
-              const loginPath = `/${locale}/admin/login`;
-              // El provider también envuelve la página de login: si ya estamos
-              // allí, redirigir otra vez re-dispara onIdTokenChanged y crea un bucle.
-              if (window.location.pathname !== loginPath) {
-                window.location.replace(loginPath);
+              const isAdminRoute = window.location.pathname.includes('/admin');
+              // Solo redirigir si está en ruta de admin; si no autorizado -> home (/es)
+              // si falta sesión -> /es/admin/login (login con guard del layout protegido)
+              if (isAdminRoute) {
+                const target =
+                  window.location.pathname === `/${locale}/admin/login`
+                    ? `/${locale}/admin/login`
+                    : `/${locale}`;
+                if (window.location.pathname !== target) {
+                  window.location.replace(target);
+                }
               }
             }
           }

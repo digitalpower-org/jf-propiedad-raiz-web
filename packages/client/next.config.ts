@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   // Rewrites para rutas traducidas: las carpetas físicas están en español
   // (venta, alquiler, etc.) pero las URLs en inglés usan los segmentos
   // traducidos (sale, rent, etc.) definidos en src/i18n/routes.ts.
+  async redirects() {
+    return [
+      { source: '/admin', destination: '/es/admin/login', permanent: false },
+      { source: '/admin/:path*', destination: '/es/admin/login', permanent: false },
+    ];
+  },
   async rewrites() {
     return [
       { source: '/en/sale', destination: '/en/venta' },
