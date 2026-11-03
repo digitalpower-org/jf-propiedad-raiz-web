@@ -42,7 +42,9 @@ describe('admin', () => {
     const { db, getAdminApp } = await import('./admin.js');
 
     expect(adminModule.initializeApp).toHaveBeenCalledTimes(1);
-    expect(adminModule.initializeApp).toHaveBeenCalledWith();
+    expect(adminModule.initializeApp).toHaveBeenCalledWith({
+      projectId: 'jf-propiedad-raiz',
+    });
     expect(adminModule.app).toHaveBeenCalledTimes(1);
     expect(adminModule.firestore).toHaveBeenCalledWith(fakeApp);
     expect(db).toBe(fakeDb);
