@@ -66,7 +66,7 @@ export const internalAuth = onRequest(async (req, res) => {
       data: { uid: decodedToken.uid, email: user.email, role: user.role },
       message: 'Autenticación exitosa',
     });
-  } catch (err) {
+  } catch {
     res.status(401).json({
       success: false,
       data: { code: 'UNAUTHORIZED', details: [], requestId: crypto.randomUUID() },
