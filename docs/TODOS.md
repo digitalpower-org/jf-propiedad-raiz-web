@@ -43,7 +43,7 @@
 - [x] **MT1.1** `[D1]` BFF y seguridad interna ← MT0.3, MT0.4, MT0.5
   - [x] US0.2 `[D1]` BFF de Next.js, `routes.ts` generado, `proxy.ts` (404/405), `X-Internal-Key`
 - [x] **MT1.2** `[D1+D2]` Autenticación end-to-end (incluye seed de `authorized_users`) ← MT1.1, MT0.3
-  - Evidencia: `POST /api/auth/logout` → 204 + cookie `__session` borrada; `admin/(protected)/` creado con guard servidor (`force-dynamic` + cookie); `e2e/auth-session.spec.ts` creado; seed verificado (63 tests functions). E2E completo pendiente solo `npm install firebase` + emulador.
+  - Evidencia: `POST /api/auth/logout` → 204 + cookie `__session` borrada; `admin/(protected)/` creado con guard servidor (`force-dynamic` + cookie); `e2e/auth-session.spec.ts` creado; seed verificado (63 tests functions). E2E verificado: `POST /api/auth/session` → 200 + `Set-Cookie __session` para `admin@test.local`; guard de `/es/admin` sin cookie redirige a `/es/admin/login`; guard de `/es/admin` con cookie válida → 200 admin HTML.
   - [x] US1.1 `[D1]` Lista blanca verificada por el backend
   - [x] US1.2 `[D1]` `POST /api/auth/session` (BFF route handler)
   - [x] US1.3 `[D1]` Guard y propagación de identidad (`X-User-*`) (BFF)
