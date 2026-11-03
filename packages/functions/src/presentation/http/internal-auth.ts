@@ -45,11 +45,13 @@ export const internalAuth = onRequest(async (req, res) => {
   try {
     const decodedToken = await auth.verifyIdToken(idToken, true);
     const email = decodedToken.email;
+
     if (!email) {
       throw new Error('No email in token');
     }
 
     const user = await findAuthorizedUser(email);
+
     if (!user || !user.active) {
       res.status(403).json({
         success: false,
@@ -64,8 +66,7 @@ export const internalAuth = onRequest(async (req, res) => {
       data: { uid: decodedToken.uid, email: user.email, role: user.role },
       message: 'Autenticación exitosa',
     });
-  } catch (err) {
-    console.error('[INTERNAL_AUTH] Error:', err);
+  } catch {
     res.status(401).json({
       success: false,
       data: { code: 'UNAUTHORIZED', details: [], requestId: crypto.randomUUID() },

@@ -9,7 +9,7 @@
     {
       "source": "packages/functions",
       "codebase": "default",
-      "disallowLegacyRuntimeConfig": true,
+      "disallowLegacyRuntimeConfig": false,
       "ignore": [
         "node_modules",
         ".git",

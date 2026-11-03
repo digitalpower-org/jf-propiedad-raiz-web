@@ -12,17 +12,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (user) {
           try {
             await renewSession();
+            if (typeof window !== 'undefined') {
+              const locale = window.location.pathname.split('/')[1] || 'es';
+              if (window.location.pathname === `/${locale}/admin/login`) {
+                window.location.replace(`/${locale}/admin`);
+              }
+            }
           } catch {
             if (typeof window !== 'undefined') {
               const locale = window.location.pathname.split('/')[1] || 'es';
-              const isAdminRoute = window.location.pathname.includes('/admin');
-              // Solo redirigir si está en ruta de admin; si no autorizado -> home (/es)
-              // si falta sesión -> /es/admin/login (login con guard del layout protegido)
-              if (isAdminRoute) {
-                const target =
-                  window.location.pathname === `/${locale}/admin/login`
-                    ? `/${locale}/admin/login`
-                    : `/${locale}`;
+              const isAdminRoute = window.location.pathname.startsWith(`/${locale}/admin`);
+              if (isAdminRoute && window.location.pathname !== `/${locale}/admin/login`) {
+                const target = `/${locale}/admin/login`;
                 if (window.location.pathname !== target) {
                   window.location.replace(target);
                 }
