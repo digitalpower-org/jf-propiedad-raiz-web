@@ -1,7 +1,5 @@
-'use client';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import type { PropertyCard } from '@jf/shared-types';
 import { isNewProperty } from '@/mocks/property-mock';
 
@@ -9,29 +7,6 @@ interface PropertyCardProps {
   readonly property: PropertyCard;
   readonly locale: 'es' | 'en';
 }
-
-const tipoLabels = {
-  es: {
-    CASA: 'Casa',
-    APARTAMENTO: 'Apartamento',
-    LOTE_CAMPESTRE: 'Lote Campestre',
-    LOTE_URBANO: 'Lote Urbano',
-    FINCA: 'Finca',
-    LOCAL_COMERCIAL: 'Local Comercial',
-    BODEGA: 'Bodega',
-    OFICINA: 'Oficina',
-  },
-  en: {
-    CASA: 'House',
-    APARTAMENTO: 'Apartment',
-    LOTE_CAMPESTRE: 'Country Lot',
-    LOTE_URBANO: 'Urban Lot',
-    FINCA: 'Farm',
-    LOCAL_COMERCIAL: 'Commercial Space',
-    BODEGA: 'Warehouse',
-    OFICINA: 'Office',
-  },
-};
 
 const operacionLabels = {
   es: {
@@ -51,9 +26,7 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
   const isNew = isNewProperty(property.createdAt);
 
   const portada = property.portada?.[1]?.clave || property.portada?.[0]?.clave;
-  const srcSet = property.portada
-    ?.map((d) => `/${d.clave} ${d.ancho}w`)
-    .join(', ') || '';
+  const sizes = '(max-width: 375px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw';
 
   const priceFormatter = new Intl.NumberFormat(locale === 'es' ? 'es-CO' : 'en-US', {
     style: 'currency',
@@ -63,15 +36,6 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
   });
 
   const operacionLabel = operacionLabels[locale][property.operacion] || property.operacion;
-  const tipoLabel = tipoLabels[locale][property.tipo] || property.tipo;
-
-  const whatsappUrl = buildWhatsAppUrl({
-    number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+573000000000',
-    message: t('whatsappMessage', { codigo: property.codigo, titulo: property.titulo[locale] ?? '' }),
-    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      typeof navigator !== 'undefined' ? navigator.userAgent : ''
-    ),
-  });
 
   const titulo = property.titulo[locale] ?? property.titulo.es ?? '';
   const municipio = property.municipio ?? '';
@@ -94,8 +58,7 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
             src={`/${portada}`}
             alt={titulo}
             fill
-            sizes="(max-width: 375px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            srcSet={srcSet}
+            sizes={sizes}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
             placeholder="blur"

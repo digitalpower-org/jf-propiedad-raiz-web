@@ -4,7 +4,21 @@
  * Replace with real API data when MT2.2 is complete.
  */
 
-import type { PropertyCard, PropertyDetail, Translatable, Operacion, TipoInmueble, Amenidad, PuntoInteres, Foto, VideoYouTube, Panorama, Proyecto } from '@jf/shared-types';
+import type {
+  PropertyCard,
+  PropertyDetail,
+  Translatable,
+  Operacion,
+  TipoInmueble,
+  Amenidad,
+  PuntoInteres,
+  PuntoInteresCategoria,
+  DerivadoImagen,
+  Foto,
+  VideoYouTube,
+  Panorama,
+  Proyecto,
+} from '@jf/shared-types';
 
 const createTranslatable = (es: string, en: string): Translatable => ({
   es,
@@ -12,15 +26,18 @@ const createTranslatable = (es: string, en: string): Translatable => ({
   autoTranslate: true,
 });
 
-const createFoto = (clave: string, anchos: number[]): Foto => ({
-  derivados: anchos.map((ancho) => ({
+const createDerivados = (clave: string, anchos: number[]): readonly DerivadoImagen[] =>
+  anchos.map((ancho) => ({
     clave: `${clave}-${ancho}.webp`,
     ancho,
-  })),
+  }));
+
+const createFoto = (clave: string, anchos: number[]): Foto => ({
+  derivados: createDerivados(clave, anchos),
 });
 
 const createPuntoInteres = (
-  categoria: 'educacion' | 'gimnasio' | 'zona_comercial' | 'avenida_principal' | 'transporte_publico' | 'salud',
+  categoria: PuntoInteresCategoria,
   etiqueta: { es: string; en: string }
 ): PuntoInteres => ({
   categoria,
@@ -52,7 +69,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 3,
     areaConstruida: 280,
     destacada: true,
-    portada: createFoto('propiedades/JF-0001/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0001/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -70,7 +87,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 145,
     destacada: true,
-    portada: createFoto('propiedades/JF-0002/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0002/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -87,9 +104,8 @@ export const mockProperties: PropertyCard[] = [
     dormitorios: 5,
     banos: 4,
     areaConstruida: 450,
-    areaLote: 1200,
     destacada: false,
-    portada: createFoto('propiedades/JF-0003/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0003/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -107,7 +123,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 85,
     destacada: false,
-    portada: createFoto('propiedades/JF-0004/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0004/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -121,9 +137,8 @@ export const mockProperties: PropertyCard[] = [
     departamento: 'Antioquia',
     municipio: 'Rionegro',
     estrato: 3,
-    areaLote: 2500,
     destacada: false,
-    portada: createFoto('propiedades/JF-0005/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0005/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -141,7 +156,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 3,
     areaConstruida: 220,
     destacada: false,
-    portada: createFoto('propiedades/JF-0006/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0006/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -159,7 +174,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 110,
     destacada: false,
-    portada: createFoto('propiedades/JF-0007/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0007/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -176,9 +191,8 @@ export const mockProperties: PropertyCard[] = [
     dormitorios: 6,
     banos: 5,
     areaConstruida: 600,
-    areaLote: 10000,
     destacada: false,
-    portada: createFoto('propiedades/JF-0008/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0008/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -194,7 +208,7 @@ export const mockProperties: PropertyCard[] = [
     estrato: 6,
     areaConstruida: 200,
     destacada: false,
-    portada: createFoto('propiedades/JF-0009/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0009/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -212,7 +226,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 150,
     destacada: false,
-    portada: createFoto('propiedades/JF-0010/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0010/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -230,7 +244,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 1,
     areaConstruida: 70,
     destacada: false,
-    portada: createFoto('propiedades/JF-0011/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0011/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -244,9 +258,8 @@ export const mockProperties: PropertyCard[] = [
     departamento: 'Antioquia',
     municipio: 'Itagüí',
     estrato: 3,
-    areaLote: 400,
     destacada: false,
-    portada: createFoto('propiedades/JF-0012/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0012/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -264,7 +277,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 3,
     areaConstruida: 180,
     destacada: false,
-    portada: createFoto('propiedades/JF-0013/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0013/portada', [320, 640, 1280, 2048]),
   },
 
   // ALQUILER properties
@@ -284,7 +297,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 90,
     destacada: true,
-    portada: createFoto('propiedades/JF-0014/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0014/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -302,7 +315,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 160,
     destacada: true,
-    portada: createFoto('propiedades/JF-0015/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0015/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -320,7 +333,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 1,
     areaConstruida: 75,
     destacada: false,
-    portada: createFoto('propiedades/JF-0016/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0016/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -336,7 +349,7 @@ export const mockProperties: PropertyCard[] = [
     estrato: 5,
     areaConstruida: 120,
     destacada: false,
-    portada: createFoto('propiedades/JF-0017/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0017/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -354,7 +367,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 85,
     destacada: false,
-    portada: createFoto('propiedades/JF-0018/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0018/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -372,7 +385,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 140,
     destacada: false,
-    portada: createFoto('propiedades/JF-0019/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0019/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -388,7 +401,7 @@ export const mockProperties: PropertyCard[] = [
     estrato: 3,
     areaConstruida: 500,
     destacada: false,
-    portada: createFoto('propiedades/JF-0020/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0020/portada', [320, 640, 1280, 2048]),
   },
 
   // PROYECTO_SOBRE_PLANOS properties
@@ -408,12 +421,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 105,
     destacada: true,
-    proyecto: {
-      etapa: createTranslatable('Etapa 2 - En Construcción', 'Stage 2 - Under Construction'),
-      fechaEntregaEstimada: '2026-06',
-      unidadesDisponibles: 24,
-    },
-    portada: createFoto('propiedades/JF-0021/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0021/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -431,12 +439,7 @@ export const mockProperties: PropertyCard[] = [
     banos: 2,
     areaConstruida: 88,
     destacada: true,
-    proyecto: {
-      etapa: createTranslatable('Preventa', 'Pre-sale'),
-      fechaEntregaEstimada: '2027-03',
-      unidadesDisponibles: 48,
-    },
-    portada: createFoto('propiedades/JF-0022/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0022/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -453,14 +456,8 @@ export const mockProperties: PropertyCard[] = [
     dormitorios: 4,
     banos: 3,
     areaConstruida: 220,
-    areaLote: 400,
     destacada: false,
-    proyecto: {
-      etapa: createTranslatable('Etapa 1 - Fundaciones', 'Stage 1 - Foundations'),
-      fechaEntregaEstimada: '2025-12',
-      unidadesDisponibles: 12,
-    },
-    portada: createFoto('propiedades/JF-0023/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0023/portada', [320, 640, 1280, 2048]),
   },
   {
     ...baseProperty,
@@ -476,16 +473,9 @@ export const mockProperties: PropertyCard[] = [
     estrato: 6,
     areaConstruida: 150,
     destacada: false,
-    proyecto: {
-      etapa: createTranslatable('En Planos', 'In Planning'),
-      fechaEntregaEstimada: '2026-12',
-      unidadesDisponibles: 30,
-    },
-    portada: createFoto('propiedades/JF-0024/portada', [320, 640, 1280, 2048]),
+    portada: createDerivados('propiedades/JF-0024/portada', [320, 640, 1280, 2048]),
   },
 ];
-
-export const mockFeaturedProperties = mockProperties.filter((p) => p.destacada && p.operacion === 'VENTA');
 
 export function getPropertiesByOperacion(operacion: Operacion): PropertyCard[] {
   return mockProperties.filter((p) => p.operacion === operacion);
@@ -506,6 +496,8 @@ export function getPropertyBySlug(slug: string): PropertyDetail | undefined {
   // Expand to PropertyDetail with additional fields
   return {
     ...card,
+    status: 'ACTIVE' as const,
+    updatedAt: '2024-12-01T10:00:00Z',
     descripcion: createTranslatable(
       'Hermosa propiedad con acabados de lujo, excelente ubicación y todas las comodidades.',
       'Beautiful property with luxury finishes, excellent location, and all amenities.'
@@ -514,14 +506,14 @@ export function getPropertyBySlug(slug: string): PropertyDetail | undefined {
     administracion: '450.000',
     acabados: createTranslatable('Pisos en porcelanato, cocina integral, closets en madera', 'Porcelain floors, integral kitchen, wooden closets'),
     antiguedad: '5',
-    areaLote: card.areaLote,
+    areaLote: 1000,
     parqueaderos: 2,
     deposito: 1,
-    amenidades: ['PISCINA', 'GIMNASIO', 'CANCHA'] as Amenidad[],
+    amenidades: ['PISCINA', 'GIMNASIO', 'CANCHA'] as readonly Amenidad[],
     puntosInteres: [
-      createPuntoInteres('educacion', { es: 'Colegio San José', en: 'San José School' }),
-      createPuntoInteres('transporte_publico', { es: 'Estación Metro Industriales', en: 'Industriales Metro Station' }),
-      createPuntoInteres('zona_comercial', { es: 'Centro Comercial Unicentro', en: 'Unicentro Mall' }),
+      createPuntoInteres('EDUCACION', { es: 'Colegio San José', en: 'San José School' }),
+      createPuntoInteres('TRANSPORTE_PUBLICO', { es: 'Estación Metro Industriales', en: 'Industriales Metro Station' }),
+      createPuntoInteres('ZONA_COMERCIAL', { es: 'Centro Comercial Unicentro', en: 'Unicentro Mall' }),
     ],
     fotos: [
       createFoto('propiedades/JF-0001/foto1', [320, 640, 1280, 2048]),
@@ -529,11 +521,11 @@ export function getPropertyBySlug(slug: string): PropertyDetail | undefined {
       createFoto('propiedades/JF-0001/foto3', [320, 640, 1280, 2048]),
     ],
     videos: [
-      { url: 'https://www.youtube.com/watch?v=example1', titulo: createTranslatable('Recorrido Virtual', 'Virtual Tour') },
-    ] as VideoYouTube[],
+      'https://www.youtube.com/watch?v=example1',
+    ] as const,
     panoramas: [
-      { clave: 'propiedades/JF-0001/panorama1', derivados: [{ clave: 'propiedades/JF-0001/panorama1-4096.webp', ancho: 4096 }] },
-    ] as Panorama[],
+      { derivados: createDerivados('propiedades/JF-0001/panorama1', [4096]) },
+    ] as const,
     fechaPublicacion: '2024-12-01',
   };
 }

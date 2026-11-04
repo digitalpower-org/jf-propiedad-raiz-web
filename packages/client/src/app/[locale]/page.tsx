@@ -17,8 +17,6 @@ export default async function HomePage({ params }: HomePageProps) {
   setRequestLocale(locale);
   const t = await getTranslations();
   const tHome = await getTranslations('home');
-  const tNav = await getTranslations('nav');
-  const tSearch = await getTranslations('search');
 
   // Servicios para preview en portada (máx 3) - definidos inline con traducciones
   const servicesPreview = [

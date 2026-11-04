@@ -1,8 +1,9 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Checkbox, Select, Input, Button, Group, Text, Grid, Divider } from '@mantine/core';
 import type { TipoInmueble, Operacion } from '@jf/shared-types';
+import styles from './Filters.module.css';
 
 interface FiltersProps {
   readonly operacion: Operacion;
@@ -85,34 +86,56 @@ const MUNICIPIO_OPTIONS: Record<string, { es: string; en: string }[]> = {
   ],
 };
 
-export function Filters({ operacion, locale }: FiltersProps) {
+export function Filters({ operacion: _operacion, locale }: FiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [tipo, setTipo] = useState<TipoInmueble[]>([]);
-  const [departamento, setDepartamento] = useState<string>('');
-  const [municipio, setMunicipio] = useState<string>('');
-  const [precioMin, setPrecioMin] = useState<string>('');
-  const [precioMax, setPrecioMax] = useState<string>('');
-  const [destacada, setDestacada] = useState(false);
-  const [dormitorios, setDormitorios] = useState<number | ''>('');
-  const [banos, setBanos] = useState<number | ''>('');
-  const [areaMin, setAreaMin] = useState<string>('');
-  const [estrato, setEstrato] = useState<number | ''>('');
+  // Helper to parse searchParams into initial state
+  const getInitialState = (params: URLSearchParams) => ({
+    tipo: params.get('tipo') ? params.get('tipo')!.split(',') as TipoInmueble[] : [],
+    departamento: params.get('departamento') || '',
+    municipio: params.get('municipio') || '',
+    precioMin: params.get('precioMin') || '',
+    precioMax: params.get('precioMax') || '',
+    destacada: params.get('destacada') === 'true',
+    dormitorios: params.get('dormitorios') || '',
+    banos: params.get('banos') || '',
+    areaMin: params.get('areaMin') || '',
+    estrato: params.get('estrato') || '',
+  });
 
-  // Initialize from URL
+  const initialState = getInitialState(searchParams);
+
+  const [tipo, setTipo] = useState<TipoInmueble[]>(initialState.tipo);
+  const [departamento, setDepartamento] = useState<string>(initialState.departamento);
+  const [municipio, setMunicipio] = useState<string>(initialState.municipio);
+  const [precioMin, setPrecioMin] = useState<string>(initialState.precioMin);
+  const [precioMax, setPrecioMax] = useState<string>(initialState.precioMax);
+  const [destacada, setDestacada] = useState<boolean>(initialState.destacada);
+  const [dormitorios, setDormitorios] = useState<string>(initialState.dormitorios);
+  const [banos, setBanos] = useState<string>(initialState.banos);
+  const [areaMin, setAreaMin] = useState<string>(initialState.areaMin);
+  const [estrato, setEstrato] = useState<string>(initialState.estrato);
+
+  // Sync with URL changes (only after initial render)
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
-    if (params.get('tipo')) setTipo(params.get('tipo')!.split(',') as TipoInmueble[]);
-    if (params.get('departamento')) setDepartamento(params.get('departamento')!);
-    if (params.get('municipio')) setMunicipio(params.get('municipio')!);
-    if (params.get('precioMin')) setPrecioMin(params.get('precioMin')!);
-    if (params.get('precioMax')) setPrecioMax(params.get('precioMax')!);
-    if (params.get('destacada')) setDestacada(params.get('destacada') === 'true');
-    if (params.get('dormitorios')) setDormitorios(Number(params.get('dormitorios')));
-    if (params.get('banos')) setBanos(Number(params.get('banos')));
-    if (params.get('areaMin')) setAreaMin(params.get('areaMin')!);
-    if (params.get('estrato')) setEstrato(Number(params.get('estrato')));
+    const newState = getInitialState(params);
+    setTipo(newState.tipo);
+    setDepartamento(newState.departamento);
+    setMunicipio(newState.municipio);
+    setPrecioMin(newState.precioMin);
+    setPrecioMax(newState.precioMax);
+    setDestacada(newState.destacada);
+    setDormitorios(newState.dormitorios);
+    setBanos(newState.banos);
+    setAreaMin(newState.areaMin);
+    setEstrato(newState.estrato);
   }, [searchParams]);
 
   const updateUrl = () => {
@@ -123,10 +146,10 @@ export function Filters({ operacion, locale }: FiltersProps) {
     if (precioMin) params.set('precioMin', precioMin);
     if (precioMax) params.set('precioMax', precioMax);
     if (destacada) params.set('destacada', 'true');
-    if (dormitorios) params.set('dormitorios', String(dormitorios));
-    if (banos) params.set('banos', String(banos));
+    if (dormitorios) params.set('dormitorios', dormitorios);
+    if (banos) params.set('banos', banos);
     if (areaMin) params.set('areaMin', areaMin);
-    if (estrato) params.set('estrato', String(estrato));
+    if (estrato) params.set('estrato', estrato);
 
     const currentPath = window.location.pathname;
     const newUrl = params.toString() ? `${currentPath}?${params.toString()}` : currentPath;
@@ -201,20 +224,20 @@ export function Filters({ operacion, locale }: FiltersProps) {
   const municipioOptions = departamento ? MUNICIPIO_OPTIONS[departamento] || [] : [];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">{t.title}</h2>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>{t.title}</h2>
         {hasActiveFilters && (
-          <Button variant="subtle" color="gray" size="sm" onClick={handleClear}>
+          <Button variant="subtle" color="gray" size="sm" onClick={handleClear} className={styles.clearAllBtn}>
             {t.clearAll}
           </Button>
         )}
       </div>
 
-      <Grid style={{ gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' }} gap={4}>
+      <Grid style={{ gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' }} gap={4} className={styles.grid}>
         {/* Tipo de inmueble */}
-        <div className="sm:col-span-2">
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field} style={{ gridColumn: 'span 2' }}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.tipo}
           </Text>
           <Group grow>
@@ -237,8 +260,8 @@ export function Filters({ operacion, locale }: FiltersProps) {
         </div>
 
         {/* Ubicación - Departamento */}
-        <div>
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.departamento}
           </Text>
           <Select
@@ -246,7 +269,7 @@ export function Filters({ operacion, locale }: FiltersProps) {
             value={departamento}
             onChange={(value) => {
               setDepartamento(value || '');
-              setMunicipio(''); // Reset municipio when departamento changes
+              setMunicipio('');
             }}
             data={DEPARTAMENTO_OPTIONS[locale].map((d) => ({ value: d.value, label: d.label }))}
             size="sm"
@@ -255,8 +278,8 @@ export function Filters({ operacion, locale }: FiltersProps) {
         </div>
 
         {/* Ubicación - Municipio */}
-        <div>
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.municipio}
           </Text>
           <Select
@@ -271,8 +294,8 @@ export function Filters({ operacion, locale }: FiltersProps) {
         </div>
 
         {/* Precio */}
-        <div>
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.precio}
           </Text>
           <Grid gap={2} style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -282,7 +305,8 @@ export function Filters({ operacion, locale }: FiltersProps) {
               value={precioMin}
               onChange={(e) => setPrecioMin(e.target.value)}
               size="sm"
-              inputProps={{ min: '0', step: '100000' }}
+              min={0}
+              step={100000}
             />
             <Input
               type="number"
@@ -290,13 +314,14 @@ export function Filters({ operacion, locale }: FiltersProps) {
               value={precioMax}
               onChange={(e) => setPrecioMax(e.target.value)}
               size="sm"
-              inputProps={{ min: '0', step: '100000' }}
+              min={0}
+              step={100000}
             />
           </Grid>
         </div>
 
         {/* Destacada */}
-        <div className="flex items-center">
+        <div className={styles.field} style={{ display: 'flex', alignItems: 'center' }}>
           <Checkbox
             label={t.destacada}
             checked={destacada}
@@ -306,14 +331,14 @@ export function Filters({ operacion, locale }: FiltersProps) {
         </div>
 
         {/* Dormitorios */}
-        <div>
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.dormitorios}
           </Text>
           <Select
             placeholder={t.dormitorios}
             value={dormitorios}
-            onChange={(value) => setDormitorios(value ? Number(value) : '')}
+            onChange={(value) => setDormitorios(value || '')}
             data={[
               { value: '1', label: '1+' },
               { value: '2', label: '2+' },
@@ -327,14 +352,14 @@ export function Filters({ operacion, locale }: FiltersProps) {
         </div>
 
         {/* Baños */}
-        <div>
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.banos}
           </Text>
           <Select
             placeholder={t.banos}
             value={banos}
-            onChange={(value) => setBanos(value ? Number(value) : '')}
+            onChange={(value) => setBanos(value || '')}
             data={[
               { value: '1', label: '1+' },
               { value: '2', label: '2+' },
@@ -347,8 +372,8 @@ export function Filters({ operacion, locale }: FiltersProps) {
         </div>
 
         {/* Área mínima */}
-        <div>
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.area}
           </Text>
           <Input
@@ -357,19 +382,20 @@ export function Filters({ operacion, locale }: FiltersProps) {
             value={areaMin}
             onChange={(e) => setAreaMin(e.target.value)}
             size="sm"
-            inputProps={{ min: '0', step: '10' }}
+            min={0}
+            step={10}
           />
         </div>
 
         {/* Estrato */}
-        <div>
-          <Text size="sm" weight={500} c="gray.7" mb={2}>
+        <div className={styles.field}>
+          <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.estrato}
           </Text>
           <Select
             placeholder={t.estrato}
             value={estrato}
-            onChange={(value) => setEstrato(value ? Number(value) : '')}
+            onChange={(value) => setEstrato(value || '')}
             data={[
               { value: '1', label: '1' },
               { value: '2', label: '2' },
@@ -384,9 +410,9 @@ export function Filters({ operacion, locale }: FiltersProps) {
         </div>
       </Grid>
 
-      <Divider my={4} />
+      <Divider my="md" />
 
-      <Group justify="flex-end" gap={2}>
+      <Group justify="flex-end" gap={2} className={styles.actions}>
         <Button variant="subtle" color="gray" onClick={handleClear} size="sm">
           {t.limpiar}
         </Button>

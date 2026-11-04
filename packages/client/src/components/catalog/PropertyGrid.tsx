@@ -6,12 +6,12 @@ import { Skeleton } from '@mantine/core';
 import { useTranslations } from 'next-intl';
 import { PropertyCardComponent } from './PropertyCard';
 import type { PropertyCard } from '@jf/shared-types';
-import { getPropertiesByOperacion, getDestacadasByOperacion, getNoDestacadasByOperacion } from '@/mocks/property-mock';
+import { getDestacadasByOperacion, getNoDestacadasByOperacion } from '@/mocks/property-mock';
 
 interface PropertyGridProps {
   readonly operacion: 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS';
   readonly locale: 'es' | 'en';
-  readonly initialData?: PropertyCard[];
+  readonly initialData?: PropertyCard[] | undefined;
 }
 
 const PAGE_SIZE = 12;
