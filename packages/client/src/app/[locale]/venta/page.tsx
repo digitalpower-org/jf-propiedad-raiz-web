@@ -1,28 +1,42 @@
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
-
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { isLocale } from '@/i18n/config';
+import { getDestacadasByOperacion, getNoDestacadasByOperacion } from '@/mocks/property-mock';
+import { CatalogClient } from '@/components/catalog/CatalogClient';
 
-type VentaPageProps = {
+type CatalogoPageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function VentaPage({ params }: VentaPageProps) {
+export default async function VentaPage({ params, searchParams }: CatalogoPageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
   setRequestLocale(locale);
+  const t = await getTranslations();
+  const search = await searchParams;
+
+  const destacadas = getDestacadasByOperacion('VENTA');
+  const noDestacadas = getNoDestacadasByOperacion('VENTA');
+  const initialData = [...destacadas, ...noDestacadas].slice(0, 12);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">{locale === 'es' ? 'Venta' : 'For Sale'}</h1>
-      <p className="mt-2">{locale === 'es' ? 'Inmuebles en venta.' : 'Properties for sale.'}</p>
-      <a
-        href={locale === 'es' ? '/en/sale' : '/es/venta'}
-        className="mt-4 inline-block text-blue-600 underline"
-      >
-        {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
-      </a>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {t('sale.title')}
+          </h1>
+          <p className="text-gray-600">{t('sale.empty')}</p>
+        </div>
+
+        <CatalogClient
+          operacion="VENTA"
+          locale={locale}
+          initialData={initialData}
+        />
+      </div>
     </div>
   );
 }

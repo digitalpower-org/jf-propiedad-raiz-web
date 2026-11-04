@@ -19,16 +19,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
             }
           } catch {
-            if (typeof window !== 'undefined') {
-              const locale = window.location.pathname.split('/')[1] || 'es';
-              const isAdminRoute = window.location.pathname.startsWith(`/${locale}/admin`);
-              if (isAdminRoute && window.location.pathname !== `/${locale}/admin/login`) {
-                const target = `/${locale}/admin/login`;
-                if (window.location.pathname !== target) {
-                  window.location.replace(target);
-                }
-              }
-            }
+            // AC5.4.7: no exponer error técnico al usuario en desarrollo.
+            // El guard de rutas protegidas vive EN EL SERVIDOR (admin/(protected)/layout.tsx).
+            // Aquí solo renovamos sesión silenciosamente; no hacemos redirecciones.
           }
         }
       });

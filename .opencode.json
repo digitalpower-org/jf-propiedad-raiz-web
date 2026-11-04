@@ -1,0 +1,94 @@
+{
+  "model": "openrouter/inkling-small-free",
+  "small_model": "openrouter/inkling-free",
+  "disable_fallback": true,
+  "fallback_models": [],
+  "model_aliases": {
+    "big-pickle": "openrouter/inkling-small-free",
+    "opencode/big-pickle": "openrouter/inkling-small-free"
+  },
+  "agents": {
+    "sisyphus": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "oracle": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "prometheus": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "metis": {
+      "model": "openrouter/inkling-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "momus": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "librarian": {
+      "model": "openrouter/inkling-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "explore": {
+      "model": "openrouter/inkling-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "multimodal-looker": {
+      "model": "openrouter/inkling-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    }
+  },
+  "categories": {
+    "visual-engineering": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "quick": {
+      "model": "openrouter/inkling-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "unspecified-low": {
+      "model": "openrouter/inkling-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "unspecified-high": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "deep": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "ultrabrain": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "artistry": {
+      "model": "openrouter/inkling-small-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    },
+    "writing": {
+      "model": "openrouter/inkling-free",
+      "disable_fallback": true,
+      "fallback_models": []
+    }
+  }
+}
