@@ -46,7 +46,6 @@ async function fetchPropertiesPage(
 export function PropertyGrid({ operacion, locale, initialData }: PropertyGridProps) {
   const t = useTranslations();
   const [showDestacadas, setShowDestacadas] = React.useState(true);
-  const [allItems, setAllItems] = React.useState<PropertyCard[]>(initialData || []);
 
   const { ref, inView } = useInView();
 
@@ -60,28 +59,29 @@ export function PropertyGrid({ operacion, locale, initialData }: PropertyGridPro
     enabled: !initialData,
   });
 
-  React.useEffect(() => {
-    if (data) {
-      const fetchedItems = data.pages.flatMap((page) => page.items);
-      setAllItems((prev) => {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const newItems = fetchedItems.filter((p) => !existingIds.has(p.id));
-        return [...prev, ...newItems];
-      });
-    }
-  }, [data]);
+  // Combine initialData with fetched data without local state
+  const allItems = React.useMemo(() => {
+    if (!data) return initialData || [];
+    const fetchedItems = data.pages.flatMap((page) => page.items);
+    const initial = initialData || [];
+    const existingIds = new Set(initial.map((p) => p.id));
+    const newItems = fetchedItems.filter((p) => !existingIds.has(p.id));
+    return [...initial, ...newItems];
+  }, [data, initialData]);
 
+  // Auto-switch to non-destacadas when destacadas are exhausted (without effect setState)
+  const shouldSwitch = showDestacadas && !hasNextPage && !isFetchingNextPage;
+  if (shouldSwitch) {
+    // Schedule state update for next render to avoid effect warning
+    setShowDestacadas(false);
+  }
+
+  // Load more on scroll
   React.useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  React.useEffect(() => {
-    if (showDestacadas && !hasNextPage && !isFetchingNextPage) {
-      setShowDestacadas(false);
-    }
-  }, [showDestacadas, hasNextPage, isFetchingNextPage]);
 
   if (isLoading && allItems.length === 0) {
     return (
