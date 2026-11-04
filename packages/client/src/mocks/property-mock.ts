@@ -38,7 +38,7 @@ const createFoto = (clave: string, anchos: number[]): Foto => ({
 
 const createPuntoInteres = (
   categoria: PuntoInteresCategoria,
-  etiqueta: { es: string; en: string }
+  etiqueta: { es: string; en: string },
 ): PuntoInteres => ({
   categoria,
   etiqueta: createTranslatable(etiqueta.es, etiqueta.en),
@@ -288,7 +288,10 @@ export const mockProperties: PropertyCard[] = [
     slug: 'apartamento-alquiler-poblado',
     operacion: 'ALQUILER',
     tipo: 'APARTAMENTO',
-    titulo: createTranslatable('Apartamento en Alquiler El Poblado', 'Apartment for Rent El Poblado'),
+    titulo: createTranslatable(
+      'Apartamento en Alquiler El Poblado',
+      'Apartment for Rent El Poblado',
+    ),
     precio: 4500000,
     departamento: 'Antioquia',
     municipio: 'Medellín',
@@ -342,7 +345,10 @@ export const mockProperties: PropertyCard[] = [
     slug: 'local-alquiler-centro',
     operacion: 'ALQUILER',
     tipo: 'LOCAL_COMERCIAL',
-    titulo: createTranslatable('Local Comercial en Alquiler Centro', 'Commercial Space for Rent Downtown'),
+    titulo: createTranslatable(
+      'Local Comercial en Alquiler Centro',
+      'Commercial Space for Rent Downtown',
+    ),
     precio: 15000000,
     departamento: 'Antioquia',
     municipio: 'Medellín',
@@ -412,7 +418,10 @@ export const mockProperties: PropertyCard[] = [
     slug: 'proyecto-torres-verdes',
     operacion: 'PROYECTO_SOBRE_PLANOS',
     tipo: 'APARTAMENTO',
-    titulo: createTranslatable('Torres Verdes - Apartamentos Sobre Planos', 'Torres Verdes - Off-Plan Apartments'),
+    titulo: createTranslatable(
+      'Torres Verdes - Apartamentos Sobre Planos',
+      'Torres Verdes - Off-Plan Apartments',
+    ),
     precio: 480000000,
     departamento: 'Antioquia',
     municipio: 'Medellín',
@@ -466,7 +475,10 @@ export const mockProperties: PropertyCard[] = [
     slug: 'proyecto-oficinas-poblado',
     operacion: 'PROYECTO_SOBRE_PLANOS',
     tipo: 'OFICINA',
-    titulo: createTranslatable('Oficinas El Poblado - Torre Empresarial', 'El Poblado Offices - Business Tower'),
+    titulo: createTranslatable(
+      'Oficinas El Poblado - Torre Empresarial',
+      'El Poblado Offices - Business Tower',
+    ),
     precio: 950000000,
     departamento: 'Antioquia',
     municipio: 'Medellín',
@@ -500,11 +512,14 @@ export function getPropertyBySlug(slug: string): PropertyDetail | undefined {
     updatedAt: '2024-12-01T10:00:00Z',
     descripcion: createTranslatable(
       'Hermosa propiedad con acabados de lujo, excelente ubicación y todas las comodidades.',
-      'Beautiful property with luxury finishes, excellent location, and all amenities.'
+      'Beautiful property with luxury finishes, excellent location, and all amenities.',
     ),
     predial: '2.500.000',
     administracion: '450.000',
-    acabados: createTranslatable('Pisos en porcelanato, cocina integral, closets en madera', 'Porcelain floors, integral kitchen, wooden closets'),
+    acabados: createTranslatable(
+      'Pisos en porcelanato, cocina integral, closets en madera',
+      'Porcelain floors, integral kitchen, wooden closets',
+    ),
     antiguedad: '5',
     areaLote: 1000,
     parqueaderos: 2,
@@ -512,20 +527,22 @@ export function getPropertyBySlug(slug: string): PropertyDetail | undefined {
     amenidades: ['PISCINA', 'GIMNASIO', 'CANCHA'] as readonly Amenidad[],
     puntosInteres: [
       createPuntoInteres('EDUCACION', { es: 'Colegio San José', en: 'San José School' }),
-      createPuntoInteres('TRANSPORTE_PUBLICO', { es: 'Estación Metro Industriales', en: 'Industriales Metro Station' }),
-      createPuntoInteres('ZONA_COMERCIAL', { es: 'Centro Comercial Unicentro', en: 'Unicentro Mall' }),
+      createPuntoInteres('TRANSPORTE_PUBLICO', {
+        es: 'Estación Metro Industriales',
+        en: 'Industriales Metro Station',
+      }),
+      createPuntoInteres('ZONA_COMERCIAL', {
+        es: 'Centro Comercial Unicentro',
+        en: 'Unicentro Mall',
+      }),
     ],
     fotos: [
       createFoto('propiedades/JF-0001/foto1', [320, 640, 1280, 2048]),
       createFoto('propiedades/JF-0001/foto2', [320, 640, 1280, 2048]),
       createFoto('propiedades/JF-0001/foto3', [320, 640, 1280, 2048]),
     ],
-    videos: [
-      'https://www.youtube.com/watch?v=example1',
-    ] as const,
-    panoramas: [
-      { derivados: createDerivados('propiedades/JF-0001/panorama1', [4096]) },
-    ] as const,
+    videos: ['https://www.youtube.com/watch?v=example1'] as const,
+    panoramas: [{ derivados: createDerivados('propiedades/JF-0001/panorama1', [4096]) }] as const,
     fechaPublicacion: '2024-12-01',
   };
 }

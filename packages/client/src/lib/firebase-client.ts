@@ -19,11 +19,5 @@ const config = {
 const firebaseApp: FirebaseApp = getApps().length === 0 ? initializeApp(config) : getApp();
 export const firebaseAuth: Auth = getAuth(firebaseApp);
 
-export {
-  firebaseApp,
-  signInWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
-  onIdTokenChanged,
-};
+export { firebaseApp, signInWithEmailAndPassword, signOut, GoogleAuthProvider, onIdTokenChanged };
 export type { User, UserCredential };

@@ -17,7 +17,13 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
   const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CO' : 'en-US');
 
   const sections = messages.about.sections as Array<{ id: string; titulo: string; cuerpo: string }>;
-  const equipo = messages.about.equipo as Array<{ id: string; nombre: string; cargo: string; descripcion?: string; foto?: string | null }>;
+  const equipo = messages.about.equipo as Array<{
+    id: string;
+    nombre: string;
+    cargo: string;
+    descripcion?: string;
+    foto?: string | null;
+  }>;
 
   return (
     <div className="prose max-w-3xl mx-auto p-4 md:p-8">
@@ -31,9 +37,7 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
       {sections.map((section) => (
         <section key={section.id} className="mb-12">
           <h2>{section.titulo}</h2>
-          <div className="mt-4 whitespace-pre-wrap leading-relaxed">
-            {section.cuerpo}
-          </div>
+          <div className="mt-4 whitespace-pre-wrap leading-relaxed">{section.cuerpo}</div>
         </section>
       ))}
 
@@ -42,7 +46,10 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
           <h2>{locale === 'es' ? 'Nuestro Equipo' : 'Our Team'}</h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {equipo.map((member) => (
-              <article key={member.id} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+              <article
+                key={member.id}
+                className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
+              >
                 {member.foto && (
                   <div className="mb-4 aspect-square rounded-lg overflow-hidden bg-gray-100">
                     <img

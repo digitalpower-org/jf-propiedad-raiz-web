@@ -81,9 +81,7 @@ const MUNICIPIO_OPTIONS: Record<string, { es: string; en: string }[]> = {
     { es: 'Bucaramanga', en: 'Bucaramanga' },
     { es: 'Floridablanca', en: 'Floridablanca' },
   ],
-  Bolívar: [
-    { es: 'Cartagena', en: 'Cartagena' },
-  ],
+  Bolívar: [{ es: 'Cartagena', en: 'Cartagena' }],
 };
 
 export function Filters({ operacion: _operacion, locale }: FiltersProps) {
@@ -92,7 +90,7 @@ export function Filters({ operacion: _operacion, locale }: FiltersProps) {
 
   // Helper to parse searchParams into initial state
   const getInitialState = (params: URLSearchParams) => ({
-    tipo: params.get('tipo') ? params.get('tipo')!.split(',') as TipoInmueble[] : [],
+    tipo: params.get('tipo') ? (params.get('tipo')!.split(',') as TipoInmueble[]) : [],
     departamento: params.get('departamento') || '',
     municipio: params.get('municipio') || '',
     precioMin: params.get('precioMin') || '',
@@ -228,13 +226,23 @@ export function Filters({ operacion: _operacion, locale }: FiltersProps) {
       <div className={styles.header}>
         <h2 className={styles.title}>{t.title}</h2>
         {hasActiveFilters && (
-          <Button variant="subtle" color="gray" size="sm" onClick={handleClear} className={styles.clearAllBtn}>
+          <Button
+            variant="subtle"
+            color="gray"
+            size="sm"
+            onClick={handleClear}
+            className={styles.clearAllBtn}
+          >
             {t.clearAll}
           </Button>
         )}
       </div>
 
-      <Grid style={{ gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' }} gap={4} className={styles.grid}>
+      <Grid
+        style={{ gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' }}
+        gap={4}
+        className={styles.grid}
+      >
         {/* Tipo de inmueble */}
         <div className={styles.field} style={{ gridColumn: 'span 2' }}>
           <Text size="sm" fw={500} c="dimmed" className={styles.label}>
@@ -250,7 +258,7 @@ export function Filters({ operacion: _operacion, locale }: FiltersProps) {
                   setTipo((prev) =>
                     e.currentTarget.checked
                       ? [...prev, opt.value as TipoInmueble]
-                      : prev.filter((t) => t !== opt.value)
+                      : prev.filter((t) => t !== opt.value),
                   )
                 }
                 size="sm"

@@ -17,10 +17,7 @@ function collectPaths(value: Json, prefix = ''): string[] {
 }
 
 /** Claves que pueden contener arrays de objetos (no solo strings) */
-const OBJECT_ARRAY_KEYS = new Set([
-  'about.sections',
-  'about.equipo',
-]);
+const OBJECT_ARRAY_KEYS = new Set(['about.sections', 'about.equipo']);
 
 function isObjectArrayKey(path: string): boolean {
   return OBJECT_ARRAY_KEYS.has(path);
@@ -58,7 +55,10 @@ describe('paridad de diccionarios (AC0.4.4)', () => {
             // Arrays of strings: check each item is non-empty string
             for (const item of value) {
               expect(typeof item, `${name}:${path} - array items should be strings`).toBe('string');
-              expect(String(item).trim(), `${name}:${path} - array items should not be empty`).not.toBe('');
+              expect(
+                String(item).trim(),
+                `${name}:${path} - array items should not be empty`,
+              ).not.toBe('');
             }
           }
         } else {

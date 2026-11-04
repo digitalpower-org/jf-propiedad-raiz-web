@@ -61,7 +61,7 @@ export default function AdminLogin() {
       const userCredential: UserCredential = await signInWithEmailAndPassword(
         firebaseAuth,
         values.email,
-        values.password
+        values.password,
       );
       // The AuthProvider's onIdTokenChanged will handle session renewal
       // and redirect to /admin after successful login
@@ -137,9 +137,7 @@ export default function AdminLogin() {
               }`}
               disabled={isLoading}
             />
-            {form.errors.email && (
-              <p className="mt-1 text-sm text-red-600">{form.errors.email}</p>
-            )}
+            {form.errors.email && <p className="mt-1 text-sm text-red-600">{form.errors.email}</p>}
           </div>
 
           <div>
