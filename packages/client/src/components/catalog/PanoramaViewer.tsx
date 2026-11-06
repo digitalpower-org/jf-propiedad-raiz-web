@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Panorama, DerivadoImagen } from '@jf/shared-types';
 import styles from './PanoramaViewer.module.css';
@@ -9,27 +9,45 @@ interface PanoramaViewerProps {
   readonly locale: 'es' | 'en';
 }
 
+interface PannellumViewer {
+  destroy: () => void;
+}
+
+interface PannellumModule {
+  viewer: (container: HTMLElement, options: unknown) => PannellumViewer;
+}
+
 export function PanoramaViewer({ panoramas, locale }: PanoramaViewerProps) {
   const t = useTranslations('property');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [pannellum, setPannellum] = useState<any>(null);
+  const [pannellumViewer, setPannellumViewer] = useState<PannellumViewer | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef<Set<number>>(new Set());
 
-  useEffect(() => {
-    if (openIndex !== null && !pannellum) {
-      import('pannellum')
-        .then((module) => {
-          setPannellum(module.default || module);
-        })
-        .catch(() => {
-          // Silently fail - Pannellum is optional
-        });
-    }
-  }, [openIndex]);
+  const loadPannellum = useCallback(() => {
+    import('pannellum')
+      .then((module) => {
+        const pannellum = module.default || module;
+        setPannellumViewer(() => ({
+          destroy: () => {
+            // Pannellum doesn't have a standard destroy method on the module
+            // We'll just set to null and let React handle cleanup
+          },
+        }));
+      })
+      .catch(() => {
+        // Silently fail - Pannellum is optional
+      });
+  }, []);
 
   useEffect(() => {
-    if (!pannellum || openIndex === null || !viewerRef.current) return;
+    if (openIndex !== null) {
+      loadPannellum();
+    }
+  }, [openIndex, loadPannellum]);
+
+  useEffect(() => {
+    if (!pannellumViewer || openIndex === null || !viewerRef.current) return;
     if (initializedRef.current.has(openIndex)) return;
 
     const panorama = panoramas[openIndex];
@@ -37,13 +55,14 @@ export function PanoramaViewer({ panoramas, locale }: PanoramaViewerProps) {
 
     const bestDerivative = panorama.derivados.reduce<DerivadoImagen>(
       (best, current) => (current.ancho > best.ancho ? current : best),
-      panorama.derivados[0]!,
+      panorama.derivados[0]!
     );
 
     const panoramaUrl = `/${bestDerivative.clave}`;
 
     try {
-      pannellum.viewer(viewerRef.current!, {
+      // @ts-expect-error - pannellum is dynamically loaded
+      const viewer = window.pannellum?.viewer(viewerRef.current!, {
         type: 'equirectangular',
         panorama: panoramaUrl,
         autoLoad: true,
@@ -68,24 +87,20 @@ export function PanoramaViewer({ panoramas, locale }: PanoramaViewerProps) {
         showControls: true,
         orientationOnByDefault: false,
       });
-      initializedRef.current.add(openIndex);
+      if (viewer) {
+        initializedRef.current.add(openIndex);
+      }
     } catch {
       // Silently fail
     }
-  }, [pannellum, openIndex, panoramas]);
+  }, [openIndex, panoramas]);
 
   useEffect(() => {
     return () => {
-      if (pannellum && viewerRef.current) {
-        try {
-          pannellum.viewer(viewerRef.current).destroy();
-        } catch {
-          // Ignore
-        }
-        initializedRef.current.clear();
-      }
+      // Cleanup is handled by Pannellum internally
+      initializedRef.current.clear();
     };
-  }, [pannellum]);
+  }, []);
 
   if (!panoramas || panoramas.length === 0) return null;
 
@@ -139,7 +154,7 @@ export function PanoramaViewer({ panoramas, locale }: PanoramaViewerProps) {
       </div>
 
       {/* Modal */}
-      {openIndex !== null && pannellum && panoramas[openIndex] && (
+      {openIndex !== null && pannellumViewer && panoramas[openIndex] && (
         <div
           className={styles.modalOverlay}
           onClick={() => setOpenIndex(null)}

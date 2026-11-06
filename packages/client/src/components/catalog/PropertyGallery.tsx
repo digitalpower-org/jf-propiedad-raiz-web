@@ -1,8 +1,8 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import type { DerivadoImagen, Foto, VideoYouTube, Panorama } from '@jf/shared-types';
+import type { Foto, VideoYouTube, Panorama } from '@jf/shared-types';
 import styles from './PropertyGallery.module.css';
 
 interface PropertyGalleryProps {
@@ -24,7 +24,6 @@ export function PropertyGallery({
   const [mainIndex, setMainIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
-  const galleryRef = useRef<HTMLDivElement>(null);
 
   const allImages = fotos.flatMap((foto, fotoIndex) =>
     foto.derivados.map((derivado) => ({
@@ -34,30 +33,6 @@ export function PropertyGallery({
       fotoIndex,
     })),
   );
-
-  // Early return if no images - avoids all TS possibly-undefined issues
-  if (allImages.length === 0) {
-    return (
-      <div className={styles.gallery} role="region" aria-label={t('gallery')}>
-        <div className={styles.placeholder} aria-hidden="true">
-          <svg
-            className={styles.placeholderIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <p className={styles.placeholderText}>
-            {locale === 'es' ? 'Sin imágenes disponibles' : 'No images available'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const currentImage = allImages[mainIndex];
 
   // Keyboard navigation in fullscreen
   useEffect(() => {
@@ -71,12 +46,18 @@ export function PropertyGallery({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen, allImages.length]);
 
-  // Sync mainIndex with fullscreenIndex
+  // Sync mainIndex with fullscreenIndex - only run when both are truthy
   useEffect(() => {
-    if (isFullscreen) setMainIndex(fullscreenIndex);
-  }, [fullscreenIndex, isFullscreen]);
+    if (isFullscreen && fullscreenIndex !== mainIndex) {
+      setMainIndex(fullscreenIndex);
+    }
+  }, [fullscreenIndex, isFullscreen, mainIndex]);
 
-  if (fotos.length === 0) {
+  const hasImages = allImages.length > 0;
+  const currentImage = hasImages ? allImages[mainIndex] : null;
+
+  // Render placeholder when no images
+  if (!hasImages) {
     return (
       <div className={styles.gallery} role="region" aria-label={t('gallery')}>
         <div className={styles.placeholder} aria-hidden="true">
@@ -87,7 +68,7 @@ export function PropertyGallery({
             stroke="currentColor"
             strokeWidth="1.5"
           >
-            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 002-2v12a2 2 0 002 2z" />
           </svg>
           <p className={styles.placeholderText}>
             {locale === 'es' ? 'Sin imágenes disponibles' : 'No images available'}
@@ -149,12 +130,12 @@ export function PropertyGallery({
             </div>
           </div>
         ) : (
-          <>
+          <div>
             <Image
               src={currentImage!.src}
               alt={currentImage!.alt}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={styles.mainImg}
               priority={mainIndex === 0}
               onClick={() => setIsFullscreen(true)}
@@ -173,7 +154,7 @@ export function PropertyGallery({
                 </svg>
               </button>
             )}
-          </>
+          </div>
         )}
 
         {/* Thumbnails */}

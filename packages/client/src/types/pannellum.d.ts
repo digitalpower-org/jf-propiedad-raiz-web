@@ -23,13 +23,14 @@ declare module 'pannellum' {
     northOffset?: number;
     showControls?: boolean;
     orientationOnByDefault?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface Viewer {
     destroy(): void;
   }
 
-  function viewer(container: HTMLElement, options: ViewerOptions): Viewer;
-  export default { viewer };
+  const viewer: (container: HTMLElement, options: ViewerOptions) => { destroy: () => void };
+  export { viewer };
+  export default viewer;
 }
