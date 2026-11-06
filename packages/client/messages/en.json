@@ -3,13 +3,314 @@
     "title": "JF Propiedad Raíz"
   },
   "nav": {
-    "home": "Home"
+    "home": "Home",
+    "sale": "For Sale",
+    "rent": "For Rent",
+    "projects": "Projects",
+    "services": "Services",
+    "about": "About Us",
+    "contact": "Contact",
+    "consign": "List Your Property",
+    "login": "Admin Access"
   },
   "home": {
     "title": "Properties in the Aburrá Valley",
-    "intro": "Buy, sell and rent properties."
+    "intro": "Buy, sell and rent properties.",
+    "featured": "Featured",
+    "aboutExtract": "About us extract"
   },
   "localeSwitcher": {
     "switchTo": "View in Spanish"
+  },
+  "sale": {
+    "title": "Properties for Sale",
+    "empty": "No properties for sale at the moment."
+  },
+  "rent": {
+    "title": "Properties for Rent",
+    "empty": "No properties for rent at the moment."
+  },
+  "projects": {
+    "title": "Off-Plan Projects",
+    "empty": "No projects available at the moment."
+  },
+  "property": {
+    "details": "Property Details",
+    "features": "Features",
+    "amenities": "Amenities",
+    "pointsOfInterest": "Points of Interest",
+    "contactAgent": "Contact Agent",
+    "whatsappMessage": "Hello, I'm interested in property {codigo} - {titulo}. Could you provide more information?",
+    "price": "Price",
+    "area": "Area",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "parking": "Parking",
+    "stratum": "Stratum",
+    "age": "Age",
+    "builtArea": "Built Area",
+    "lotArea": "Lot Area",
+    "propertyTax": "Property Tax",
+    "adminFee": "Admin Fee",
+    "finishes": "Finishes",
+    "status": "Status",
+    "operation": "Operation",
+    "type": "Type",
+    "location": "Location",
+    "department": "Department",
+    "municipality": "Municipality",
+    "code": "Code",
+    "published": "Published",
+    "gallery": "Gallery",
+    "virtualTour": "360° Virtual Tour",
+    "videos": "Videos"
+  },
+  "search": {
+    "placeholder": "Search by type, location, price...",
+    "filters": "Filters",
+    "type": "Type",
+    "location": "Location",
+    "priceRange": "Price Range",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "featured": "Featured Only",
+    "apply": "Apply",
+    "clear": "Clear",
+    "results": "results",
+    "loading": "Loading...",
+    "loadMore": "Load More"
+  },
+  "privacy": {
+    "title": "Privacy Notice",
+    "lastUpdated": "Last updated: {date}",
+    "intro": "At JF Propiedad Raíz (hereinafter, \"the Company\"), we are committed to protecting the privacy of personal data of our users, clients, and visitors, in accordance with Law 1581 of 2012 (General Regime for Personal Data Protection), Decree 1377 of 2013, and other applicable regulations of the Republic of Colombia.",
+    "controller": {
+      "title": "1. Data Controller",
+      "content": "JF Propiedad Raíz, identified with NIT 900.000.000-0, with principal domicile in Medellín, Antioquia, Colombia. Email: privacy@jfpropiedadraiz.com"
+    },
+    "dataCollected": {
+      "title": "2. Personal Data We Collect",
+      "items": [
+        "Identification data: name, identity document, phone, email.",
+        "Location data: department, municipality of interest.",
+        "Preference data: property type, operation (sale/rent), price range.",
+        "Navigation data: IP address, browser type, pages visited, time spent (via cookies and similar technologies).",
+        "Contact data: information voluntarily provided when using contact, consignment, or subscription forms."
+      ]
+    },
+    "purpose": {
+      "title": "3. Purposes of Processing",
+      "items": [
+        "Manage information requests, quotes, and property visits.",
+        "Send commercial, promotional, and marketing communications about properties and services (with prior consent).",
+        "Improve user experience on our web platform.",
+        "Comply with legal, accounting, and tax obligations.",
+        "Handle inquiries, complaints, and claims (PQR).",
+        "Conduct anonymized statistical and market studies."
+      ]
+    },
+    "rights": {
+      "title": "4. Data Subject Rights",
+      "content": "As a data subject, you have the right to: (a) Know, update, and rectify your data; (b) Request proof of the authorization granted; (c) Be informed about the use of your data; (d) File complaints with the Superintendence of Industry and Commerce for violations; (e) Revoke authorization and/or request data deletion when principles, rights, and constitutional and legal guarantees are not respected; (f) Access your personal data that has been processed free of charge."
+    },
+    "exerciseRights": {
+      "title": "5. Exercising Your Rights",
+      "content": "To exercise your rights, you may contact us at privacy@jfpropiedadraiz.com or via written communication filed at our principal office. We will address your request within the terms established by law."
+    },
+    "security": {
+      "title": "6. Security Measures",
+      "content": "We implement reasonable technical, human, and administrative measures to protect your personal data against unauthorized access, loss, alteration, or disclosure, considering the nature of the data and the risks to which they are exposed."
+    },
+    "retention": {
+      "title": "7. Retention and Storage",
+      "content": "We will retain your personal data as long as necessary for the purposes described or while a legal or contractual obligation requires it. Once the purpose is fulfilled, the data will be securely deleted or anonymized."
+    },
+    "changes": {
+      "title": "8. Changes to This Notice",
+      "content": "Any material modification to this Privacy Notice will be communicated through our website and, when possible, by email. We recommend reviewing this page periodically."
+    },
+    "contact": {
+      "title": "9. Contact",
+      "content": "For inquiries about this Privacy Notice or the processing of your data, please write to: privacy@jfpropiedadraiz.com"
+    }
+  },
+  "dataProcessing": {
+    "title": "Personal Data Processing Policy",
+    "lastUpdated": "Last updated: {date}",
+    "intro": "This Personal Data Processing Policy (hereinafter, \"the Policy\") establishes the guidelines under which JF Propiedad Raíz performs the collection, storage, use, circulation, and deletion of personal data, in compliance with Law 1581 of 2012, Decree 1377 of 2013, and External Circular 002 of 2015 of the Superintendence of Industry and Commerce.",
+    "principles": {
+      "title": "1. Governing Principles",
+      "items": [
+        "Legality: Processing in accordance with the law.",
+        "Purpose: Processing for legitimate and informed purposes.",
+        "Freedom: Processing only with prior, express, and informed consent.",
+        "Veracity or Quality: Data that is truthful, complete, accurate, updated, and verifiable.",
+        "Transparency: Right of the data subject to obtain information about their data.",
+        "Access and Restricted Circulation: Processing only by authorized personnel.",
+        "Security: Technical and administrative measures to protect information.",
+        "Confidentiality: Duty of reserve regarding personal information."
+      ]
+    },
+    "authorization": {
+      "title": "2. Consent",
+      "content": "The processing of personal data requires the prior, express, and informed consent of the data subject, except for legal exceptions (public data, medical or health emergencies, information required by a public entity in the exercise of its functions). Consent is obtained through physical, electronic, or any other mechanisms that guarantee its subsequent consultation."
+    },
+    "duties": {
+      "title": "3. Company Duties as Controller",
+      "items": [
+        "Guarantee the data subject the exercise of their rights (know, update, rectify, delete, revoke).",
+        "Request and retain a copy of the granted consent.",
+        "Properly inform the data subject about the purpose of collection and their rights.",
+        "Rectify information when incorrect and communicate pertinent changes to the Processor.",
+        "Handle inquiries and claims within the terms established by law.",
+        "Adopt an internal manual of policies and procedures for data processing.",
+        "Inform the Superintendence of Industry and Commerce about security incidents compromising personal data."
+      ]
+    },
+    "internationalTransfer": {
+      "title": "4. International Data Transfer and Transmission",
+      "content": "In case of international transfer of personal data, the Company will ensure that the receiving country provides adequate levels of protection or that approved standard contractual clauses exist, in accordance with Decree 1377 of 2013 and current regulations."
+    },
+    "children": {
+      "title": "5. Processing of Children's and Adolescents' Data",
+      "content": "The Company does not intentionally collect personal data from minors. If it is detected that data from a minor has been collected without authorization from their legal representative, we will proceed to immediate deletion."
+    },
+    "contact": {
+      "title": "6. Responsible Area and Contact",
+      "content": "The area responsible for data protection is Management / Direction. For inquiries, claims, or exercise of rights: privacy@jfpropiedadraiz.com"
+    }
+  },
+  "terms": {
+    "title": "Terms and Conditions of Use",
+    "lastUpdated": "Last updated: {date}",
+    "intro": "By accessing and using the website jfpropiedadraiz.com (hereinafter, \"the Site\"), you (hereinafter, \"the User\") agree to comply with and be bound by these Terms and Conditions of Use (hereinafter, \"the Terms\"). If you do not agree, please do not use the Site.",
+    "use": {
+      "title": "1. Use of the Site",
+      "items": [
+        "The Site's purpose is the publication, search, and consultation of properties for sale, rent, and off-plan projects in the Aburrá Valley and surrounding areas.",
+        "The User agrees to make lawful, diligent, and honest use of the Site, refraining from acts that may damage, disable, overload, or impair the systems.",
+        "The use of robots, spiders, scrapers, or other automated means to extract information from the Site without prior written authorization is prohibited."
+      ]
+    },
+    "content": {
+      "title": "2. Content and Information",
+      "content": "Property information (prices, features, availability, photos, videos, virtual tours) is provided by owners or their representatives and is their sole responsibility. JF Propiedad Raíz acts as a technological intermediary and does not guarantee the accuracy, currency, or exhaustiveness of such information. Prices are expressed in Colombian pesos (COP) and are subject to change without prior notice."
+    },
+    "ip": {
+      "title": "3. Intellectual Property",
+      "content": "All Site contents (texts, images, logos, trademarks, code, design, structure) are property of JF Propiedad Raíz or third parties who have authorized their use, and are protected by intellectual and industrial property laws. Reproduction, distribution, public communication, or transformation without written authorization is prohibited."
+    },
+    "links": {
+      "title": "4. Third-Party Links",
+      "content": "The Site may contain links to third-party websites (WhatsApp, YouTube, payment gateways, maps). JF Propiedad Raíz does not control and is not responsible for the content, privacy policies, or practices of such sites. Access to them is at the User's sole risk."
+    },
+    "liability": {
+      "title": "5. Limitation of Liability",
+      "items": [
+        "JF Propiedad Raíz shall not be liable for direct, indirect, incidental, consequential, or punitive damages arising from the use or inability to use the Site.",
+        "We do not guarantee that the Site is free from errors, viruses, or other harmful components, nor that access will be uninterrupted or secure.",
+        "Property information is for reference only; the decision to buy, rent, or consign is the User's sole responsibility."
+      ]
+    },
+    "modifications": {
+      "title": "6. Modifications",
+      "content": "JF Propiedad Raíz reserves the right to modify these Terms at any time. Modifications shall take effect upon publication on the Site. Continued use of the Site implies acceptance of the modified Terms."
+    },
+    "law": {
+      "title": "7. Governing Law and Jurisdiction",
+      "content": "These Terms are governed by the laws of the Republic of Colombia. Any dispute arising from their interpretation or execution shall be submitted to the jurisdiction of the courts of Medellín, Antioquia, with express waiver of any other venue."
+    },
+    "contact": {
+      "title": "8. Contact",
+      "content": "For inquiries about these Terms: legal@jfpropiedadraiz.com"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error loading",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clearFilters": "Clear filters",
+    "noResults": "No results found",
+    "dateFormat": "MM/DD/YYYY",
+    "currency": "COP"
+  },
+  "about": {
+    "title": "About Us",
+    "extracto": "JF PROPIEDAD RAÍZ SAS is a company founded in 2018 in Rionegro, Antioquia, dedicated to providing comprehensive solutions in the real estate and engineering sectors. We stand out for offering a service based on human quality, ethics, transparency, and personalized attention, building trust relationships and accompanying our clients at every stage of their projects.",
+    "sections": [
+      {
+        "id": "who-we-are",
+        "titulo": "Who We Are",
+        "cuerpo": "JF PROPIEDAD RAÍZ SAS is a company founded in 2018 in Rionegro, Antioquia, dedicated to providing comprehensive solutions in the real estate and engineering sectors. We specialize in the sale and rental of all types of properties, as well as the provision of technical and professional services related to construction, architecture, and engineering.\n\nWe distinguish ourselves by offering a service based on human quality, ethics, transparency, and personalized attention, building trust relationships and accompanying our clients at every stage of their projects.\n\nOur commitment is to provide efficient, safe, and quality solutions, always working with responsibility, professionalism, and passion for what we do."
+      },
+      {
+        "id": "mission",
+        "titulo": "Mission",
+        "cuerpo": "To provide comprehensive solutions in the real estate and engineering sectors, offering sales, rental, construction, and technical advisory services with high standards of quality, ethics, and responsibility.\n\nWe work to satisfy our clients' needs through close, personalized attention based on trust, respect, and commitment, contributing to the development and well-being of people and our region."
+      },
+      {
+        "id": "vision",
+        "titulo": "Vision",
+        "cuerpo": "By 2030, to be a recognized and positioned company in Eastern Antioquia and at the regional level for its excellence in real estate and engineering services, standing out for our human quality, transparency, innovation, and commitment to our clients.\n\nWe seek to grow sustainably, expand our service portfolio, and consolidate ourselves as a benchmark company, where trust, ethics, and client satisfaction are always our top priority."
+      },
+      {
+        "id": "values",
+        "titulo": "Our Corporate Values",
+        "cuerpo": "Human Quality: We are characterized by treating each client with respect, empathy, kindness, and warmth.\n\nEthics and Transparency: We act with honesty, integrity, and responsibility in every negotiation and project.\n\nCustomer Service: We listen to and understand our clients' needs to provide timely and personalized solutions.\n\nQuality and Excellence: We work with professionalism and dedication to guarantee results that exceed expectations.\n\nCommitment and Trust: We build lasting relationships, fulfilling our responsibilities and backing our clients."
+      },
+      {
+        "id": "commitment",
+        "titulo": "Our Commitment",
+        "cuerpo": "At JF PROPIEDAD RAÍZ SAS we believe that behind every property, construction, or project there is a dream, a need, and a story. That is why, more than offering real estate and engineering services, we offer accompaniment, trust, and comprehensive solutions.\n\nWe work with responsibility, we build trust, and we make your projects a reality."
+      }
+    ],
+    "equipo": [
+      {
+        "id": "founder",
+        "nombre": "Juan Fernando",
+        "cargo": "Founder and General Manager",
+        "descripcion": "With over 15 years of experience in the real estate and construction sectors, he leads the strategic vision and development of comprehensive projects.",
+        "foto": null
+      }
+    ],
+    "lastUpdated": "Last updated: {date}"
+  },
+  "admin": {
+    "login": {
+      "title": "Admin Panel Access",
+      "email": "Email",
+      "password": "Password",
+      "emailPlaceholder": "admin@example.com",
+      "passwordPlaceholder": "••••••••",
+      "signIn": "Sign In",
+      "signInWithGoogle": "Continue with Google",
+      "or": "or",
+      "forgotPassword": "Forgot your password?",
+      "invalidCredentials": "Invalid credentials. Check your email and password.",
+      "userNotFound": "User not found.",
+      "genericError": "Sign in error. Please try again.",
+      "signingIn": "Signing in..."
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "properties": "Properties",
+      "services": "Services",
+      "about": "About Us",
+      "contact": "Contact",
+      "logout": "Logout"
+    }
   }
 }

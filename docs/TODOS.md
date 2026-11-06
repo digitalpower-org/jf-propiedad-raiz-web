@@ -90,8 +90,8 @@
   - [ ] US7.1 `[D2]` Interfaz Mobile First
   - [ ] US7.3 `[D2]` Imágenes y multimedia bajo demanda
   - [ ] US7.4 `[D2]` (cliente) API y caché eficientes
-- [ ] **MT3.2** `[D2]` Páginas legales (adelantadas a Ola 2) ← MT0.4, MT1.4
-  - [ ] US5.3 `[D2]` Aviso de privacidad, tratamiento de datos y términos
+- [x] **MT3.2** `[D2]` Páginas legales (adelantadas a Ola 2) ← MT0.4, MT1.4
+  - [x] US5.3 `[D2]` Aviso de privacidad, tratamiento de datos y términos
 
 ---
 

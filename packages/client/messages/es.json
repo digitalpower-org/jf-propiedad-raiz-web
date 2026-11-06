@@ -3,13 +3,314 @@
     "title": "JF Propiedad Raíz"
   },
   "nav": {
-    "home": "Inicio"
+    "home": "Inicio",
+    "sale": "Venta",
+    "rent": "Alquiler",
+    "projects": "Proyectos",
+    "services": "Servicios",
+    "about": "Nosotros",
+    "contact": "Contacto",
+    "consign": "Consigne su propiedad",
+    "login": "Acceso administrador"
   },
   "home": {
     "title": "Inmuebles en el Valle de Aburrá",
-    "intro": "Compra, venta y alquiler de propiedades."
+    "intro": "Compra, venta y alquiler de propiedades.",
+    "featured": "Destacados",
+    "aboutExtract": "Extracto de nosotros"
   },
   "localeSwitcher": {
     "switchTo": "Ver en inglés"
+  },
+  "sale": {
+    "title": "Inmuebles en venta",
+    "empty": "No hay inmuebles en venta en este momento."
+  },
+  "rent": {
+    "title": "Inmuebles en alquiler",
+    "empty": "No hay inmuebles en alquiler en este momento."
+  },
+  "projects": {
+    "title": "Proyectos sobre planos",
+    "empty": "No hay proyectos disponibles en este momento."
+  },
+  "property": {
+    "details": "Detalles de la propiedad",
+    "features": "Características",
+    "amenities": "Amenidades",
+    "pointsOfInterest": "Puntos de interés",
+    "contactAgent": "Contactar agente",
+    "whatsappMessage": "Hola, me interesa la propiedad {codigo} - {titulo}. ¿Podrían darme más información?",
+    "price": "Precio",
+    "area": "Área",
+    "bedrooms": "Habitaciones",
+    "bathrooms": "Baños",
+    "parking": "Parqueaderos",
+    "stratum": "Estrato",
+    "age": "Antigüedad",
+    "builtArea": "Área construida",
+    "lotArea": "Área lote",
+    "propertyTax": "Predial",
+    "adminFee": "Administración",
+    "finishes": "Acabados",
+    "status": "Estado",
+    "operation": "Operación",
+    "type": "Tipo",
+    "location": "Ubicación",
+    "department": "Departamento",
+    "municipality": "Municipio",
+    "code": "Código",
+    "published": "Publicado",
+    "gallery": "Galería",
+    "virtualTour": "Tour virtual 360°",
+    "videos": "Videos"
+  },
+  "search": {
+    "placeholder": "Buscar por tipo, ubicación, precio...",
+    "filters": "Filtros",
+    "type": "Tipo",
+    "location": "Ubicación",
+    "priceRange": "Rango de precio",
+    "minPrice": "Precio mínimo",
+    "maxPrice": "Precio máximo",
+    "featured": "Solo destacados",
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "results": "resultados",
+    "loading": "Cargando...",
+    "loadMore": "Cargar más"
+  },
+  "privacy": {
+    "title": "Aviso de Privacidad",
+    "lastUpdated": "Última actualización: {date}",
+    "intro": "En JF Propiedad Raíz (en adelante, «la Empresa»), nos comprometemos a proteger la privacidad de los datos personales de nuestros usuarios, clientes y visitantes, de conformidad con la Ley 1581 de 2012 (Régimen General de Protección de Datos Personales), el Decreto 1377 de 2013 y las demás normas concordantes de la República de Colombia.",
+    "controller": {
+      "title": "1. Responsable del Tratamiento",
+      "content": "JF Propiedad Raíz, identificada con NIT 900.000.000-0, con domicilio principal en Medellín, Antioquia, Colombia. Correo electrónico: privacidad@jfpropiedadraiz.com"
+    },
+    "dataCollected": {
+      "title": "2. Datos Personales que Recolectamos",
+      "items": [
+        "Datos de identificación: nombre, documento de identidad, teléfono, correo electrónico.",
+        "Datos de ubicación: departamento, municipio de interés.",
+        "Datos de preferencias: tipo de inmueble, operación (venta/alquiler), rango de precio.",
+        "Datos de navegación: dirección IP, tipo de navegador, páginas visitadas, tiempo de permanencia (mediante cookies y tecnologías similares).",
+        "Datos de contacto: información proporcionada voluntariamente al usar formularios de contacto, consignación o suscripción."
+      ]
+    },
+    "purpose": {
+      "title": "3. Finalidades del Tratamiento",
+      "items": [
+        "Gestionar solicitudes de información, cotizaciones y visitas a inmuebles.",
+        "Enviar comunicaciones comerciales, promocionales y de marketing sobre propiedades y servicios (previa autorización).",
+        "Mejorar la experiencia de usuario en nuestra plataforma web.",
+        "Cumplir obligaciones legales, contables y tributarias.",
+        "Atender consultas, quejas y reclamos (PQR).",
+        "Realizar estudios estadísticos y de mercado anonimizados."
+      ]
+    },
+    "rights": {
+      "title": "4. Derechos del Titular",
+      "content": "Como titular de sus datos personales, usted tiene derecho a: (a) Conocer, actualizar y rectificar sus datos; (b) Solicitar prueba de la autorización otorgada; (c) Ser informado sobre el uso de sus datos; (d) Presentar ante la Superintendencia de Industria y Comercio quejas por infracciones; (e) Revocar la autorización y/o solicitar la supresión del dato cuando no se respeten los principios, derechos y garantías constitucionales y legales; (f) Acceder en forma gratuita a sus datos personales que hayan sido objeto de tratamiento."
+    },
+    "exerciseRights": {
+      "title": "5. Ejercicio de Derechos",
+      "content": "Para ejercer sus derechos, puede contactarnos a través del correo electrónico privacidad@jfpropiedadraiz.com o mediante comunicación escrita radicada en nuestra sede principal. Atenderemos su solicitud en los términos establecidos por la ley."
+    },
+    "security": {
+      "title": "6. Medidas de Seguridad",
+      "content": "Implementamos medidas técnicas, humanas y administrativas razonables para proteger sus datos personales contra acceso no autorizado, pérdida, alteración o divulgación, considerando la naturaleza de los datos y los riesgos a los que están expuestos."
+    },
+    "retention": {
+      "title": "7. Vigencia y Conservación",
+      "content": "Conservaremos sus datos personales mientras sean necesarios para las finalidades descritas o mientras exista una obligación legal o contractual que lo exija. Una vez cumplida la finalidad, los datos serán suprimidos o anonimizados de forma segura."
+    },
+    "changes": {
+      "title": "8. Cambios al Aviso",
+      "content": "Cualquier modificación sustancial a este Aviso de Privacidad será comunicada a través de nuestra página web y, cuando sea posible, por correo electrónico. Le recomendamos revisar periódicamente esta página."
+    },
+    "contact": {
+      "title": "9. Contacto",
+      "content": "Para consultas sobre este Aviso de Privacidad o el tratamiento de sus datos, puede escribir a: privacidad@jfpropiedadraiz.com"
+    }
+  },
+  "dataProcessing": {
+    "title": "Política de Tratamiento de Datos Personales",
+    "lastUpdated": "Última actualización: {date}",
+    "intro": "La presente Política de Tratamiento de Datos Personales (en adelante, «la Política») establece los lineamientos bajo los cuales JF Propiedad Raíz realiza la recolección, almacenamiento, uso, circulación y supresión de datos personales, en cumplimiento de la Ley 1581 de 2012, el Decreto 1377 de 2013 y la Circular Externa 002 de 2015 de la Superintendencia de Industria y Comercio.",
+    "principles": {
+      "title": "1. Principios Rectores",
+      "items": [
+        "Legalidad: Tratamiento conforme a la ley.",
+        "Finalidad: Tratamiento para fines legítimos e informados.",
+        "Libertad: Tratamiento solo con autorización previa, expresa e informada.",
+        "Veracidad o Calidad: Datos veraces, completos, exactos, actualizados y comprobables.",
+        "Transparencia: Derecho del titular a obtener información sobre sus datos.",
+        "Acceso y Circulación Restringida: Tratamiento solo por personal autorizado.",
+        "Seguridad: Medidas técnicas y administrativas para proteger la información.",
+        "Confidencialidad: Deber de reserva sobre la información personal."
+      ]
+    },
+    "authorization": {
+      "title": "2. Autorización",
+      "content": "El tratamiento de datos personales requiere la autorización previa, expresa e informada del titular, salvo las excepciones legales (datos de naturaleza pública, casos de urgencia médica o sanitaria, información requerida por entidad pública en ejercicio de sus funciones). La autorización se obtiene mediante mecanismos físicos, electrónicos o cualquier otro que permita garantizar su posterior consulta."
+    },
+    "duties": {
+      "title": "3. Deberes de la Empresa como Responsable",
+      "items": [
+        "Garantizar al titular el ejercicio de sus derechos (conocer, actualizar, rectificar, suprimir, revocar).",
+        "Solicitar y conservar copia de la autorización otorgada.",
+        "Informar debidamente al titular sobre la finalidad de la recolección y sus derechos.",
+        "Rectificar la información cuando sea incorrecta y comunicar lo pertinente al Encargado del Tratamiento.",
+        "Tramitar consultas y reclamos en los términos señalados en la ley.",
+        "Adoptar manual interno de políticas y procedimientos para el tratamiento de datos.",
+        "Informar a la Superintendencia de Industria y Comercio sobre incidentes de seguridad que comprometan datos personales."
+      ]
+    },
+    "internationalTransfer": {
+      "title": "4. Transferencia y Transmisión Internacional de Datos",
+      "content": "En caso de transferencia internacional de datos personales, la Empresa garantizará que el país receptor brinde niveles adecuados de protección o que existan cláusulas contractuales tipo aprobadas, de conformidad con lo establecido en el Decreto 1377 de 2013 y la normativa vigente."
+    },
+    "children": {
+      "title": "5. Tratamiento de Datos de Niños, Niñas y Adolescentes",
+      "content": "La Empresa no recolecta intencionalmente datos personales de menores de edad. En caso de detectar que se han recolectado datos de un menor sin autorización de su representante legal, procederemos a su supresión inmediata."
+    },
+    "contact": {
+      "title": "6. Área Responsable y Contacto",
+      "content": "El área responsable de la protección de datos es Gerencia / Dirección. Para consultas, reclamos o ejercicio de derechos: privacidad@jfpropiedadraiz.com"
+    }
+  },
+  "terms": {
+    "title": "Términos y Condiciones de Uso",
+    "lastUpdated": "Última actualización: {date}",
+    "intro": "Al acceder y utilizar el sitio web jfpropiedadraiz.com (en adelante, «el Sitio»), usted (en adelante, «el Usuario») acepta cumplir y estar sujeto a los presentes Términos y Condiciones de Uso (en adelante, «los Términos»). Si no está de acuerdo, le rogamos no utilice el Sitio.",
+    "use": {
+      "title": "1. Uso del Sitio",
+      "items": [
+        "El Sitio tiene por finalidad la publicación, búsqueda y consulta de inmuebles en venta, alquiler y proyectos sobre planos en el Valle de Aburrá y zonas aledañas.",
+        "El Usuario se compromete a hacer un uso lícito, diligente y honesto del Sitio, absteniéndose de realizar actos que puedan dañar, inutilizar, sobrecargar o deteriorar los sistemas.",
+        "Queda prohibido el uso de robots, spiders, scrapers u otros medios automatizados para extraer información del Sitio sin autorización escrita previa."
+      ]
+    },
+    "content": {
+      "title": "2. Contenido e Información",
+      "content": "La información de los inmuebles (precios, características, disponibilidad, fotos, videos, tours virtuales) es proporcionada por los propietarios o sus representantes y es de su exclusiva responsabilidad. JF Propiedad Raíz actúa como intermediario tecnológico y no garantiza la exactitud, vigencia ni exhaustividad de dicha información. Los precios se expresan en pesos colombianos (COP) y están sujetos a cambio sin previo aviso."
+    },
+    "ip": {
+      "title": "3. Propiedad Intelectual",
+      "content": "Todos los contenidos del Sitio (textos, imágenes, logotipos, marcas, código, diseño, estructura) son propiedad de JF Propiedad Raíz o de terceros que han autorizado su uso, y están protegidos por las leyes de propiedad intelectual e industrial. Queda prohibida su reproducción, distribución, comunicación pública o transformación sin autorización escrita."
+    },
+    "links": {
+      "title": "4. Enlaces a Terceros",
+      "content": "El Sitio puede contener enlaces a sitios web de terceros (WhatsApp, YouTube, pasarelas de pago, mapas). JF Propiedad Raíz no controla ni se responsabiliza por el contenido, políticas de privacidad o prácticas de dichos sitios. El acceso a ellos es bajo exclusiva responsabilidad del Usuario."
+    },
+    "liability": {
+      "title": "5. Limitación de Responsabilidad",
+      "items": [
+        "JF Propiedad Raíz no será responsable por daños directos, indirectos, incidentales, consecuentes o punitivos derivados del uso o imposibilidad de usar el Sitio.",
+        "No garantizamos que el Sitio esté libre de errores, virus u otros componentes dañinos, ni que el acceso sea ininterrumpido o seguro.",
+        "La información de inmuebles es referencial; la decisión de compra, alquiler o consignación es responsabilidad exclusiva del Usuario."
+      ]
+    },
+    "modifications": {
+      "title": "6. Modificaciones",
+      "content": "JF Propiedad Raíz se reserva el derecho de modificar los presentes Términos en cualquier momento. Las modificaciones entrarán en vigor desde su publicación en el Sitio. El uso continuado del Sitio implica la aceptación de los Términos modificados."
+    },
+    "law": {
+      "title": "7. Ley Aplicable y Jurisdicción",
+      "content": "Los presentes Términos se rigen por las leyes de la República de Colombia. Cualquier controversia derivada de su interpretación o ejecución se someterá a la jurisdicción de los jueces de Medellín, Antioquia, con renuncia expresa a cualquier otro fuero."
+    },
+    "contact": {
+      "title": "8. Contacto",
+      "content": "Para consultas sobre estos Términos: legal@jfpropiedadraiz.com"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error al cargar",
+    "retry": "Reintentar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "clearFilters": "Limpiar filtros",
+    "noResults": "No se encontraron resultados",
+    "dateFormat": "DD/MM/YYYY",
+    "currency": "COP"
+  },
+  "about": {
+    "title": "Nosotros",
+    "extracto": "JF PROPIEDAD RAÍZ SAS es una empresa fundada en 2018 en Rionegro, Antioquia, dedicada a brindar soluciones integrales en el sector inmobiliario y de ingeniería. Nos distinguimos por ofrecer un servicio basado en la calidad humana, la ética, la transparencia y la atención personalizada, construyendo relaciones de confianza y acompañando a nuestros clientes en cada etapa de sus proyectos.",
+    "sections": [
+      {
+        "id": "quienes-somos",
+        "titulo": "¿Quiénes somos?",
+        "cuerpo": "JF PROPIEDAD RAÍZ SAS es una empresa fundada en 2018 en Rionegro, Antioquia, dedicada a brindar soluciones integrales en el sector inmobiliario y de ingeniería. Nos especializamos en la venta y alquiler de todo tipo de propiedades, así como en la prestación de servicios técnicos y profesionales relacionados con la construcción, arquitectura e ingeniería.\n\nNos distinguimos por ofrecer un servicio basado en la calidad humana, la ética, la transparencia y la atención personalizada, construyendo relaciones de confianza y acompañando a nuestros clientes en cada etapa de sus proyectos.\n\nNuestro compromiso es brindar soluciones eficientes, seguras y de calidad, trabajando siempre con responsabilidad, profesionalismo y pasión por lo que hacemos."
+      },
+      {
+        "id": "mision",
+        "titulo": "Misión",
+        "cuerpo": "Brindar soluciones integrales en el sector inmobiliario y de ingeniería, ofreciendo servicios de venta, alquiler, construcción y asesoría técnica, con altos estándares de calidad, ética y responsabilidad.\n\nTrabajamos para satisfacer las necesidades de nuestros clientes mediante una atención cercana y personalizada, basada en la confianza, el respeto y el compromiso, contribuyendo al desarrollo y bienestar de las personas y de nuestra región."
+      },
+      {
+        "id": "vision",
+        "titulo": "Visión",
+        "cuerpo": "Para el año 2030, ser una empresa reconocida y posicionada en el Oriente Antioqueño y a nivel regional por su excelencia en servicios inmobiliarios y de ingeniería, destacándonos por nuestra calidad humana, transparencia, innovación y compromiso con nuestros clientes.\n\nBuscamos crecer de manera sostenible, ampliar nuestro portafolio de servicios y consolidarnos como una empresa referente, donde la confianza, la ética y la satisfacción de nuestros clientes sean siempre nuestra mayor prioridad."
+      },
+      {
+        "id": "valores",
+        "titulo": "Nuestros valores corporativos",
+        "cuerpo": "Calidad humana: Nos caracterizamos por tratar a cada cliente con respeto, empatía, amabilidad y calidez.\n\nÉtica y transparencia: Actuamos con honestidad, integridad y responsabilidad en cada negociación y proyecto.\n\nServicio al cliente: Escuchamos y comprendemos las necesidades de nuestros clientes para brindar soluciones oportunas y personalizadas.\n\nCalidad y excelencia: Trabajamos con profesionalismo y dedicación para garantizar resultados que superen las expectativas.\n\nCompromiso y confianza: Construimos relaciones duraderas, cumpliendo nuestras responsabilidades y respaldando a nuestros clientes."
+      },
+      {
+        "id": "compromiso",
+        "titulo": "Nuestro compromiso",
+        "cuerpo": "En JF PROPIEDAD RAÍZ SAS creemos que detrás de cada inmueble, construcción o proyecto existe un sueño, una necesidad y una historia. Por eso, más que ofrecer servicios inmobiliarios y de ingeniería, ofrecemos acompañamiento, confianza y soluciones integrales.\n\n¡Trabajamos con responsabilidad, construimos confianza y hacemos realidad tus proyectos."
+      }
+    ],
+    "equipo": [
+      {
+        "id": "fundador",
+        "nombre": "Juan Fernando",
+        "cargo": "Fundador y Gerente General",
+        "descripcion": "Con más de 15 años de experiencia en el sector inmobiliario y de construcción, lidera la visión estratégica y el desarrollo de proyectos integrales.",
+        "foto": null
+      }
+    ],
+    "lastUpdated": "Última actualización: {date}"
+  },
+  "admin": {
+    "login": {
+      "title": "Acceso al panel de administración",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "emailPlaceholder": "admin@ejemplo.com",
+      "passwordPlaceholder": "••••••••",
+      "signIn": "Iniciar sesión",
+      "signInWithGoogle": "Continuar con Google",
+      "or": "o",
+      "forgotPassword": "¿Olvidó su contraseña?",
+      "invalidCredentials": "Credenciales inválidas. Verifique su correo y contraseña.",
+      "userNotFound": "Usuario no encontrado.",
+      "genericError": "Error al iniciar sesión. Intente nuevamente.",
+      "signingIn": "Iniciando sesión..."
+    },
+    "dashboard": {
+      "title": "Panel de administración",
+      "properties": "Inmuebles",
+      "services": "Servicios",
+      "about": "Nosotros",
+      "contact": "Contacto",
+      "logout": "Cerrar sesión"
+    }
   }
 }
