@@ -6,10 +6,9 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  getAuth,
   UserCredential,
 } from 'firebase/auth';
-import { firebaseApp, firebaseAuth } from '../../../../lib/firebase-client';
+import { getFirebaseAuth } from '../../../../lib/firebase-client';
 import { useRouter, useParams } from 'next/navigation';
 
 function validateEmail(value: string) {
@@ -58,8 +57,9 @@ export default function AdminLogin() {
   const handleEmailSignIn = async (values: { email: string; password: string }) => {
     setIsLoading(true);
     try {
+      const auth = getFirebaseAuth();
       const userCredential: UserCredential = await signInWithEmailAndPassword(
-        firebaseAuth,
+        auth,
         values.email,
         values.password,
       );
@@ -86,7 +86,7 @@ export default function AdminLogin() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      const auth = getAuth(firebaseApp);
+      const auth = getFirebaseAuth();
       await signInWithPopup(auth, new GoogleAuthProvider());
       // AuthProvider handles redirect after token change
     } catch (error) {

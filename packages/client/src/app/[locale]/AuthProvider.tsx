@@ -1,13 +1,13 @@
 'use client';
 import React, { ReactNode, useEffect } from 'react';
-import { getAuth, onIdTokenChanged } from 'firebase/auth';
-import { firebaseApp } from '../../lib/firebase-client';
+import { onIdTokenChanged } from 'firebase/auth';
+import { getFirebaseAuth } from '../../lib/firebase-client';
 import { renewSession } from '../../lib/auth-session';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
-      const auth = getAuth(firebaseApp);
+      const auth = getFirebaseAuth();
       const unsub = onIdTokenChanged(auth, async (user) => {
         if (user) {
           try {
