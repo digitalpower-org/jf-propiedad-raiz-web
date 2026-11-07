@@ -9,6 +9,7 @@
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": false,
+    "types": [],
     "noEmit": true
   },
   "include": ["src/**/*.d.ts"]
