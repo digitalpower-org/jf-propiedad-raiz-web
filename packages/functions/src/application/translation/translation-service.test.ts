@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createFakeTranslator } from '../../infrastructure/Translator/fake-translator';
+import { createFakeTranslator } from '../../infrastructure/translation/fake-translator';
 import { TranslationService } from './translation-service';
-import { NoopLogger } from '../../infrastructure/logging/logger';
+import { NoopLogger } from '../../infrastructure/logging/noop-logger';
 
 describe('TranslationService (US0.5)', () => {
   const makeDeps = (translatorOverride?: {

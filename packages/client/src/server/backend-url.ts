@@ -3,9 +3,9 @@
  *
  * Tanto el emulador como producción montan cada función exportada bajo
  * `<base>/<functionName>`, donde `<base>` es solo proyecto + región
- * (p. ej. `http://127.0.0.1:5001/jf-propiedad-raiz/us-central1`). Por eso el
- * nombre de la función exportada debe formar parte de la URL final:
- * `.../us-central1/internalAuth/internal/auth/verify`, nunca
+ * (p. ej. `http://127.0.0.1:5001/jf-propiedad-raiz/us-central1`). Todo el
+ * backend vive en la única función exportada `api`, por lo que la URL final es
+ * `.../us-central1/api/internal/auth/verify`, nunca
  * `.../us-central1/internal/auth/verify` (esto último devuelve 404).
  */
 
@@ -13,11 +13,9 @@ import { functionsBaseUrl } from '@/server/config/server-config';
 
 /** Prefijo del path interno → función Cloud Functions exportada que lo atiende. */
 const FUNCTION_BY_PREFIX = [
-  { prefix: '/internal/', functionName: 'internalAuth' },
-  // PROVISIONAL: la función `api` aún no existe en `packages/functions/src/index.ts`.
-  // Se deja el mapeo explícito para cuando se cree; hasta entonces estas rutas
-  // fallarán en el emulador con 404 (comportamiento esperado, no silencioso).
+  { prefix: '/internal/', functionName: 'api' },
   { prefix: '/api/v1/', functionName: 'api' },
+  { prefix: '/health', functionName: 'api' },
 ] as const;
 
 const base = functionsBaseUrl.replace(/\/+$/, '');
@@ -40,13 +38,4 @@ export function backendUrl(internalPath: string): string {
   }
 
   return `${base}/${mapping.functionName}${internalPath}`;
-}
-
-/**
- * Construye la URL de una función concreta sin prefijo de path interno
- * (p. ej. `backendUrlForFunction('health')` → `<base>/health`).
- */
-export function backendUrlForFunction(functionName: string, subPath = ''): string {
-  const suffix = subPath === '' ? '' : `/${subPath.replace(/^\/+/, '')}`;
-  return `${base}/${functionName}${suffix}`;
 }
