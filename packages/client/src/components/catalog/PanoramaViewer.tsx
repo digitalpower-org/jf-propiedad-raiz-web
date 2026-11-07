@@ -55,7 +55,7 @@ export function PanoramaViewer({ panoramas, locale }: PanoramaViewerProps) {
 
     const bestDerivative = panorama.derivados.reduce<DerivadoImagen>(
       (best, current) => (current.ancho > best.ancho ? current : best),
-      panorama.derivados[0]!
+      panorama.derivados[0]!,
     );
 
     const panoramaUrl = `/${bestDerivative.clave}`;
