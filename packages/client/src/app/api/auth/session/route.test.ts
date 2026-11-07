@@ -87,7 +87,7 @@ describe('POST /api/auth/session — canje de sesión', () => {
 
     // 3.1: llamó a functionsBaseUrl + nombre de función, no a request.url
     const call = fetchMock.mock.calls[0];
-    expect(call?.[0]).toBe('https://functions.test/internalAuth/internal/auth/verify');
+    expect(call?.[0]).toBe('https://functions.test/api/internal/auth/verify');
     const headers = new Headers(call?.[1]?.headers);
     expect(headers.get('x-internal-key')).toBe(INTERNAL_KEY);
     expect(headers.get('content-type')).toBe('application/json');

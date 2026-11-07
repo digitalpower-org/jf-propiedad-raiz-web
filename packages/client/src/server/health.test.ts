@@ -94,6 +94,10 @@ describe('health — lógica pura', () => {
       expect(result.latencyMs).toBeDefined();
       expect(result.latencyMs).toBeGreaterThanOrEqual(0);
       expect(result.error).toBeUndefined();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://127.0.0.1:5001/jf-propiedad-raiz/us-central1/api/health',
+        expect.objectContaining({ method: 'GET' }),
+      );
     });
 
     it('resuelve error con HTTP 500', async () => {

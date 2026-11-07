@@ -1,11 +1,10 @@
-// RevalidateContent tests (5.4)
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RevalidationClient } from '../../infrastructure/revalidation/revalidation-client';
+
+import type { RevalidationGateway } from '../ports/revalidation-gateway';
 import { RevalidateContent } from './revalidate-content';
 
 const mockLogger = {
-  requestId: 'test-123',
+  debug: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
@@ -13,15 +12,10 @@ const mockLogger = {
 
 const mockRevalidate = vi.fn();
 
-const makeClient = (): RevalidationClient => {
-  const client = {
-    revalidate: mockRevalidate,
-  } as unknown as RevalidationClient;
-  return client;
-};
+const makeGateway = (): RevalidationGateway => ({ revalidate: mockRevalidate });
 
 const makeDeps = () => ({
-  client: makeClient(),
+  gateway: makeGateway(),
   logger: mockLogger,
 });
 
@@ -36,8 +30,8 @@ describe('RevalidateContent (5.4)', () => {
   });
 
   it('propiedades mapea a paths y tags de listado + destacados', async () => {
-    const { client, logger } = makeDeps();
-    const rc = new RevalidateContent({ client, logger });
+    const { gateway, logger } = makeDeps();
+    const rc = new RevalidateContent({ gateway, logger });
 
     await rc.revalidate('propiedades');
 
@@ -57,8 +51,8 @@ describe('RevalidateContent (5.4)', () => {
   });
 
   it('servicios mapea a paths y tags de servicios', async () => {
-    const { client } = makeDeps();
-    const rc = new RevalidateContent({ client, logger: mockLogger });
+    const { gateway } = makeDeps();
+    const rc = new RevalidateContent({ gateway, logger: mockLogger });
 
     await rc.revalidate('servicios');
 
@@ -69,8 +63,8 @@ describe('RevalidateContent (5.4)', () => {
   });
 
   it('nosotros mapea a paths y tags de nosotros y portada', async () => {
-    const { client } = makeDeps();
-    const rc = new RevalidateContent({ client, logger: mockLogger });
+    const { gateway } = makeDeps();
+    const rc = new RevalidateContent({ gateway, logger: mockLogger });
 
     await rc.revalidate('nosotros');
 
@@ -81,24 +75,17 @@ describe('RevalidateContent (5.4)', () => {
   });
 
   it('si la revalidación falla, registra el error y devuelve ok=false', async () => {
-    const { client } = makeDeps();
+    const { gateway } = makeDeps();
     mockRevalidate.mockResolvedValue({ ok: false });
-    const rc = new RevalidateContent({ client, logger: mockLogger });
+    const rc = new RevalidateContent({ gateway, logger: mockLogger });
 
     const result = await rc.revalidate('propiedades');
 
     expect(result.ok).toBe(false);
     expect(mockLogger.error).toHaveBeenCalledWith(
       'revalidation_failed',
+      undefined,
       expect.objectContaining({ resource: 'propiedades' }),
     );
-  });
-});
-
-describe('createRevalidateContent factory', () => {
-  it('crea una instancia con el client y logger dados', () => {
-    const { client } = makeDeps();
-    const rc = new RevalidateContent({ client, logger: mockLogger });
-    expect(rc).toBeInstanceOf(RevalidateContent);
   });
 });
