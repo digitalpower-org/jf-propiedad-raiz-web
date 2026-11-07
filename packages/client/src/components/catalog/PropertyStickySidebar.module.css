@@ -1,0 +1,141 @@
+.sidebar {
+  position: sticky;
+  top: var(--spacing-24);
+  max-height: calc(100vh - var(--spacing-24));
+  overflow-y: auto;
+  padding: var(--spacing-16);
+  background: var(--color-blanco-puro);
+  border-radius: var(--radius-cards);
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 50vh;
+    border-radius: var(--radius-specialtycards) var(--radius-specialtycards) 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    padding: var(--spacing-16);
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.priceBlock {
+  margin-bottom: var(--spacing-16);
+  padding-bottom: var(--spacing-16);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.operationTag {
+  display: inline-block;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-verde-bosque);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-8);
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-8);
+  margin-bottom: var(--spacing-8);
+}
+
+.price {
+  font-size: var(--text-heading-sm);
+  line-height: var(--leading-heading-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-verde-bosque);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.period {
+  font-size: var(--text-body);
+  color: var(--color-grafito);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.adminFee {
+  font-size: var(--text-body-sm);
+  color: var(--color-grafito);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.primaryBtn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: var(--spacing-14) var(--spacing-24);
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-buttons);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.primaryBtn:hover {
+  background: var(--color-verde-profundo);
+}
+
+.whatsappBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-10);
+  width: 100%;
+  padding: var(--spacing-14) var(--spacing-24);
+  background: #25d366;
+  color: var(--color-blanco-puro);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-buttons);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.whatsappBtn:hover {
+  background: #1ebe5a;
+}
+
+.whatsappIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.predial {
+  margin-top: var(--spacing-16);
+  padding-top: var(--spacing-16);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: var(--text-body-sm);
+  color: var(--color-grafito);
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .actions {
+    flex-direction: row;
+  }
+
+  .primaryBtn,
+  .whatsappBtn {
+    flex: 1;
+  }
+}
