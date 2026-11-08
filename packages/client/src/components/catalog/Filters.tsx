@@ -5,9 +5,24 @@ import { Checkbox, Select, Input, Button, Group, Text, Grid, Divider } from '@ma
 import type { TipoInmueble, Operacion } from '@jf/shared-types';
 import styles from './Filters.module.css';
 
+export interface PropertyFilters {
+  tipo?: string | undefined;
+  departamento?: string | undefined;
+  municipio?: string | undefined;
+  precioMin?: number | undefined;
+  precioMax?: number | undefined;
+  dormitorios?: string | undefined;
+  banos?: string | undefined;
+  areaMin?: string | undefined;
+  estrato?: string | undefined;
+  destacada?: boolean | undefined;
+}
+
 interface FiltersProps {
   readonly operacion: Operacion;
   readonly locale: 'es' | 'en';
+  readonly onFiltersChange?: (filters: PropertyFilters) => void;
+  readonly initialFilters?: PropertyFilters;
 }
 
 const TIPO_INMUEBLE_OPTIONS = {
@@ -84,7 +99,12 @@ const MUNICIPIO_OPTIONS: Record<string, { es: string; en: string }[]> = {
   Bolívar: [{ es: 'Cartagena', en: 'Cartagena' }],
 };
 
-export function Filters({ operacion: _operacion, locale }: FiltersProps) {
+export function Filters({
+  operacion: _operacion,
+  locale,
+  onFiltersChange,
+  initialFilters,
+}: FiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -104,16 +124,34 @@ export function Filters({ operacion: _operacion, locale }: FiltersProps) {
 
   const initialState = getInitialState(searchParams);
 
-  const [tipo, setTipo] = useState<TipoInmueble[]>(initialState.tipo);
-  const [departamento, setDepartamento] = useState<string>(initialState.departamento);
-  const [municipio, setMunicipio] = useState<string>(initialState.municipio);
-  const [precioMin, setPrecioMin] = useState<string>(initialState.precioMin);
-  const [precioMax, setPrecioMax] = useState<string>(initialState.precioMax);
-  const [destacada, setDestacada] = useState<boolean>(initialState.destacada);
-  const [dormitorios, setDormitorios] = useState<string>(initialState.dormitorios);
-  const [banos, setBanos] = useState<string>(initialState.banos);
-  const [areaMin, setAreaMin] = useState<string>(initialState.areaMin);
-  const [estrato, setEstrato] = useState<string>(initialState.estrato);
+  // Merge URL params with initialFilters prop (prop takes precedence)
+  const mergedTipo = initialFilters?.tipo
+    ? ([initialFilters.tipo] as TipoInmueble[])
+    : initialState.tipo;
+  const mergedDepartamento = initialFilters?.departamento ?? initialState.departamento;
+  const mergedMunicipio = initialFilters?.municipio ?? initialState.municipio;
+  const mergedPrecioMin = initialFilters?.precioMin
+    ? String(initialFilters.precioMin)
+    : initialState.precioMin;
+  const mergedPrecioMax = initialFilters?.precioMax
+    ? String(initialFilters.precioMax)
+    : initialState.precioMax;
+  const mergedDestacada = initialFilters?.destacada ?? initialState.destacada;
+  const mergedDormitorios = initialFilters?.dormitorios ?? initialState.dormitorios;
+  const mergedBanos = initialFilters?.banos ?? initialState.banos;
+  const mergedAreaMin = initialFilters?.areaMin ?? initialState.areaMin;
+  const mergedEstrato = initialFilters?.estrato ?? initialState.estrato;
+
+  const [tipo, setTipo] = useState<TipoInmueble[]>(mergedTipo);
+  const [departamento, setDepartamento] = useState<string>(mergedDepartamento);
+  const [municipio, setMunicipio] = useState<string>(mergedMunicipio);
+  const [precioMin, setPrecioMin] = useState<string>(mergedPrecioMin);
+  const [precioMax, setPrecioMax] = useState<string>(mergedPrecioMax);
+  const [destacada, setDestacada] = useState<boolean>(mergedDestacada);
+  const [dormitorios, setDormitorios] = useState<string>(mergedDormitorios);
+  const [banos, setBanos] = useState<string>(mergedBanos);
+  const [areaMin, setAreaMin] = useState<string>(mergedAreaMin);
+  const [estrato, setEstrato] = useState<string>(mergedEstrato);
 
   // Sync with URL changes (only after initial render)
   const isFirstRender = useRef(true);
@@ -136,6 +174,23 @@ export function Filters({ operacion: _operacion, locale }: FiltersProps) {
     setEstrato(newState.estrato);
   }, [searchParams]);
 
+  const notifyFiltersChange = () => {
+    if (onFiltersChange) {
+      onFiltersChange({
+        tipo: tipo.length > 0 ? tipo.join(',') : undefined,
+        departamento: departamento || undefined,
+        municipio: municipio || undefined,
+        precioMin: precioMin ? Number(precioMin) : undefined,
+        precioMax: precioMax ? Number(precioMax) : undefined,
+        dormitorios: dormitorios || undefined,
+        banos: banos || undefined,
+        areaMin: areaMin || undefined,
+        estrato: estrato || undefined,
+        destacada: destacada || undefined,
+      });
+    }
+  };
+
   const updateUrl = () => {
     const params = new URLSearchParams();
     if (tipo.length > 0) params.set('tipo', tipo.join(','));
@@ -152,6 +207,7 @@ export function Filters({ operacion: _operacion, locale }: FiltersProps) {
     const currentPath = window.location.pathname;
     const newUrl = params.toString() ? `${currentPath}?${params.toString()}` : currentPath;
     router.push(newUrl, { scroll: false });
+    notifyFiltersChange();
   };
 
   const handleClear = () => {
@@ -166,6 +222,7 @@ export function Filters({ operacion: _operacion, locale }: FiltersProps) {
     setAreaMin('');
     setEstrato('');
     router.push(window.location.pathname, { scroll: false });
+    notifyFiltersChange();
   };
 
   const hasActiveFilters =

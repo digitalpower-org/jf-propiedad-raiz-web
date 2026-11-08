@@ -77,7 +77,7 @@ export function PropertyStickySidebar({ property, locale }: PropertyStickySideba
 
       {property.predial && (
         <p className={styles.predial}>
-          {t('propertyTax')}: {property.predial}
+          {t('propertyTax')}: {priceFormatter(locale, Number(property.predial.replace(/\./g, '')))}
         </p>
       )}
     </aside>

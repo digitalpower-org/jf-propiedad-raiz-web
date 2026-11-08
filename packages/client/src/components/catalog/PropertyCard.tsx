@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import type { PropertyCard } from '@jf/shared-types';
 import { isNewProperty } from '@/mocks/property-mock';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
 
 interface PropertyCardProps {
   readonly property: PropertyCard;
@@ -41,6 +42,18 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
   const municipio = property.municipio ?? '';
   const departamento = property.departamento ?? '';
   const codigo = property.codigo ?? '';
+
+  // WhatsApp URL for the card (US2.5, AC2.5.1, AC2.5.2)
+  const whatsappUrl = buildWhatsAppUrl({
+    number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+573000000000',
+    message: t('whatsappMessage', {
+      codigo: property.codigo,
+      titulo: property.titulo[locale] ?? '',
+    }),
+    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      typeof navigator !== 'undefined' ? navigator.userAgent : '',
+    ),
+  });
 
   return (
     <article className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col h-full">
@@ -178,12 +191,21 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
           )}
         </div>
 
-        <div className="mt-auto pt-3 border-t border-gray-100">
+        <div className="mt-auto pt-3 border-t border-gray-100 flex flex-col gap-2">
           <a
             href={`/${locale}/propiedad/${property.slug}`}
             className="block w-full text-center py-2 px-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
           >
             {t('details')}
+          </a>
+          <a
+            href={whatsappUrl}
+            className="block w-full text-center py-2 px-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors border border-green-600 bg-white text-green-600 hover:bg-green-50"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('contactAgent')}
+          >
+            {t('contactAgent')}
           </a>
         </div>
       </div>

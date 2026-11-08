@@ -2,6 +2,11 @@ import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const nextConfig: NextConfig = {
+  // AC7.3.10: Prohibido /_next/image; usar loader propio a R2 o images.unoptimized
+  // Las imágenes ya vienen optimizadas (WebP derivados 320, 640, 1280, 2048) desde R2
+  images: {
+    unoptimized: true,
+  },
   // Rewrites para rutas traducidas: las carpetas físicas están en español
   // (venta, alquiler, etc.) pero las URLs en inglés usan los segmentos
   // traducidos (sale, rent, etc.) definidos en src/i18n/routes.ts.

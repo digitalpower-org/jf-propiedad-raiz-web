@@ -47,9 +47,17 @@ export function PropertyGallery({
       if (e.key === 'ArrowRight') setFullscreenIndex((i) => (i < allImages.length - 1 ? i + 1 : 0));
       if (e.key === 'Escape') closeFullscreen();
     };
-    window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen, allImages.length, closeFullscreen]);
+
+  // Sync mainIndex with fullscreenIndex - only run when both are truthy
+  useEffect(() => {
+    if (isFullscreen && fullscreenIndex !== mainIndex) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing mainIndex with fullscreenIndex is intentional
+      setMainIndex(() => fullscreenIndex);
+    }
+  }, [fullscreenIndex, isFullscreen, mainIndex]);
 
   const hasImages = allImages.length > 0;
   const currentImage = hasImages ? allImages[mainIndex] : null;

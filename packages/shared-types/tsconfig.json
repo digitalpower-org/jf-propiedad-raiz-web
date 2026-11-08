@@ -9,7 +9,16 @@
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": false,
-    "types": [],
+    "types": [
+      "node",
+      "json-schema",
+      "json5",
+      "long",
+      "ms",
+      "qs",
+      "range-parser",
+      "yauzl"
+    ],
     "noEmit": true
   },
   "include": ["src/**/*.d.ts"]

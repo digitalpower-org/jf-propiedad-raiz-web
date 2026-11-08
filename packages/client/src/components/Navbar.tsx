@@ -1,4 +1,5 @@
 import { getRoute, type RouteKey } from '@/i18n/routes';
+import { useTranslations } from 'next-intl';
 import type { Locale } from '@/i18n/config';
 
 type NavbarLink = {
@@ -15,6 +16,7 @@ type NavbarProps = {
  * Usa `getRoute` para construir las URLs traducidas según el locale activo.
  */
 export default function Navbar({ locale }: NavbarProps) {
+  const t = useTranslations('localeSwitcher');
   const links: NavbarLink[] = [
     { key: 'home', label: { es: 'Inicio', en: 'Home' } },
     { key: 'sale', label: { es: 'Venta', en: 'For Sale' } },
@@ -32,28 +34,36 @@ export default function Navbar({ locale }: NavbarProps) {
           <div className="flex items-center">
             <span className="text-xl font-bold text-gray-900">JF Propiedad Raíz</span>
           </div>
-          <div className="hidden md:flex space-x-16">
-            {links.map((link) => {
-              const href = getRoute(link.key, locale as 'es' | 'en');
-              return (
-                <a
-                  key={link.key}
-                  href={href}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    link.key === 'home'
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                  style={{ marginRight: '1.5rem' }}
-                >
-                  {link.label.es === link.label.en
-                    ? link.label.es
-                    : locale === 'es'
+          <div className="flex items-center space-x-8">
+            <div className="hidden md:flex space-x-8">
+              {links.map((link) => {
+                const href = getRoute(link.key, locale as 'es' | 'en');
+                return (
+                  <a
+                    key={link.key}
+                    href={href}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      link.key === 'home'
+                        ? 'text-green-600 bg-green-50'
+                        : 'text-gray-600 hover:text-green-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {link.label.es === link.label.en
                       ? link.label.es
-                      : link.label.en}
-                </a>
-              );
-            })}
+                      : locale === 'es'
+                        ? link.label.es
+                        : link.label.en}
+                  </a>
+                );
+              })}
+            </div>
+            <a
+              href={locale === 'es' ? getRoute('home', 'en') : getRoute('home', 'es')}
+              className="px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 transition-colors border border-green-300 rounded-md"
+              aria-label={t('switchTo')}
+            >
+              {t('switchTo')}
+            </a>
           </div>
         </div>
       </div>

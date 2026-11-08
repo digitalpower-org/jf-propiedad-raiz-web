@@ -4,6 +4,7 @@ import { defineConfig } from 'vitest/config';
 // Node-environment unit tests for pure logic under src/lib/**, src/i18n/** and
 // src/server/** (matcher del Proxy; los route handlers no son puros).
 // E2E (Playwright) is intentionally NOT part of this config or the gates.
+// Component tests use jsdom environment for React components.
 export default defineConfig({
   resolve: {
     alias: {
@@ -33,5 +34,27 @@ export default defineConfig({
         'src/server/**/*.{test,spec}.ts',
       ],
     },
+    // Component tests with jsdom environment
+    projects: [
+      {
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+          },
+        },
+        test: {
+          name: 'component',
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['src/test/setup.tsx'],
+          include: ['src/components/**/*.{test,spec}.tsx'],
+          coverage: {
+            provider: 'v8',
+            include: ['src/components/catalog/*.tsx'],
+            exclude: ['src/components/**/*.{test,spec}.tsx'],
+          },
+        },
+      },
+    ],
   },
 });
