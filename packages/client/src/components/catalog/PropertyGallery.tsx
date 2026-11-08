@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import type { Foto, VideoYouTube, Panorama } from '@jf/shared-types';
@@ -34,24 +34,22 @@ export function PropertyGallery({
     })),
   );
 
+  const closeFullscreen = useCallback(() => {
+    setMainIndex(fullscreenIndex);
+    setIsFullscreen(false);
+  }, [fullscreenIndex]);
+
   // Keyboard navigation in fullscreen
   useEffect(() => {
     if (!isFullscreen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') setFullscreenIndex((i) => (i > 0 ? i - 1 : allImages.length - 1));
       if (e.key === 'ArrowRight') setFullscreenIndex((i) => (i < allImages.length - 1 ? i + 1 : 0));
-      if (e.key === 'Escape') setIsFullscreen(false);
+      if (e.key === 'Escape') closeFullscreen();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, allImages.length]);
-
-  // Sync mainIndex with fullscreenIndex - only run when both are truthy
-  useEffect(() => {
-    if (isFullscreen && fullscreenIndex !== mainIndex) {
-      setMainIndex(fullscreenIndex);
-    }
-  }, [fullscreenIndex, isFullscreen, mainIndex]);
+  }, [isFullscreen, allImages.length, closeFullscreen]);
 
   const hasImages = allImages.length > 0;
   const currentImage = hasImages ? allImages[mainIndex] : null;
@@ -85,14 +83,14 @@ export function PropertyGallery({
         {isFullscreen ? (
           <div
             className={styles.fullscreenOverlay}
-            onClick={() => setIsFullscreen(false)}
+            onClick={closeFullscreen}
             role="dialog"
             aria-modal="true"
             aria-label={t('gallery')}
           >
             <button
               className={styles.fullscreenClose}
-              onClick={() => setIsFullscreen(false)}
+              onClick={closeFullscreen}
               aria-label={locale === 'es' ? 'Cerrar vista completa' : 'Close fullscreen'}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
