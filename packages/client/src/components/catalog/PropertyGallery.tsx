@@ -47,7 +47,7 @@ export function PropertyGallery({
       if (e.key === 'ArrowRight') setFullscreenIndex((i) => (i < allImages.length - 1 ? i + 1 : 0));
       if (e.key === 'Escape') closeFullscreen();
     };
-window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen, allImages.length, closeFullscreen]);
 
