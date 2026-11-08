@@ -51,6 +51,14 @@ export function PropertyGallery({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen, allImages.length, closeFullscreen]);
 
+  // Sync mainIndex with fullscreenIndex - only run when both are truthy
+  useEffect(() => {
+    if (isFullscreen && fullscreenIndex !== mainIndex) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing mainIndex with fullscreenIndex is intentional
+      setMainIndex(() => fullscreenIndex);
+    }
+  }, [fullscreenIndex, isFullscreen, mainIndex]);
+
   const hasImages = allImages.length > 0;
   const currentImage = hasImages ? allImages[mainIndex] : null;
 

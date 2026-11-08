@@ -6,63 +6,54 @@ import { Skeleton } from '@mantine/core';
 import { useTranslations } from 'next-intl';
 import { PropertyCardComponent } from './PropertyCard';
 import type { PropertyCard } from '@jf/shared-types';
-import { getDestacadasByOperacion, getNoDestacadasByOperacion } from '@/mocks/property-mock';
+import { fetchPropertiesPage, type PropertyListParams } from '@/lib/api-catalog';
 
 interface PropertyGridProps {
   readonly operacion: 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS';
   readonly locale: 'es' | 'en';
   readonly initialData?: PropertyCard[] | undefined;
+  readonly filters?: Partial<PropertyListParams>;
 }
 
 const PAGE_SIZE = 12;
 
-async function fetchPropertiesPage(
-  operacion: 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS',
-  pageParam: number,
-  isDestacada: boolean,
-): Promise<{ items: PropertyCard[]; nextCursor: number | null }> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  const destacadas = getDestacadasByOperacion(operacion);
-  const noDestacadas = getNoDestacadasByOperacion(operacion);
-
-  if (isDestacada) {
-    const start = pageParam * PAGE_SIZE;
-    const items = destacadas.slice(start, start + PAGE_SIZE);
-    return {
-      items,
-      nextCursor: items.length === PAGE_SIZE ? pageParam + 1 : null,
-    };
-  } else {
-    const start = pageParam * PAGE_SIZE;
-    const items = noDestacadas.slice(start, start + PAGE_SIZE);
-    return {
-      items,
-      nextCursor: items.length === PAGE_SIZE ? pageParam + 1 : null,
-    };
-  }
-}
-
-export function PropertyGrid({ operacion, locale, initialData }: PropertyGridProps) {
+export function PropertyGrid({ operacion, locale, initialData, filters }: PropertyGridProps) {
   const t = useTranslations();
   const [showDestacadas, setShowDestacadas] = React.useState(true);
 
   const { ref, inView } = useInView();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ['properties', operacion, locale, showDestacadas],
-    queryFn: ({ pageParam = 0 }) => fetchPropertiesPage(operacion, pageParam, showDestacadas),
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: 0,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    enabled: !initialData,
+  const buildQueryParams = (
+    isDestacada: boolean,
+    cursor?: string | undefined,
+  ): PropertyListParams => ({
+    operacion,
+    destacada: isDestacada,
+    cursor: cursor ?? undefined,
+    limit: PAGE_SIZE,
+    ...(filters as Record<string, unknown>),
   });
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
+    useInfiniteQuery({
+      queryKey: ['properties', operacion, locale, showDestacadas, filters],
+      queryFn: ({ pageParam }) => fetchPropertiesPage(buildQueryParams(showDestacadas, pageParam)),
+      getNextPageParam: (lastPage) => {
+        if (lastPage.success && lastPage.data.nextCursor) {
+          return lastPage.data.nextCursor;
+        }
+        return undefined;
+      },
+      initialPageParam: undefined as string | undefined,
+      staleTime: 60_000,
+      refetchOnWindowFocus: false,
+      enabled: !initialData,
+    });
 
   // Combine initialData with fetched data without local state
   const allItems = React.useMemo(() => {
     if (!data) return initialData || [];
-    const fetchedItems = data.pages.flatMap((page) => page.items);
+    const fetchedItems = data.pages.flatMap((page) => (page.success ? page.data.items : []));
     const initial = initialData || [];
     const existingIds = new Set(initial.map((p) => p.id));
     const newItems = fetchedItems.filter((p) => !existingIds.has(p.id));
@@ -89,6 +80,34 @@ export function PropertyGrid({ operacion, locale, initialData }: PropertyGridPro
         {Array.from({ length: 12 }).map((_, i) => (
           <Skeleton key={i} height={380} className="rounded-xl border border-gray-200 bg-white" />
         ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-16">
+        <svg
+          className="w-16 h-16 mx-auto text-gray-300 mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <h3 className="text-lg font-medium text-gray-900 mb-1">
+          {locale === 'es' ? 'Error al cargar las propiedades.' : 'Error loading properties.'}
+        </h3>
+        <p className="text-gray-500">
+          {locale === 'es'
+            ? 'Intente recargar la página o ajustar los filtros.'
+            : 'Try reloading the page or adjusting filters.'}
+        </p>
       </div>
     );
   }

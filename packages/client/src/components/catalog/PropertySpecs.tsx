@@ -133,7 +133,7 @@ export function PropertySpecs({ property, locale }: PropertySpecsProps) {
               </dt>
               <dd className={styles.specValue}>
                 {formatted}
-                {item.unit && ` {item.unit}`}
+                {item.unit && ' ' + item.unit}
               </dd>
             </div>
           );

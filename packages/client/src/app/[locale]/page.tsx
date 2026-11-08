@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getRoute } from '@/i18n/routes';
 import { isLocale } from '@/i18n/config';
 import Navbar from '@/components/Navbar';
+import { HeroSearchForm } from '@/components/catalog/HeroSearchForm';
 
 import styles from './page.module.css';
 
@@ -141,102 +142,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 {t('nav.projects')}
               </a>
             </nav>
-            <form
-              className={styles.searchBar}
-              role="search"
-              aria-label={locale === 'es' ? 'Buscar propiedades' : 'Search properties'}
-            >
-              <div className={styles.searchForm}>
-                <div className={styles.searchField}>
-                  <label htmlFor="tipo" className={styles.searchLabel}>
-                    {locale === 'es' ? 'Tipo de inmueble' : 'Property Type'}
-                  </label>
-                  <select id="tipo" className={styles.searchSelect}>
-                    <option value="">{locale === 'es' ? 'Todos los tipos' : 'All Types'}</option>
-                    <option value="CASA">{locale === 'es' ? 'Casa' : 'House'}</option>
-                    <option value="APARTAMENTO">
-                      {locale === 'es' ? 'Apartamento' : 'Apartment'}
-                    </option>
-                    <option value="LOTE_CAMPESTRE">
-                      {locale === 'es' ? 'Lote Campestre' : 'Country Lot'}
-                    </option>
-                    <option value="LOTE_URBANO">
-                      {locale === 'es' ? 'Lote Urbano' : 'Urban Lot'}
-                    </option>
-                    <option value="FINCA">{locale === 'es' ? 'Finca' : 'Farm'}</option>
-                    <option value="LOCAL_COMERCIAL">
-                      {locale === 'es' ? 'Local Comercial' : 'Commercial Space'}
-                    </option>
-                    <option value="BODEGA">{locale === 'es' ? 'Bodega' : 'Warehouse'}</option>
-                    <option value="OFICINA">{locale === 'es' ? 'Oficina' : 'Office'}</option>
-                  </select>
-                </div>
-                <div className={styles.searchField}>
-                  <label htmlFor="ubicacion" className={styles.searchLabel}>
-                    {locale === 'es' ? 'Ubicación' : 'Location'}
-                  </label>
-                  <select id="ubicacion" className={styles.searchSelect}>
-                    <option value="">
-                      {locale === 'es' ? 'Todas las ubicaciones' : 'All Locations'}
-                    </option>
-                    <option value="Antioquia,Medellín">
-                      {locale === 'es' ? 'Medellín, Antioquia' : 'Medellín, Antioquia'}
-                    </option>
-                    <option value="Antioquia,Envigado">
-                      {locale === 'es' ? 'Envigado, Antioquia' : 'Envigado, Antioquia'}
-                    </option>
-                    <option value="Antioquia,Itagüí">
-                      {locale === 'es' ? 'Itagüí, Antioquia' : 'Itagüí, Antioquia'}
-                    </option>
-                    <option value="Antioquia,Bello">
-                      {locale === 'es' ? 'Bello, Antioquia' : 'Bello, Antioquia'}
-                    </option>
-                    <option value="Antioquia,Sabaneta">
-                      {locale === 'es' ? 'Sabaneta, Antioquia' : 'Sabaneta, Antioquia'}
-                    </option>
-                    <option value="Antioquia,Rionegro">
-                      {locale === 'es' ? 'Rionegro, Antioquia' : 'Rionegro, Antioquia'}
-                    </option>
-                    <option value="Antioquia,Copacabana">
-                      {locale === 'es' ? 'Copacabana, Antioquia' : 'Copacabana, Antioquia'}
-                    </option>
-                  </select>
-                </div>
-                <div className={styles.searchField}>
-                  <label htmlFor="precio" className={styles.searchLabel}>
-                    {locale === 'es' ? 'Precio máximo (COP)' : 'Max Price (COP)'}
-                  </label>
-                  <select id="precio" className={styles.searchSelect}>
-                    <option value="">{locale === 'es' ? 'Sin límite' : 'No Limit'}</option>
-                    <option value="200000000">
-                      {locale === 'es' ? '$ 200.000.000' : '$ 200.000.000'}
-                    </option>
-                    <option value="400000000">
-                      {locale === 'es' ? '$ 400.000.000' : '$ 400.000.000'}
-                    </option>
-                    <option value="600000000">
-                      {locale === 'es' ? '$ 600.000.000' : '$ 600.000.000'}
-                    </option>
-                    <option value="800000000">
-                      {locale === 'es' ? '$ 800.000.000' : '$ 800.000.000'}
-                    </option>
-                    <option value="1000000000">
-                      {locale === 'es' ? '$ 1.000.000.000' : '$ 1.000.000.000'}
-                    </option>
-                    <option value="2000000000">
-                      {locale === 'es' ? '$ 2.000.000.000+' : '$ 2.000.000.000+'}
-                    </option>
-                  </select>
-                </div>
-                <button type="submit" className={styles.searchButton}>
-                  {t('search.filters') === 'Filtros'
-                    ? locale === 'es'
-                      ? 'Buscar'
-                      : 'Search'
-                    : t('search.filters')}
-                </button>
-              </div>
-            </form>
+            <HeroSearchForm locale={locale} />
           </div>
         </section>
 
