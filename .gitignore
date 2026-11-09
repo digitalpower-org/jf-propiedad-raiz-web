@@ -167,3 +167,8 @@ firebase-adminsdk*.json
 
 # Firebase App Hosting emulator overrides (auto-generated)
 apphosting.emulator.yaml
+
+# Test results and reports
+test-results/
+playwright-report/
+.agents/

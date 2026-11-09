@@ -19,6 +19,7 @@
     "test:e2e": "npm run test:e2e --workspaces --if-present",
     "lhci": "lhci autorun",
     "analyze:bundle": "node scripts/analyze-bundle.mjs",
+    "measure:bytes": "node scripts/measure-bytes.mjs",
     "emulators": "mkdir -p \"$HOME/.firebase/emulators/firestore-data\" && firebase emulators:start --project=jf-propiedad-raiz --import=\"$HOME/.firebase/emulators/firestore-data\" --export-on-exit=\"$HOME/.firebase/emulators/firestore-data\"",
     "emulators:clean": "rm -rf \"$HOME/.firebase/emulators/firestore-data\" && firebase emulators:start --project=jf-propiedad-raiz",
     "emulators:only": "firebase emulators:start --only auth,firestore,functions,apphosting --project=jf-propiedad-raiz",
@@ -26,7 +27,8 @@
     "r2:up": "docker compose -f ${R2_COMPOSE_FILE:-../../docker-services/minio/docker-compose.yml} up -d",
     "r2:down": "docker compose -f ${R2_COMPOSE_FILE:-../../docker-services/minio/docker-compose.yml} down",
     "r2:init": "bash scripts/r2-init.sh",
-    "seed:admins": "FIRESTORE_EMULATOR_HOST=localhost:8080 node firestore-seed.js"
+    "seed:admins": "FIRESTORE_EMULATOR_HOST=localhost:8080 node firestore-seed.js",
+    "report": "node scripts/report.mjs"
   },
   "devEngines": {
     "packageManager": {
