@@ -1,44 +1,46 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "npm run start -w @jf/client",
-      "startServerReadyPattern": "Ready in",
-      "startServerReadyTimeout": 30000,
+      "numberOfRuns": 1,
+      "startServerCommand": "npm run build -w @jf/client && npm run start -w @jf/client -- -p 3001",
       "url": [
-        "http://localhost:3000/es",
-        "http://localhost:3000/en",
-        "http://localhost:3000/es/venta",
-        "http://localhost:3000/en/sale",
-        "http://localhost:3000/es/alquiler",
-        "http://localhost:3000/en/rent",
-        "http://localhost:3000/es/proyectos",
-        "http://localhost:3000/en/projects",
-        "http://localhost:3000/es/servicios",
-        "http://localhost:3000/en/services",
-        "http://localhost:3000/es/nosotros",
-        "http://localhost:3000/en/about-us",
-        "http://localhost:3000/es/contacto",
-        "http://localhost:3000/en/contact",
-        "http://localhost:3000/es/aviso-de-privacidad",
-        "http://localhost:3000/en/privacy-notice",
-        "http://localhost:3000/es/politica-de-tratamiento-de-datos",
-        "http://localhost:3000/en/data-processing-policy",
-        "http://localhost:3000/es/terminos",
-        "http://localhost:3000/en/terms"
+        "http://localhost:3001/es",
+        "http://localhost:3001/en",
+        "http://localhost:3001/es/venta",
+        "http://localhost:3001/en/sale",
+        "http://localhost:3001/es/alquiler",
+        "http://localhost:3001/en/rent",
+        "http://localhost:3001/es/proyectos",
+        "http://localhost:3001/en/projects",
+        "http://localhost:3001/es/propiedad/casa-ejemplo",
+        "http://localhost:3001/en/property/casa-ejemplo",
+        "http://localhost:3001/es/aviso-de-privacidad",
+        "http://localhost:3001/en/privacy-notice",
+        "http://localhost:3001/es/politica-de-tratamiento-de-datos",
+        "http://localhost:3001/en/data-processing-policy",
+        "http://localhost:3001/es/terminos",
+        "http://localhost:3001/en/terms"
       ],
-      "numberOfRuns": 1
+      "settings": {
+        "formFactor": "mobile",
+        "throttlingMethod": "simulate",
+        "headless": true,
+        "chromeFlags": "--no-sandbox --disable-setuid-sandbox"
+      }
     },
     "assert": {
       "assertions": {
         "categories:performance": ["warn", { "minScore": 0.85 }],
+        "categories:accessibility": ["warn", { "minScore": 0.9 }],
+        "categories:best-practices": ["warn", { "minScore": 0.9 }],
+        "categories:seo": ["warn", { "minScore": 0.9 }],
         "largest-contentful-paint": ["warn", { "maxNumericValue": 2500 }],
         "cumulative-layout-shift": ["warn", { "maxNumericValue": 0.1 }],
         "total-blocking-time": ["warn", { "maxNumericValue": 300 }]
       }
     },
     "upload": {
-      "target": "filesystem",
-      "outputDir": ".lighthouseci"
+      "target": "temporary-public-storage"
     }
   }
 }

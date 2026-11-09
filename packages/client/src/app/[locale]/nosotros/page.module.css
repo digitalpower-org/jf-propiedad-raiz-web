@@ -1,0 +1,291 @@
+/*
+ * ============================================================================
+ * JF Propiedad Raíz - Página Nosotros
+ * Diseño según docs/DESIGN-SYSTEM.md
+ * ============================================================================
+ */
+
+/* ============================================================================
+   LAYOUT Y ESTRUCTURA
+   ============================================================================ */
+
+.page {
+  min-height: 100vh;
+  background: var(--color-marfil-elegante);
+  color: var(--color-tinta);
+  font-family: var(--font-regola);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.content {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--spacing-24) var(--spacing-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap-mobile);
+}
+
+@media (min-width: 768px) {
+  .content {
+    padding: var(--spacing-32) var(--spacing-24);
+    gap: var(--section-gap);
+  }
+}
+
+/* ============================================================================
+   HERO - Encabezado principal de la página
+   ============================================================================ */
+
+.hero {
+  margin-bottom: var(--spacing-32);
+  text-align: center;
+  padding: var(--spacing-48) var(--spacing-16);
+}
+
+@media (min-width: 768px) {
+  .hero {
+    margin-bottom: var(--spacing-54);
+    padding: var(--spacing-54) var(--spacing-24);
+  }
+}
+
+.heroContent {
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: var(--text-heading-lg);
+  line-height: var(--leading-heading-lg);
+  letter-spacing: var(--tracking-heading-lg);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-tinta);
+  margin: 0 0 var(--spacing-16);
+  text-wrap: balance;
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: var(--text-heading);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-heading);
+  }
+}
+
+.lastUpdated {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  letter-spacing: var(--tracking-caption);
+  color: var(--color-grafito);
+  text-transform: uppercase;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+/* ============================================================================
+   EXTRACTO - Extracto principal de la empresa
+   ============================================================================ */
+
+.extractSection {
+  margin-bottom: var(--spacing-32);
+}
+
+.extractText {
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-body-lg);
+  letter-spacing: var(--tracking-body-lg);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-tinta);
+  margin: 0;
+  padding: var(--spacing-32);
+  background: var(--color-piedra-clara);
+  border-radius: var(--radius-specialtycards);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-subtle);
+}
+
+@media (min-width: 768px) {
+  .extractSection {
+    margin-bottom: var(--spacing-54);
+  }
+
+  .extractText {
+    font-size: var(--text-subheading);
+    line-height: var(--leading-subheading);
+    letter-spacing: var(--tracking-subheading);
+    padding: var(--spacing-48);
+  }
+}
+
+/* ============================================================================
+   SECCIONES DE CONTENIDO - Misión, Visión, Valores, etc.
+   ============================================================================ */
+
+.contentSection {
+  margin-bottom: var(--spacing-48);
+}
+
+.sectionTitle {
+  font-size: var(--text-subheading);
+  line-height: var(--leading-subheading);
+  letter-spacing: var(--tracking-subheading);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-tinta);
+  margin: 0 0 var(--spacing-16);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sectionBody {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-tinta);
+  margin: 0;
+}
+
+.paragraph {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-tinta);
+  margin: 0 0 var(--spacing-16);
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================================
+   EQUIPO - Tarjetas del equipo humano
+   ============================================================================ */
+
+.teamSection {
+  margin-bottom: var(--spacing-54);
+}
+
+.teamTitle {
+  font-size: var(--text-heading);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-tinta);
+  margin: 0 0 var(--spacing-32);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .teamSection {
+    margin-bottom: var(--spacing-72);
+  }
+
+  .teamTitle {
+    font-size: var(--text-heading-lg);
+    margin-bottom: var(--spacing-48);
+  }
+}
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-24);
+}
+
+@media (min-width: 768px) {
+  .teamGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .teamGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.teamCard {
+  background: var(--color-blanco-puro);
+  border-radius: var(--radius-cards);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.teamCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.memberPhoto {
+  width: 100%;
+  height: 240px;
+  border-radius: var(--radius-cards) var(--radius-cards) 0 0;
+  overflow: hidden;
+  background: var(--color-piedra-clara);
+}
+
+.memberPhotoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.teamCard:hover .memberPhotoImg {
+  transform: scale(1.05);
+}
+
+.memberContent {
+  padding: var(--spacing-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.memberName {
+  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-tinta);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.memberRole {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-verde-bosque);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.memberDesc {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-grafito);
+  margin: var(--spacing-8) 0 0;
+  flex: 1;
+}
+
+/* ============================================================================
+   RESPONSIVE EXTRAS
+   ============================================================================ */
+
+@media (min-width: 1024px) {
+  .content {
+    max-width: 900px;
+  }
+
+  .teamGrid {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+}

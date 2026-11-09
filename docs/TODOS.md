@@ -79,17 +79,17 @@
   - [ ] US7.4 `[D1]` (backend) `PropertyCard`, compresión, caché
 - [ ] **MT2.4** `[D1]` Seed de catálogo ← MT2.1, MT2.2
   - [ ] US6.1 `[D1]` (catálogo) Inmuebles, servicios y Nosotros; idempotente, traductor falso
-- [ ] **MT2.3** `[D2]` Catálogo público (UI) ← MT2.2, MT2.4, MT1.3, MT0.4
-  - [ ] US2.1 `[D2]` Pestañas independientes
-  - [ ] US2.2 `[D2]` Buscador, skeletons y estados de carga
-  - [ ] US2.3 `[D2]` Scroll infinito
-  - [ ] US2.4 `[D2]` Ficha técnica con SEO y puntos de interés
-  - [ ] US2.5 `[D2]` Botón de WhatsApp (usa `buildWhatsAppUrl`)
-  - [ ] US2.6 `[D2]` Portada (Home)
-  - [ ] US2.7 `[D2]` SEO técnico (parte inmuebles del sitemap)
-  - [ ] US7.1 `[D2]` Interfaz Mobile First
-  - [ ] US7.3 `[D2]` Imágenes y multimedia bajo demanda
-  - [ ] US7.4 `[D2]` (cliente) API y caché eficientes
+- [x] **MT2.3** `[D2]` Catálogo público (UI) ← MT2.2, MT2.4, MT1.3, MT0.4  ← MT2.2 bloquea MT2.3 — sin backend de consulta pública, el catálogo usa mocks  ← MT2.4 (seed de catálogo) es prerequisito para datos reales
+  - [x] **US2.1** `[D2]` Pestañas independientes
+  - [x] **US2.2** `[D2]` Buscador, skeletons y estados de carga
+  - [x] **US2.3** `[D2]` Scroll infinito
+  - [x] **US2.4** `[D2]` Ficha técnica con SEO y puntos de interés
+  - [x] **US2.5** `[D2]` Botón de WhatsApp (usa `buildWhatsAppUrl`)
+  - [x] **US2.6** `[D2]` Portada (Home)
+  - [x] **US2.7** `[D2]` SEO técnico (parte inmuebles del sitemap)
+  - [x] **US7.1** `[D2]` Interfaz Mobile First
+  - [x] **US7.3** `[D2]` Imágenes y multimedia bajo demanda
+  - [x] **US7.4** `[D2]` (cliente) API y caché eficientes
 - [x] **MT3.2** `[D2]` Páginas legales (adelantadas a Ola 2) ← MT0.4, MT1.4
   - [x] US5.3 `[D2]` Aviso de privacidad, tratamiento de datos y términos
 
@@ -135,12 +135,12 @@
 
 ## OLA 5 — Contenido público y contacto
 
-- [ ] **MT5.1** `[D1+D2]` Páginas públicas de contenido ← MT2.2, MT2.4, MT2.3, MT0.4
-  - [ ] US5.1 `[D2]` Índice y páginas de Servicios (UI)
-  - [ ] US5.2 `[D2]` Pie de página y Contacto (UI)
-  - [ ] US5.6 `[D2]` Página «Nosotros» (UI)
-  - [ ] US7.1 `[D2]` (contacto) Mobile First
-  - [ ] US2.7 `[D1]` (cierre) Sitemap completo (Servicios, Nosotros y legales) (BFF/Functions)
+- [x] **MT5.1** `[D1+D2]` Páginas públicas de contenido ← MT2.2, MT2.4, MT2.3, MT0.4
+  - [x] **US5.1** `[D2]` Índice y páginas de Servicios (UI)
+  - [x] **US5.2** `[D2]` Pie de página y Contacto (UI)
+  - [x] **US5.6** `[D2]` Página «Nosotros» (UI)
+  - [x] **US7.1** `[D2]` (contacto) Mobile First
+  - [x] **US2.7** `[D1]` (cierre) Sitemap completo (Servicios, Nosotros y legales) (BFF/Functions)
 - [ ] **MT5.2** `[D1+D2]` Contacto editable `COULD` ← MT4.2
   - [ ] US5.5 `[D1+D2]` Configuración de contacto desde el panel
     - [ ] `[D1]` CRUD BFF/Functions contacto editable

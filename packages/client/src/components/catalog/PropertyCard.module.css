@@ -1,0 +1,177 @@
+.card {
+  background: var(--color-blanco-puro);
+  border-radius: var(--radius-cards);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.newBadge {
+  position: absolute;
+  top: var(--spacing-3);
+  left: var(--spacing-3);
+  z-index: 2;
+  background: var(--color-amarillo-sol);
+  color: var(--color-tinta);
+  text-transform: uppercase;
+  font-size: var(--text-caption-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  padding: var(--spacing-2) var(--spacing-6);
+  border-radius: var(--radius-pills);
+}
+
+.imageContainer {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--color-piedra-clara);
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.05);
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-piedra-clara);
+  color: var(--color-grafito);
+}
+
+.placeholderIcon {
+  font-size: 48px;
+}
+
+.featuredBadge {
+  position: absolute;
+  top: var(--spacing-3);
+  right: var(--spacing-3);
+  background: var(--color-amarillo-sol);
+  color: var(--color-tinta);
+  text-transform: uppercase;
+  font-size: var(--text-caption-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.05em;
+  padding: var(--spacing-2) var(--spacing-6);
+  border-radius: var(--radius-pills);
+}
+
+.content {
+  padding: var(--spacing-16);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.operationTag {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-grafito);
+}
+
+.code {
+  font-size: var(--text-caption-sm);
+  color: var(--color-grafito);
+}
+
+.title {
+  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-tinta);
+  margin: 0 0 var(--spacing-8);
+  line-height: 1.2;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.price {
+  font-size: var(--text-body-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-verde-bosque);
+  margin: 0 0 var(--spacing-12);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.actions {
+  margin-top: auto;
+  padding-top: var(--spacing-12);
+  border-top: 1px solid var(--color-piedra-clara);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.detailsLink {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: var(--spacing-14) var(--spacing-24);
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-buttons);
+  text-decoration: none;
+  min-height: 48px;
+  transition: background 0.2s ease;
+}
+
+.detailsLink:hover {
+  background: var(--color-verde-profundo);
+}
+
+.whatsappLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  width: 100%;
+  padding: var(--spacing-14) var(--spacing-24);
+  background: var(--color-blanco-puro);
+  color: var(--color-verde-bosque);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-buttons);
+  text-decoration: none;
+  border: 1px solid var(--color-verde-bosque);
+  min-height: 48px;
+  transition: all 0.2s ease;
+}
+
+.whatsappLink:hover {
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+}
+
+.whatsappIcon {
+  font-size: var(--text-body);
+}

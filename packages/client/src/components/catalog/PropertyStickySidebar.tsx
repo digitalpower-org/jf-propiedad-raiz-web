@@ -2,6 +2,7 @@
 import { useTranslations } from 'next-intl';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import type { PropertyDetail } from '@jf/shared-types';
+import { getOperacionLabel } from './property-card-utils';
 import styles from './PropertyStickySidebar.module.css';
 
 interface PropertyStickySidebarProps {
@@ -31,12 +32,7 @@ export function PropertyStickySidebar({ property, locale }: PropertyStickySideba
     ),
   });
 
-  const operacionLabels = {
-    es: { VENTA: 'Venta', ALQUILER: 'Alquiler', PROYECTO_SOBRE_PLANOS: 'Proyecto' },
-    en: { VENTA: 'For Sale', ALQUILER: 'For Rent', PROYECTO_SOBRE_PLANOS: 'Off-Plan' },
-  };
-
-  const operacionLabel = operacionLabels[locale][property.operacion] || property.operacion;
+  const operacionLabel = getOperacionLabel(property.operacion, locale);
   const formattedPrice = priceFormatter(locale, property.precio);
   const isRent = property.operacion === 'ALQUILER';
 

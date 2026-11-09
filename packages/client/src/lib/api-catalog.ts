@@ -1,5 +1,7 @@
 import { httpClient, type ApiResponse } from './http-client';
-import type { PropertyCard } from '@jf/shared-types';
+import type { IHttpClient } from './http-client.types';
+import { HttpClientAdapter } from './http-client.types';
+import type { PropertyCard, PropertyDetail } from '@jf/shared-types';
 
 /**
  * Cliente API para el catálogo público - consume BFF /api/properties
@@ -68,9 +70,11 @@ function buildPropertiesUrl(params: PropertyListParams): string {
 
 export async function fetchPropertiesPage(
   params: PropertyListParams,
+  httpClientInstance?: IHttpClient,
 ): Promise<ApiResponse<PropertyListData>> {
   const url = buildPropertiesUrl(params);
-  return httpClient<PropertyListData>(url);
+  const client = httpClientInstance ?? new HttpClientAdapter();
+  return client.get<PropertyListData>(url);
 }
 
 export async function fetchFeaturedProperties(
@@ -82,8 +86,8 @@ export async function fetchFeaturedProperties(
 export async function fetchPropertyBySlug(
   slug: string,
   locale: 'es' | 'en',
-): Promise<ApiResponse<PropertyCard>> {
-  return httpClient<PropertyCard>(`/api/properties/${slug}`);
+): Promise<ApiResponse<PropertyDetail>> {
+  return httpClient<PropertyDetail>(`/api/properties/${slug}`);
 }
 
 export async function fetchServices(): Promise<ApiResponse<{ items: readonly ServiceCard[] }>> {
