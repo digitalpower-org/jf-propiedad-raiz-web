@@ -15,9 +15,10 @@ export interface VerifiedIdentity {
   readonly role: Role;
 }
 
-export class VerifyInternalSessionUseCase
-  implements UseCase<VerifyInternalSessionCommand, VerifiedIdentity>
-{
+export class VerifyInternalSessionUseCase implements UseCase<
+  VerifyInternalSessionCommand,
+  VerifiedIdentity
+> {
   constructor(
     private readonly identityVerifier: IdentityVerifier,
     private readonly authorizedUsers: AuthorizedUsersRepository,

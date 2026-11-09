@@ -5,10 +5,7 @@ import type { RevalidationGateway } from './revalidation-gateway';
 import type { SecretComparator } from './secret-comparator';
 import type { Translator } from './translator';
 
-export type {
-  AuthorizedUser,
-  AuthorizedUsersRepository,
-} from './authorized-users-repository';
+export type { AuthorizedUser, AuthorizedUsersRepository } from './authorized-users-repository';
 export type { IdentityVerifier, VerifiedToken } from './identity-verifier';
 export type { Logger } from './logger';
 export type {

@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  DEFAULT_BFF_URL,
-  DEFAULT_FIREBASE_PROJECT_ID,
-  loadEnv,
-} from './env';
+import { DEFAULT_BFF_URL, DEFAULT_FIREBASE_PROJECT_ID, loadEnv } from './env';
 
 const KEY = 'x'.repeat(32);
 
