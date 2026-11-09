@@ -1,0 +1,9 @@
+> jf-propiedad-raiz-web@1.0.0 analyze:bundle
+> node scripts/analyze-bundle.mjs
+
+Ruta  JS (gzip)  CSS (gzip)  Archivos       Presupuesto JS  Estado
+----  ---------  ----------  -------------  --------------  ------
+/es   272.3 KB   40.6 KB     13 js / 4 css  ≤ 200 KB        EXCEDE
+/en   272.3 KB   40.6 KB     13 js / 4 css  ≤ 200 KB        EXCEDE
+
+AVISO: presupuesto de JS inicial superado (200 KB gzip, PERFORMANCE.md §3). Informativo hasta MT6.2.
