@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 export function LogoutButton() {
-  const [done, setDone] = useState(false);
+  const [done] = useState(false);
   return (
     <button
       onClick={async () => {
