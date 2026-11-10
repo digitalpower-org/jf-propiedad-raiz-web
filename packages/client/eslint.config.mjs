@@ -25,7 +25,7 @@ const eslintConfig = defineConfig([
           message: 'Usa buildWhatsAppUrl de lib/whatsapp.ts',
         },
         {
-          selector: "TemplateLiteral[quasis.value.raw=/wa\\.me|whatsapp\\.com/i]",
+          selector: "TemplateElement[value.raw=/wa\\.me|whatsapp\\.com/i]",
           message: 'Usa buildWhatsAppUrl de lib/whatsapp.ts',
         },
       ],
