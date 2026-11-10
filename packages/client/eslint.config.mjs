@@ -13,6 +13,24 @@ const eslintConfig = defineConfig([
     'build/**',
     'next-env.d.ts',
   ]),
+  // Prohibit hardcoded WhatsApp URLs outside the official helper and test files
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/lib/whatsapp.ts', 'src/**/*.test.{ts,tsx}', 'src/test/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "Literal[value=/wa\\.me|whatsapp\\.com/i]",
+          message: 'Usa buildWhatsAppUrl de lib/whatsapp.ts',
+        },
+        {
+          selector: "TemplateLiteral[quasis.value.raw=/wa\\.me|whatsapp\\.com/i]",
+          message: 'Usa buildWhatsAppUrl de lib/whatsapp.ts',
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

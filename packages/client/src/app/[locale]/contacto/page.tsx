@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
-import { buildWhatsAppUrl } from '@/lib/whatsapp';
+import { buildWhatsAppUrl, getWhatsAppNumber } from '@/lib/whatsapp';
 import { isLocale } from '@/i18n/config';
 
 import styles from './page.module.css';
@@ -17,19 +17,17 @@ export default async function ContactoPage({ params }: ContactoPageProps) {
   setRequestLocale(locale);
   const t = await getTranslations();
 
-  const whatsappUrl = buildWhatsAppUrl({
-    number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+573000000000',
-    message: t('contact.contactMessage', {
-      nombre: '',
-      mensaje: 'Hola, me gustaría más información sobre sus servicios.',
-    }),
-    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      typeof navigator !== 'undefined' ? navigator.userAgent : '',
-    ),
+  const whatsappNumber = getWhatsAppNumber();
+  const whatsappMessage = t('contact.contactMessage', {
+    nombre: '',
+    mensaje: 'Hola, me gustaría más información sobre sus servicios.',
   });
+  const ctaUrl = whatsappNumber
+    ? buildWhatsAppUrl({ number: whatsappNumber, message: whatsappMessage })
+    : null;
 
   return (
-      <div className={styles.page}>
+    <div className={styles.page}>
       <div className={styles.content}>
         <div className={styles.header}>
           <h1 className={styles.title}>{t('contact.title')}</h1>
@@ -45,10 +43,12 @@ export default async function ContactoPage({ params }: ContactoPageProps) {
             <p className={styles.contactLabel}>
               {locale === 'es' ? 'Escríbanos por WhatsApp' : 'Message us on WhatsApp'}
             </p>
-            <a href={whatsappUrl} className={styles.whatsappBtn} target="_blank" rel="noopener noreferrer">
-              <span className={styles.whatsappIcon}>📱</span>
-              {locale === 'es' ? 'Hablar por WhatsApp' : 'Chat on WhatsApp'}
-            </a>
+            {ctaUrl && (
+              <a href={ctaUrl} className={styles.whatsappBtn} target="_blank" rel="noopener noreferrer">
+                <span className={styles.whatsappIcon}>📱</span>
+                {locale === 'es' ? 'Hablar por WhatsApp' : 'Chat on WhatsApp'}
+              </a>
+            )}
           </div>
           <div className={styles.contactInfo}>
             <p className={styles.contactLabel}>

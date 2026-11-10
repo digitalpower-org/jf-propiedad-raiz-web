@@ -34,9 +34,6 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
   const whatsappUrl = buildWhatsAppUrl({
     number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+573000000000',
     message: buildWhatsAppMessage(t, property, locale),
-    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      typeof navigator !== 'undefined' ? navigator.userAgent : '',
-    ),
   });
 
   return (

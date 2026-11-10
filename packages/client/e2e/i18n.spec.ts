@@ -97,7 +97,7 @@ test('navbar: WhatsApp href usa buildWhatsAppUrl helper', async ({ page }) => {
 
   const href = await whatsappLink.getAttribute('href');
   expect(href).toBeTruthy();
-  expect(href).toMatch(/^https:\/\/wa\.me\/\d+$/);
+  expect(href).toMatch(/^https:\/\/wa\.me\/\d+\?text=[^\s]+$/);
 });
 
 test('footer: WhatsApp href usa buildWhatsAppUrl helper', async ({ page }) => {
@@ -109,7 +109,7 @@ test('footer: WhatsApp href usa buildWhatsAppUrl helper', async ({ page }) => {
 
   const href = await whatsappLink.getAttribute('href');
   expect(href).toBeTruthy();
-  expect(href).toMatch(/^https:\/\/wa\.me\/\d+$/);
+  expect(href).toMatch(/^https:\/\/wa\.me\/\d+\?text=[^\s]+$/);
 });
 
 // FIXME: Tests con slugs dinámicos requieren seed de catálogo (MT2.4) para que las páginas

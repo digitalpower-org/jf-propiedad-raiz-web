@@ -1,13 +1,10 @@
 // Helper de WhatsApp (T3, D35, US0.1, US2.5, US3.1, AC2.5.4)
 //
-// Función pura: recibe { number, message, isMobile } y devuelve la URL de WhatsApp.
-// La detección de móvil/escritorio ocurre EN EL MANEJADOR DEL CLIC (AC2.5.4),
-// no en useEffect ni con window.innerWidth. El href por defecto funciona sin JS.
-// Usa navigator.userAgentData?.mobile con respaldo por user-agent.
-//
+// Función pura: recibe { number, message } y devuelve la URL de WhatsApp.
+// La detección de móvil/escritorio se ELIMINA: siempre usa wa.me.
+// El href por defecto funciona sin JS.
 // Formato URL según documentación oficial WhatsApp Business:
-// - Móvil/Universal: https://wa.me/<dígitos>?text=<mensaje codificado>
-// - Escritorio: https://web.whatsapp.com/send?phone=<dígitos>&text=<mensaje>
+// - Universal: https://wa.me/<dígitos>?text=<mensaje codificado>
 // Fuente: https://developers.facebook.com/docs/whatsapp/business-management-api/message-templates
 
 /**
@@ -60,39 +57,16 @@ export function getWhatsAppNumber(): string | null {
  *
  * @param number Número ya normalizado (solo dígitos, ej: 573001234567)
  * @param message Texto del mensaje (se codifica para URL)
- * @param isMobile Si true usa wa.me, si false usa web.whatsapp.com
- * @returns URL completa de WhatsApp
+ * @returns URL completa de WhatsApp (siempre wa.me)
  */
 export function buildWhatsAppUrl(params: {
   readonly number: string;
   readonly message: string;
-  readonly isMobile: boolean;
 }): string {
-  const { number, message, isMobile } = params;
+  const { number, message } = params;
   const encodedMessage = encodeURIComponent(message);
-  if (isMobile) {
-    // Móvil: https://wa.me/<digits>?text=<encoded>
-    return `https://wa.me/${number}?text=${encodedMessage}`;
-  } else {
-    // Escritorio: https://web.whatsapp.com/send?phone=<digits>&text=<encoded>
-    return `https://web.whatsapp.com/send?phone=${number}&text=${encodedMessage}`;
-  }
-}
-
-/**
- * Detecta si el dispositivo es móvil usando navigator.userAgentData (moderno)
- * con fallback a user-agent legacy.
- * Debe llamarse EN EL MANEJADOR DEL CLIC (event handler), no en render.
- */
-export function detectIsMobile(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  // navigator.userAgentData (User-Agent Client Hints API)
-  if ('userAgentData' in navigator && typeof navigator.userAgentData === 'object' && navigator.userAgentData !== null) {
-    const uaData = navigator.userAgentData as { mobile?: boolean };
-    if (typeof uaData.mobile === 'boolean') return uaData.mobile;
-  }
-  // Fallback: user-agent string
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  // Universal: https://wa.me/<dígitos>?text=<encoded>
+  return `https://wa.me/${number}?text=${encodedMessage}`;
 }
 
 // Re-export BRAND_NAME desde brand.ts

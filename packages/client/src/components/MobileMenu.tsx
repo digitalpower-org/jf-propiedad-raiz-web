@@ -98,21 +98,12 @@ export function MobileMenu({ isOpen, onClose, locale }: MobileMenuProps) {
 
   const handleWhatsAppClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!whatsappNumber) return;
-    // Detect mobile at click time (not render time)
-    const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
-    const isMobile = typeof navigator !== 'undefined' && (
-      nav.userAgentData?.mobile === true ||
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    );
     const url = buildWhatsAppUrl({
       number: whatsappNumber,
       message: t('whatsappMessage'),
-      isMobile,
     });
     e.currentTarget.href = url;
   };
-
-  const defaultWhatsAppUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#';
 
   if (!isOpen) return null;
 
@@ -170,7 +161,10 @@ export function MobileMenu({ isOpen, onClose, locale }: MobileMenuProps) {
 
           {whatsappNumber && (
             <a
-              href={defaultWhatsAppUrl}
+              href={buildWhatsAppUrl({
+                number: whatsappNumber,
+                message: t('whatsappMessage'),
+              })}
               className={styles.whatsappButton}
               target="_blank"
               rel="noopener noreferrer"

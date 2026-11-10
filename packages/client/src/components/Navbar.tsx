@@ -5,7 +5,7 @@ import { getRoute, type RouteKey } from '@/i18n/routes';
 import { useTranslations } from 'next-intl';
 import type { Locale } from '@/i18n/config';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { getWhatsAppNumber, BRAND_NAME, detectIsMobile, buildWhatsAppUrl } from '@/lib/whatsapp';
+import { getWhatsAppNumber, BRAND_NAME, buildWhatsAppUrl } from '@/lib/whatsapp';
 import { MobileMenu } from '@/components/MobileMenu';
 
 import styles from './Navbar.module.css';
@@ -26,11 +26,9 @@ export default function Navbar({ locale }: NavbarProps) {
 
   const handleWhatsAppClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!whatsappNumber) return;
-    const isMobile = detectIsMobile();
     const url = buildWhatsAppUrl({
       number: whatsappNumber,
       message: t('whatsappMessage'),
-      isMobile,
     });
     e.currentTarget.href = url;
   };
@@ -45,9 +43,6 @@ export default function Navbar({ locale }: NavbarProps) {
     { key: 'contact', label: { es: 'Contacto', en: 'Contact' } },
     { key: 'consign', label: { es: 'Consignar', en: 'List Your Property' } },
   ];
-
-  // URL por defecto que funciona sin JavaScript (wa.me universal)
-  const defaultWhatsAppUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#';
 
   return (
     <nav className={styles.navbar}>
@@ -91,7 +86,10 @@ export default function Navbar({ locale }: NavbarProps) {
 
           {whatsappNumber && (
             <a
-              href={defaultWhatsAppUrl}
+              href={buildWhatsAppUrl({
+                number: whatsappNumber,
+                message: t('whatsappMessage'),
+              })}
               className={styles.whatsappButton}
               target="_blank"
               rel="noopener noreferrer"

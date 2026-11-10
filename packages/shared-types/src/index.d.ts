@@ -13,7 +13,6 @@ export * from "./models";
 export interface BuildWhatsAppUrlParams {
   readonly number: string;
   readonly message: string;
-  readonly isMobile: boolean;
 }
 export interface BuildWhatsAppUrl {
   (params: BuildWhatsAppUrlParams): string;

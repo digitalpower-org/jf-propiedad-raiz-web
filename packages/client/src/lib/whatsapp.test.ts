@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildWhatsAppUrl, getWhatsAppNumber, normalizePhoneNumber, BRAND_NAME, detectIsMobile } from './whatsapp';
+
+// Import the REAL module (unmocked) for unit tests of the helper itself
+vi.unmock('@/lib/whatsapp');
+import { buildWhatsAppUrl, getWhatsAppNumber, normalizePhoneNumber, BRAND_NAME } from './whatsapp';
 
 describe('normalizePhoneNumber', () => {
   it('AC2.5.3 | normaliza número colombiano 10 dígitos empezando en 3', () => {
@@ -86,64 +89,41 @@ describe('getWhatsAppNumber', () => {
 });
 
 describe('buildWhatsAppUrl', () => {
-  it('AC2.5.1 | móvil: construye URL wa.me con número y mensaje codificado', () => {
+  it('AC2.5.1 | construye URL wa.me con número y mensaje codificado', () => {
     const url = buildWhatsAppUrl({
       number: '573001234567',
       message: 'Hola, me interesa un inmueble',
-      isMobile: true,
     });
-    // Formato móvil: https://wa.me/<digits>?text=<encoded>
+    // Formato universal: https://wa.me/<dígitos>?text=<encoded>
     expect(url).toBe('https://wa.me/573001234567?text=Hola%2C%20me%20interesa%20un%20inmueble');
   });
 
-  it('AC2.5.1 | escritorio: construye URL web.whatsapp.com con phone y text', () => {
-    const url = buildWhatsAppUrl({
-      number: '573001234567',
-      message: 'Hola',
-      isMobile: false,
-    });
-    // Formato escritorio: https://web.whatsapp.com/send?phone=<digits>&text=<encoded>
-    expect(url).toBe('https://web.whatsapp.com/send?phone=573001234567&text=Hola');
-  });
-
-  it('AC2.5.2 | móvil: codifica caracteres especiales del mensaje', () => {
+  it('AC2.5.2 | codifica caracteres especiales del mensaje', () => {
     const url = buildWhatsAppUrl({
       number: '573001234567',
       message: '¿Precio? \$200.000.000',
-      isMobile: true,
     });
     expect(url).toContain('text=%C2%BFPrecio%3F%20%24200.000.000');
   });
 
-  it('AC2.5.2 | móvil: maneja mensaje vacío', () => {
+  it('AC2.5.2 | maneja mensaje vacío', () => {
     const url = buildWhatsAppUrl({
       number: '573001234567',
       message: '',
-      isMobile: true,
     });
     expect(url).toBe('https://wa.me/573001234567?text=');
   });
 
-  it('AC2.5.2 | escritorio: maneja mensaje vacío', () => {
-    const url = buildWhatsAppUrl({
-      number: '573001234567',
-      message: '',
-      isMobile: false,
-    });
-    expect(url).toBe('https://web.whatsapp.com/send?phone=573001234567&text=');
-  });
-
-  it('AC2.5.1 | número internacional US en móvil', () => {
+  it('AC2.5.1 | número internacional US', () => {
     const url = buildWhatsAppUrl({
       number: '15551234567',
       message: 'Hello',
-      isMobile: true,
     });
     expect(url).toBe('https://wa.me/15551234567?text=Hello');
   });
 
   it('AC2.5.4 | helper es función pura: misma entrada produce misma salida', () => {
-    const params = { number: '573001234567', message: 'Test', isMobile: true };
+    const params = { number: '573001234567', message: 'Test' };
     expect(buildWhatsAppUrl(params)).toBe(buildWhatsAppUrl(params));
   });
 });
@@ -151,17 +131,5 @@ describe('buildWhatsAppUrl', () => {
 describe('BRAND_NAME', () => {
   it('T1 | es la constante de marca correcta', () => {
     expect(BRAND_NAME).toBe('JF Propiedad Raíz');
-  });
-});
-
-describe('detectIsMobile', () => {
-  it('AC2.5.4 | devuelve false en entorno sin navigator (Node/test)', () => {
-    expect(detectIsMobile()).toBe(false);
-  });
-
-  it('AC2.5.4 | detección ocurre en cliente (no en servidor)', () => {
-    // En entorno de test (Node) navigator no existe → false
-    // En navegador real, detectIsMobile usa navigator.userAgentData?.mobile
-    expect(typeof detectIsMobile).toBe('function');
   });
 });

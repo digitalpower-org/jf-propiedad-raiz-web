@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import type { Locale } from '@/i18n/config';
 import { getRoute } from '@/i18n/routes';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { getWhatsAppNumber, BRAND_NAME, detectIsMobile, buildWhatsAppUrl } from '@/lib/whatsapp';
+import { getWhatsAppNumber, BRAND_NAME, buildWhatsAppUrl } from '@/lib/whatsapp';
 
 import styles from './Footer.module.css';
 
@@ -31,16 +31,12 @@ export default function Footer({ locale }: { readonly locale: Locale }) {
 
   const handleWhatsAppClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!whatsappNumber) return;
-    const isMobile = detectIsMobile();
     const url = buildWhatsAppUrl({
       number: whatsappNumber,
       message: t('footer.whatsappMessage'),
-      isMobile,
     });
     e.currentTarget.href = url;
   };
-
-  const defaultWhatsAppUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#';
 
   return (
     <footer className={styles.footer}>
@@ -74,7 +70,10 @@ export default function Footer({ locale }: { readonly locale: Locale }) {
             <h3 className={styles.sectionTitle}>{t('footer.whatsapp')}</h3>
             {whatsappNumber && (
               <a
-                href={defaultWhatsAppUrl}
+                href={buildWhatsAppUrl({
+                  number: whatsappNumber,
+                  message: t('footer.whatsappMessage'),
+                })}
                 className={styles.whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"

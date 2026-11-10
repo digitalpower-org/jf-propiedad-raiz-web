@@ -27,9 +27,6 @@ export function PropertyStickySidebar({ property, locale }: PropertyStickySideba
       codigo: property.codigo,
       titulo: property.titulo[locale] ?? '',
     }),
-    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      typeof navigator !== 'undefined' ? navigator.userAgent : '',
-    ),
   });
 
   const operacionLabel = getOperacionLabel(property.operacion, locale);
