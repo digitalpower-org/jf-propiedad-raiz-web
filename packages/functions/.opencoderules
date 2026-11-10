@@ -1,17 +1,60 @@
-# Backend Rules - Express.js + Clean Architecture
+# Backend Rules — Express + Clean Architecture (una sola Cloud Function)
 
-## Architecture Layers
-1. Domain: Entities, Value Objects (Zod brandeados), Interface Ports, Error Catalog. Cero dependencias externas.
-2. Application: Use Cases puros.
-3. Infrastructure: Firestore Repositories, Cloudflare R2 Presigned URLs SDK, Pino Logger -> Google Cloud Logging.
-4. Presentation: Express Routes, Handlers, Error Middlewares.
+> Fuente normativa: `docs/BACKEND-ARCHITECTURE.md`. Si este archivo contradice ese documento, prevalece el documento y hay que corregir este archivo.
 
-## Express & Error Handling
-- Respuestas exitosas: `{ success: true, data: T, message: string, timestamp: string }`.
-- Respuestas de error: `{ success: false, data: { code: string, details: unknown, requestId: string }, message: string, timestamp: string }`.
-- RequestId generado por Middleware en cada petición.
+## Alcance
+- Solo `packages/functions`. No aplica a `packages/client` ni al BFF.
 
-## Testing Rules
-- Vitest 4 + Supertest.
-- Base de datos de pruebas: SQLite en archivo temporal (NUNCA `:memory:`).
-- Cobertura exigida: 100% de tests aprobados en lógica de negocio y controladores.
+## Capas (regla de dependencia)
+1. **Domain**: entidades, VOs Zod brandeados, reglas, `domain/errors/errorCatalog.ts`, `ApiError`. Sin SDKs, sin Express, sin HTTP.
+2. **Application**: casos de uso (`UseCase<Command, Result>`), puertos, `buildUseCases.ts`. Sin SDKs, sin Express, sin HTTP.
+3. **Presentation**: Express, `appBuilder`, `routes`, `paths`, handlers finos, guards, middlewares, envelope, `STATUS_BY_CODE`. Sin SDKs de persistencia.
+4. **Infrastructure**: adaptadores de puertos (Firestore, R2, Resend, Translate, Sharp, Firebase Admin, logger, clock), `composition.ts`, `config/env.ts`. No importa Presentation.
+
+- Dependencias: Presentation → Application → Domain.
+- Infrastructure implementa los puertos de Application y se inyecta desde el composition root.
+- Los puertos viven en `application/ports` (o `domain/ports` solo si una regla pura los necesita). Las implementaciones viven en `infrastructure`.
+
+## Express y Cloud Functions
+- Una sola función HTTP: `export const api = onRequest(app)` con `onRequest` de `firebase-functions/v2/https`.
+- Express 5 (`express@^5`, `@types/express@^5`); Express no sale de `presentation/`.
+- `appBuilder` registra: `express.json` → `requestId` → rutas → `notFound` → `error` (4 argumentos).
+- Handlers: parsear Zod → llamar caso de uso → `writeSuccess` → `next(err)`.
+- 404 con `NOT_FOUND`; 405 con `METHOD_NOT_ALLOWED` (`router.all(path, methodNotAllowed)`).
+
+## Contrato y errores
+- Envelope D15, sin campos extra:
+  - `{ success: true, data, message }`
+  - `{ success: false, data: { code, details, requestId }, message }`
+- **No** añadir marcas de tiempo ni `path`/`stack`.
+- `domain/errors/errorCatalog.ts` es la única fuente runtime de los **15 códigos**.
+- `STATUS_BY_CODE` (código → HTTP) vive **solo** en `presentation/errorStatus.ts`.
+- Paridad obligatoria en compilación contra `BackendSpec.components['schemas']['ErrorCode']` y `ErrorCodeTable`.
+- Errores esperados: `ApiError`; validación de frontera: `ZodError` → 422 `VALIDATION_ERROR`; el middleware central es el único que mapea.
+- `@jf/shared-types` se importa **solo con `import type`** (D35).
+
+## Rutas y validación
+- `API_PATHS` tipado contra `BackendSpec.paths` (conversión `{param}` → `:param`).
+- Zod valida `body`, `query`, `params` y `headers` en Presentation. `safeParse` solo con decisión de negocio real.
+- `internal-auth` ya no es una función independiente: es la ruta `POST /internal/auth/verify` + `VerifyInternalSessionUseCase` + `internalKeyGuard`.
+
+## Decisiones tecnológicas
+- **JWT**: no `jose` en v1. El backend verifica `idToken` con `firebase-admin` (`verifyIdToken(idToken, true)`); el BFF firma su sesión con `crypto` nativo. Si se necesita firmar/verificar JWT propios, `jose` entra detrás de un puerto en `application/ports` y adaptador en `infrastructure`.
+- **Logging**: no Pino. Logger propio sobre `firebase-functions/logger` detrás del puerto `Logger`. Nunca loguear tokens, secretos, correos completos ni PII.
+- **Contraseñas**: no `argon2` ni HIBP. La identidad la aporta Firebase Auth.
+- **Persistencia**: Firestore exclusivamente. Tests con emulador de Firestore o fakes en memoria. Sin base de datos local alternativa.
+
+## Testing
+- Vitest 4 + Supertest (`supertest` y `@types/supertest` en devDependencies).
+- Domain/Application con fakes; Presentation con `supertest` contra `appBuilder`; adaptadores con emulador o fakes de contrato.
+- **100 % de tests pasando** y **≥ 80 % de cobertura** (`npm run test:coverage`).
+- `npm run typecheck` y `npm run lint` limpios.
+- No borrar tests para hacer pasar el build.
+
+## Prohibiciones
+- `any`, `as` para callar tipos, `@ts-ignore`, `@ts-expect-error`.
+- `getAuth()` a nivel de módulo en Presentation.
+- SDKs (`firebase-admin`, `firebase-functions`, `resend`, `@aws-sdk/*`, `sharp`) en Domain/Application.
+- Duplicar el catálogo de errores o el envelope.
+- `res.status(...).json(...)` repetido en handlers.
+- Dependencias preventivas sin caso de uso documentado.

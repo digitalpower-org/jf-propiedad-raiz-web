@@ -10,13 +10,13 @@
  * No conoce el proveedor: recibe el Translator por constructor (inyección).
  */
 
-import type { Logger } from '../../infrastructure/logging/logger';
+import type { Logger } from '../ports/logger';
 import type {
   Translator,
   TranslateResult,
   TranslationInput,
   TranslationOutput,
-} from '../../infrastructure/Translator/translator';
+} from '../ports/translator';
 
 /** Intervalo de backoff entre reintentos (ms). 500 ms (AC0.5.5). */
 const RETRY_BACKOFF_MS = 500;
@@ -68,10 +68,7 @@ export class TranslationService {
     }
 
     // Reintento simple (AC0.5.5)
-    this.logger.warn('translation_retry', {
-      requestId: this.logger.requestId,
-      error: firstAttempt.error,
-    });
+    this.logger.warn('translation_retry', { error: firstAttempt.error });
 
     await new Promise((resolve) => setTimeout(resolve, RETRY_BACKOFF_MS));
 

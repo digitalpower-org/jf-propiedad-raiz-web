@@ -5,7 +5,7 @@
  * Los route handlers no son puros (config de vitest lo excluye).
  */
 
-import { backendUrlForFunction } from './backend-url';
+import { backendUrl } from './backend-url';
 
 export type ServiceHealth = {
   readonly status: 'ok' | 'error';
@@ -30,7 +30,7 @@ export const FUNCTIONS_HEALTH_TIMEOUT_MS = 5000;
  * - Reject con ServiceHealth { status: 'error' } en fallos, timeout o HTTP no-200.
  */
 export async function checkFunctionsHealth(): Promise<ServiceHealth> {
-  const url = backendUrlForFunction('health');
+  const url = backendUrl('/health');
   const start = Date.now();
 
   const controller = new AbortController();

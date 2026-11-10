@@ -1,6 +1,6 @@
 /**
  * Tests de `backend-url`: la URL final del backend debe incluir SIEMPRE el
- * nombre de la función exportada (`internalAuth`, `api`, `health`).
+ * nombre de la única función exportada (`api`).
  */
 
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -34,26 +34,32 @@ async function importBackendUrl(base: string) {
 }
 
 describe('backendUrl', () => {
-  it('incluye internalAuth y normaliza la base sin barra final', async () => {
+  it('mapea /internal/ a la función api y normaliza la base sin barra final', async () => {
     const { backendUrl } = await importBackendUrl('https://functions.test');
 
     expect(backendUrl('/internal/auth/verify')).toBe(
-      'https://functions.test/internalAuth/internal/auth/verify',
+      'https://functions.test/api/internal/auth/verify',
     );
   });
 
-  it('incluye internalAuth y normaliza la base con barra final', async () => {
+  it('mapea /internal/ a la función api y normaliza la base con barra final', async () => {
     const { backendUrl } = await importBackendUrl('https://functions.test/');
 
     expect(backendUrl('/internal/auth/verify')).toBe(
-      'https://functions.test/internalAuth/internal/auth/verify',
+      'https://functions.test/api/internal/auth/verify',
     );
   });
 
-  it('incluye la función api para el prefijo /api/v1/', async () => {
+  it('mapea el prefijo /api/v1/ a la función api', async () => {
     const { backendUrl } = await importBackendUrl('https://functions.test');
 
     expect(backendUrl('/api/v1/properties')).toBe('https://functions.test/api/api/v1/properties');
+  });
+
+  it('mapea /health a la función api', async () => {
+    const { backendUrl } = await importBackendUrl('https://functions.test');
+
+    expect(backendUrl('/health')).toBe('https://functions.test/api/health');
   });
 
   it('lanza un error descriptivo para un prefijo desconocido', async () => {
@@ -61,22 +67,6 @@ describe('backendUrl', () => {
 
     expect(() => backendUrl('/desconocido/recurso')).toThrowError(
       /No hay función de Cloud Functions asociada/,
-    );
-  });
-});
-
-describe('backendUrlForFunction', () => {
-  it('construye la URL de la función health', async () => {
-    const { backendUrlForFunction } = await importBackendUrl('https://functions.test');
-
-    expect(backendUrlForFunction('health')).toBe('https://functions.test/health');
-  });
-
-  it('acepta un subPath y normaliza barras', async () => {
-    const { backendUrlForFunction } = await importBackendUrl('https://functions.test/');
-
-    expect(backendUrlForFunction('internalAuth', '/internal/auth/verify')).toBe(
-      'https://functions.test/internalAuth/internal/auth/verify',
     );
   });
 });

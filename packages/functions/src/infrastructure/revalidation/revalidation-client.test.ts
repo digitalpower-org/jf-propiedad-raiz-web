@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { createRevalidationClient } from './revalidation-client';
-import { NoopLogger } from '../../infrastructure/logging/logger';
+import { NoopLogger } from '../logging/noop-logger';
 
 describe('RevalidationClient (MT1.4)', () => {
   const makeClient = (
