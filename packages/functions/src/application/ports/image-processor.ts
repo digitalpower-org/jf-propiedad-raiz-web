@@ -35,8 +35,5 @@ export interface ImageProcessor {
    * (320, 640, 1280, 2048 o tamaño completo). Devuelve los buffers listos
    * para persistir.
    */
-  readonly generarDerivados: (
-    buffer: Buffer,
-    claveBase: string,
-  ) => Promise<DerivadosImagenResult>;
+  readonly generarDerivados: (buffer: Buffer, claveBase: string) => Promise<DerivadosImagenResult>;
 }

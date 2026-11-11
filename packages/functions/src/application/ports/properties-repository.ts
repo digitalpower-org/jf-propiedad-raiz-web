@@ -189,7 +189,10 @@ export interface PropertiesRepository {
   ) => Promise<ObtenerPropertyResult | null>;
   readonly listPublico: (filtros: FiltrosListadoPublico) => Promise<ListadoPublicoResult>;
   readonly getFeatured: () => Promise<readonly PropertyCardDto[]>;
-  readonly update: (idOrSlug: string, input: ActualizarPropertyInputDto) => Promise<ActualizarPropertyResult>;
+  readonly update: (
+    idOrSlug: string,
+    input: ActualizarPropertyInputDto,
+  ) => Promise<ActualizarPropertyResult>;
   readonly activate: (idOrSlug: string) => Promise<ActivarPropertyResult>;
   readonly hide: (idOrSlug: string) => Promise<OcultarPropertyResult>;
   readonly softDelete: (idOrSlug: string) => Promise<EliminarPropertyResult>;

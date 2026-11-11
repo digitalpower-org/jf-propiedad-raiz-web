@@ -27,18 +27,12 @@ export interface MediaStorage {
    * Genera una URL PUT presignada para subir un objeto a `pending/`.
    * Valida el rol de administrador y el tipo MIME antes de firmar.
    */
-  readonly presignPut: (
-    nombre: string,
-    mimeType: string,
-  ) => Promise<PresignPutResult>;
+  readonly presignPut: (nombre: string, mimeType: string) => Promise<PresignPutResult>;
 
   /**
    * Confirma que un archivo se subió a `pending/`, lo valida por cabecera
    * (tipo → peso → dimensiones mínimas → tope de píxeles → proporción),
    * genera derivados WebP y elimina el original.
    */
-  readonly confirmarSubida: (
-    key: string,
-    recurso: RecursoMedia,
-  ) => Promise<ConfirmarSubidaResult>;
+  readonly confirmarSubida: (key: string, recurso: RecursoMedia) => Promise<ConfirmarSubidaResult>;
 }

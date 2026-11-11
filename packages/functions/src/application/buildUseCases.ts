@@ -45,11 +45,7 @@ export function buildUseCases(ports: ApplicationPorts): UseCases {
       logger: ports.logger,
     }),
     revalidateContent,
-    crearProperty: new CrearPropertyUseCase(
-      ports.properties,
-      revalidateContent,
-      ports.logger,
-    ),
+    crearProperty: new CrearPropertyUseCase(ports.properties, revalidateContent, ports.logger),
     actualizarProperty: new ActualizarPropertyUseCase(
       ports.properties,
       revalidateContent,
@@ -60,25 +56,11 @@ export function buildUseCases(ports: ApplicationPorts): UseCases {
       revalidateContent,
       ports.logger,
     ),
-    activarProperty: new ActivarPropertyUseCase(
-      ports.properties,
-      revalidateContent,
-      ports.logger,
-    ),
-    ocultarProperty: new OcultarPropertyUseCase(
-      ports.properties,
-      revalidateContent,
-      ports.logger,
-    ),
+    activarProperty: new ActivarPropertyUseCase(ports.properties, revalidateContent, ports.logger),
+    ocultarProperty: new OcultarPropertyUseCase(ports.properties, revalidateContent, ports.logger),
     listarProperties: new ListarPropertiesUseCase(ports.properties, ports.logger),
     obtenerProperty: new ObtenerPropertyUseCase(ports.properties, ports.logger),
-    presignMediaUpload: new PresignMediaUploadUseCase(
-      ports.mediaStorage,
-      ports.logger,
-    ),
-    confirmarMediaUpload: new ConfirmarMediaUploadUseCase(
-      ports.mediaStorage,
-      ports.logger,
-    ),
+    presignMediaUpload: new PresignMediaUploadUseCase(ports.mediaStorage, ports.logger),
+    confirmarMediaUpload: new ConfirmarMediaUploadUseCase(ports.mediaStorage, ports.logger),
   };
 }
