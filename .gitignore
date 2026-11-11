@@ -163,7 +163,7 @@ session-*.md
 firebase-adminsdk*.json
 
 # Patch files generated for MT1.1 handoff review
-.patches/oh-my-opencode.jsonc
+.patches/
 
 # Firebase App Hosting emulator overrides (auto-generated)
 apphosting.emulator.yaml
@@ -172,3 +172,6 @@ apphosting.emulator.yaml
 test-results/
 playwright-report/
 .agents/
+
+# MT informes
+.informe_mt/
