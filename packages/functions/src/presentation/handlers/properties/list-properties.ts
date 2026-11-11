@@ -25,7 +25,10 @@ const querySchema = z
    * individualmente, pero si se envían ambas debe cumplirse precioMin ≤ precioMax.
    */
   .refine(
-    (data) => data.precioMin === undefined || data.precioMax === undefined || data.precioMin <= data.precioMax,
+    (data) =>
+      data.precioMin === undefined ||
+      data.precioMax === undefined ||
+      data.precioMin <= data.precioMax,
     { message: 'precioMin no puede ser mayor que precioMax', path: ['precioMin'] },
   )
   /**
@@ -33,10 +36,10 @@ const querySchema = z
    * combinación fuera de los 8 presets documentados responde 422
    * VALIDATION_ERROR, nunca FAILED_PRECONDITION ni 500.
    */
-  .refine(
-    (data) => (data.departamento !== undefined) === (data.municipio !== undefined),
-    { message: 'departamento y municipio deben enviarse juntos', path: ['departamento'] },
-  );
+  .refine((data) => (data.departamento !== undefined) === (data.municipio !== undefined), {
+    message: 'departamento y municipio deben enviarse juntos',
+    path: ['departamento'],
+  });
 
 /**
  * Construye el objeto de filtros para listado público a partir del

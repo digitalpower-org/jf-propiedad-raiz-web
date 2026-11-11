@@ -70,7 +70,12 @@ describe('makeListPropertiesHandler', () => {
     const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
     const handler = makeListPropertiesHandler(useCase);
     const res = makeRes();
-    const req = makeReq({ operacion: 'VENTA', destacada: 'false', precioMin: 200000000, precioMax: 100000000 });
+    const req = makeReq({
+      operacion: 'VENTA',
+      destacada: 'false',
+      precioMin: 200000000,
+      precioMax: 100000000,
+    });
 
     await (handler as AsyncHandler)(req, res, next);
 
@@ -107,7 +112,10 @@ describe('makeListPropertiesHandler', () => {
 
   it('acepta precioMin y precioMax válidos (precioMin ≤ precioMax)', async () => {
     const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ items: [], nextCursor: undefined });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: [],
+      nextCursor: undefined,
+    });
     const handler = makeListPropertiesHandler(useCase);
     const res = makeRes();
     const req = makeReq({
@@ -131,7 +139,10 @@ describe('makeListPropertiesHandler', () => {
 
   it('acepta departamento y municipio enviados juntos', async () => {
     const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ items: [], nextCursor: undefined });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: [],
+      nextCursor: undefined,
+    });
     const handler = makeListPropertiesHandler(useCase);
     const res = makeRes();
     const req = makeReq({
