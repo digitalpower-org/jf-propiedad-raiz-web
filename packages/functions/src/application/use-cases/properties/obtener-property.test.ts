@@ -26,10 +26,7 @@ function makePorts() {
 describe('ObtenerPropertyUseCase', () => {
   it('llena properties.findByIdOrSlug con el idOrSlug y esPublico, y retorna el resultado', async () => {
     const ports = makePorts();
-    const useCase = new ObtenerPropertyUseCase(
-      ports.properties,
-      ports.logger,
-    );
+    const useCase = new ObtenerPropertyUseCase(ports.properties, ports.logger);
 
     const esperado = {
       property: {
@@ -56,10 +53,7 @@ describe('ObtenerPropertyUseCase', () => {
       esPublico: true,
     });
 
-    expect(ports.properties.findByIdOrSlug).toHaveBeenCalledWith(
-      'doc-1',
-      true,
-    );
+    expect(ports.properties.findByIdOrSlug).toHaveBeenCalledWith('doc-1', true);
     expect(resultado).toBe(esperado);
     expect(ports.logger.debug).toHaveBeenCalledWith('property_obtained', {
       idOrSlug: 'doc-1',
@@ -68,14 +62,11 @@ describe('ObtenerPropertyUseCase', () => {
 
   it('lanza error si no se encuentra el inmueble', async () => {
     const ports = makePorts();
-    const useCase = new ObtenerPropertyUseCase(
-      ports.properties,
-      ports.logger,
-    );
+    const useCase = new ObtenerPropertyUseCase(ports.properties, ports.logger);
     ports.properties.findByIdOrSlug.mockResolvedValue(null);
 
-    await expect(
-      useCase.execute({ idOrSlug: 'inexistente', esPublico: true }),
-    ).rejects.toThrow('Inmueble no encontrado: inexistente');
+    await expect(useCase.execute({ idOrSlug: 'inexistente', esPublico: true })).rejects.toThrow(
+      'Inmueble no encontrado: inexistente',
+    );
   });
 });

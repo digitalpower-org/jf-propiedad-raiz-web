@@ -6,9 +6,7 @@ import { RevalidateContent } from '../../revalidation/revalidate-content';
 import { ActualizarPropertyUseCase } from './actualizar-property';
 
 class FakeRevalidateContent extends RevalidateContent {
-  override revalidate = vi.fn((_resource: ContentResource) =>
-    Promise.resolve({ ok: true }),
-  );
+  override revalidate = vi.fn((_resource: ContentResource) => Promise.resolve({ ok: true }));
 
   constructor() {
     super({
@@ -64,9 +62,7 @@ describe('ActualizarPropertyUseCase', () => {
     });
 
     expect(ports.properties.update).toHaveBeenCalledWith('doc-1', input);
-    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith(
-      'propiedades',
-    );
+    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith('propiedades');
     expect(ports.logger.info).toHaveBeenCalledWith('property_updated', {
       idOrSlug: 'doc-1',
     });

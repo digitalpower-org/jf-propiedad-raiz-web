@@ -5,9 +5,7 @@ import { RevalidateContent } from '../../revalidation/revalidate-content';
 import { OcultarPropertyUseCase } from './ocultar-property';
 
 class FakeRevalidateContent extends RevalidateContent {
-  override revalidate = vi.fn((_resource: ContentResource) =>
-    Promise.resolve({ ok: true }),
-  );
+  override revalidate = vi.fn((_resource: ContentResource) => Promise.resolve({ ok: true }));
 
   constructor() {
     super({
@@ -56,9 +54,7 @@ describe('OcultarPropertyUseCase', () => {
     await useCase.execute({ idOrSlug: 'doc-1' });
 
     expect(ports.properties.hide).toHaveBeenCalledWith('doc-1');
-    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith(
-      'propiedades',
-    );
+    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith('propiedades');
     expect(ports.logger.info).toHaveBeenCalledWith('property_hidden', {
       idOrSlug: 'doc-1',
     });

@@ -6,9 +6,7 @@ import { RevalidateContent } from '../../revalidation/revalidate-content';
 import { CrearPropertyUseCase } from './crear-property';
 
 class FakeRevalidateContent extends RevalidateContent {
-  override revalidate = vi.fn((_resource: ContentResource) =>
-    Promise.resolve({ ok: true }),
-  );
+  override revalidate = vi.fn((_resource: ContentResource) => Promise.resolve({ ok: true }));
 
   constructor() {
     super({
@@ -69,9 +67,7 @@ describe('CrearPropertyUseCase', () => {
     const resultado = await useCase.execute({ input });
 
     expect(ports.properties.create).toHaveBeenCalledWith(input);
-    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith(
-      'propiedades',
-    );
+    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith('propiedades');
     expect(ports.logger.info).toHaveBeenCalledWith('property_created', {
       codigo: resultado.property.codigo,
     });
@@ -88,7 +84,16 @@ describe('CrearPropertyUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ input: { operacion: 'VENTA', tipo: 'CASA', titulo: { es: 'x' }, precio: 1, departamento: 'Antioquia', municipio: 'Medellín' } }),
+      useCase.execute({
+        input: {
+          operacion: 'VENTA',
+          tipo: 'CASA',
+          titulo: { es: 'x' },
+          precio: 1,
+          departamento: 'Antioquia',
+          municipio: 'Medellín',
+        },
+      }),
     ).rejects.toThrow('error_creando');
   });
 });

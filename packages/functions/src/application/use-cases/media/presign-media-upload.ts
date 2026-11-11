@@ -12,19 +12,17 @@ export interface PresignMediaUploadCommand {
  * US1.8 — Firmar una URL PUT presignada en R2 (prefijo `pending/`).
  * Valida el rol de administrador y el tipo MIME antes de firmar.
  */
-export class PresignMediaUploadUseCase
-  implements UseCase<PresignMediaUploadCommand, PresignPutResult>
-{
+export class PresignMediaUploadUseCase implements UseCase<
+  PresignMediaUploadCommand,
+  PresignPutResult
+> {
   constructor(
     private readonly mediaStorage: MediaStorage,
     private readonly logger: Logger,
   ) {}
 
   async execute(command: PresignMediaUploadCommand): Promise<PresignPutResult> {
-    const resultado = await this.mediaStorage.presignPut(
-      command.nombre,
-      command.mimeType,
-    );
+    const resultado = await this.mediaStorage.presignPut(command.nombre, command.mimeType);
 
     this.logger.debug('media_presigned', { key: resultado.key });
 

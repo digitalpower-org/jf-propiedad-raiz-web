@@ -5,9 +5,7 @@ import { RevalidateContent } from '../../revalidation/revalidate-content';
 import { EliminarPropertyUseCase } from './eliminar-property';
 
 class FakeRevalidateContent extends RevalidateContent {
-  override revalidate = vi.fn((_resource: ContentResource) =>
-    Promise.resolve({ ok: true }),
-  );
+  override revalidate = vi.fn((_resource: ContentResource) => Promise.resolve({ ok: true }));
 
   constructor() {
     super({
@@ -56,9 +54,7 @@ describe('EliminarPropertyUseCase', () => {
     await useCase.execute({ idOrSlug: 'doc-1' });
 
     expect(ports.properties.softDelete).toHaveBeenCalledWith('doc-1');
-    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith(
-      'propiedades',
-    );
+    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith('propiedades');
     expect(ports.logger.info).toHaveBeenCalledWith('property_deleted', {
       idOrSlug: 'doc-1',
     });
@@ -74,8 +70,6 @@ describe('EliminarPropertyUseCase', () => {
       ports.logger,
     );
 
-    await expect(useCase.execute({ idOrSlug: 'doc-1' })).rejects.toThrow(
-      'error_eliminando',
-    );
+    await expect(useCase.execute({ idOrSlug: 'doc-1' })).rejects.toThrow('error_eliminando');
   });
 });

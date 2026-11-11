@@ -14,21 +14,17 @@ export interface ConfirmarMediaUploadCommand {
  * El archivo ya está en `pending/`; el backend valida (tipo → peso → dimensiones
  * mínimas → tope de píxeles → proporción), genera derivados y elimina el original.
  */
-export class ConfirmarMediaUploadUseCase
-  implements UseCase<ConfirmarMediaUploadCommand, ConfirmarSubidaResult>
-{
+export class ConfirmarMediaUploadUseCase implements UseCase<
+  ConfirmarMediaUploadCommand,
+  ConfirmarSubidaResult
+> {
   constructor(
     private readonly mediaStorage: MediaStorage,
     private readonly logger: Logger,
   ) {}
 
-  async execute(
-    command: ConfirmarMediaUploadCommand,
-  ): Promise<ConfirmarSubidaResult> {
-    const resultado = await this.mediaStorage.confirmarSubida(
-      command.key,
-      command.recurso,
-    );
+  async execute(command: ConfirmarMediaUploadCommand): Promise<ConfirmarSubidaResult> {
+    const resultado = await this.mediaStorage.confirmarSubida(command.key, command.recurso);
 
     this.logger.info('media_confirmed', {
       key: command.key,

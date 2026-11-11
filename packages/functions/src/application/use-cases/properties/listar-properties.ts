@@ -10,9 +10,10 @@ import type {
  * US1.10 — Listado público de inmuebles con filtros y paginación por cursor.
  * Solo devuelve inmuebles `ACTIVE`.
  */
-export class ListarPropertiesUseCase
-  implements UseCase<FiltrosListadoPublico, ListadoPublicoResult>
-{
+export class ListarPropertiesUseCase implements UseCase<
+  FiltrosListadoPublico,
+  ListadoPublicoResult
+> {
   constructor(
     private readonly properties: PropertiesRepository,
     private readonly logger: Logger,

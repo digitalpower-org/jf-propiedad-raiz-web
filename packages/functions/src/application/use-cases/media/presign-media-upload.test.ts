@@ -20,10 +20,7 @@ function makePorts() {
 describe('PresignMediaUploadUseCase', () => {
   it('llena mediaStorage.presignPut con nombre y mimeType', async () => {
     const ports = makePorts();
-    const useCase = new PresignMediaUploadUseCase(
-      ports.mediaStorage,
-      ports.logger,
-    );
+    const useCase = new PresignMediaUploadUseCase(ports.mediaStorage, ports.logger);
 
     ports.mediaStorage.presignPut.mockResolvedValue({
       url: 'https://bucket.r2.cloudflarestorage.com/pending/abc-123.jpg',
@@ -35,10 +32,7 @@ describe('PresignMediaUploadUseCase', () => {
       mimeType: 'image/jpeg',
     });
 
-    expect(ports.mediaStorage.presignPut).toHaveBeenCalledWith(
-      'foto.jpg',
-      'image/jpeg',
-    );
+    expect(ports.mediaStorage.presignPut).toHaveBeenCalledWith('foto.jpg', 'image/jpeg');
     expect(ports.logger.debug).toHaveBeenCalledWith('media_presigned', {
       key: resultado.key,
     });
@@ -48,13 +42,10 @@ describe('PresignMediaUploadUseCase', () => {
     const ports = makePorts();
     ports.mediaStorage.presignPut.mockRejectedValue(new Error('error_presignando'));
 
-    const useCase = new PresignMediaUploadUseCase(
-      ports.mediaStorage,
-      ports.logger,
-    );
+    const useCase = new PresignMediaUploadUseCase(ports.mediaStorage, ports.logger);
 
-    await expect(
-      useCase.execute({ nombre: 'foto.jpg', mimeType: 'image/jpeg' }),
-    ).rejects.toThrow('error_presignando');
+    await expect(useCase.execute({ nombre: 'foto.jpg', mimeType: 'image/jpeg' })).rejects.toThrow(
+      'error_presignando',
+    );
   });
 });

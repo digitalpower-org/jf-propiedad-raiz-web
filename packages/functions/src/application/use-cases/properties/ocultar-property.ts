@@ -12,9 +12,10 @@ export interface OcultarPropertyCommand {
  * US1.7 / US4.1 — Ocultar un inmueble (ACTIVE → HIDDEN).
  * No cambia `fechaPublicacion` (AC1.7.5). Tras guardar se revalida (US0.3).
  */
-export class OcultarPropertyUseCase
-  implements UseCase<OcultarPropertyCommand, OcultarPropertyResult>
-{
+export class OcultarPropertyUseCase implements UseCase<
+  OcultarPropertyCommand,
+  OcultarPropertyResult
+> {
   constructor(
     private readonly properties: PropertiesRepository,
     private readonly revalidateContent: RevalidateContent,

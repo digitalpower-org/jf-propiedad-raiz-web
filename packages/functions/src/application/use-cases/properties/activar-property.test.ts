@@ -5,9 +5,7 @@ import { RevalidateContent } from '../../revalidation/revalidate-content';
 import { ActivarPropertyUseCase } from './activar-property';
 
 class FakeRevalidateContent extends RevalidateContent {
-  override revalidate = vi.fn((_resource: ContentResource) =>
-    Promise.resolve({ ok: true }),
-  );
+  override revalidate = vi.fn((_resource: ContentResource) => Promise.resolve({ ok: true }));
 
   constructor() {
     super({
@@ -61,9 +59,7 @@ describe('ActivarPropertyUseCase', () => {
     const resultado = await useCase.execute({ idOrSlug: 'doc-1' });
 
     expect(ports.properties.activate).toHaveBeenCalledWith('doc-1');
-    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith(
-      'propiedades',
-    );
+    expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith('propiedades');
     expect(ports.logger.info).toHaveBeenCalledWith('property_activated', {
       idOrSlug: 'doc-1',
       primeraActivacion: resultado.primeraActivacion,
@@ -80,8 +76,6 @@ describe('ActivarPropertyUseCase', () => {
       ports.logger,
     );
 
-    await expect(useCase.execute({ idOrSlug: 'doc-1' })).rejects.toThrow(
-      'error_activando',
-    );
+    await expect(useCase.execute({ idOrSlug: 'doc-1' })).rejects.toThrow('error_activando');
   });
 });

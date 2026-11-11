@@ -27,10 +27,7 @@ function makePorts() {
 describe('ListarPropertiesUseCase', () => {
   it('llena properties.listPublico con los filtros y retorna el resultado', async () => {
     const ports = makePorts();
-    const useCase = new ListarPropertiesUseCase(
-      ports.properties,
-      ports.logger,
-    );
+    const useCase = new ListarPropertiesUseCase(ports.properties, ports.logger);
 
     const filtros: FiltrosListadoPublico = {
       operacion: 'VENTA',
@@ -57,13 +54,10 @@ describe('ListarPropertiesUseCase', () => {
     const ports = makePorts();
     ports.properties.listPublico.mockRejectedValue(new Error('error_listando'));
 
-    const useCase = new ListarPropertiesUseCase(
-      ports.properties,
-      ports.logger,
-    );
+    const useCase = new ListarPropertiesUseCase(ports.properties, ports.logger);
 
-    await expect(
-      useCase.execute({ operacion: 'VENTA', destacada: false }),
-    ).rejects.toThrow('error_listando');
+    await expect(useCase.execute({ operacion: 'VENTA', destacada: false })).rejects.toThrow(
+      'error_listando',
+    );
   });
 });

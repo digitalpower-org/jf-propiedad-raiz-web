@@ -17,9 +17,10 @@ export interface ActualizarPropertyCommand {
  * Control de concurrencia optimista por `updatedAt` (409 si está desactualizado).
  * Tras guardar, se traducen campos con `autoTranslate` y se dispara revalidación (US0.3).
  */
-export class ActualizarPropertyUseCase
-  implements UseCase<ActualizarPropertyCommand, ActualizarPropertyResult>
-{
+export class ActualizarPropertyUseCase implements UseCase<
+  ActualizarPropertyCommand,
+  ActualizarPropertyResult
+> {
   constructor(
     private readonly properties: PropertiesRepository,
     private readonly revalidateContent: RevalidateContent,
@@ -27,10 +28,7 @@ export class ActualizarPropertyUseCase
   ) {}
 
   async execute(command: ActualizarPropertyCommand): Promise<ActualizarPropertyResult> {
-    const resultado = await this.properties.update(
-      command.idOrSlug,
-      command.input,
-    );
+    const resultado = await this.properties.update(command.idOrSlug, command.input);
 
     await this.revalidateContent.revalidate('propiedades');
 

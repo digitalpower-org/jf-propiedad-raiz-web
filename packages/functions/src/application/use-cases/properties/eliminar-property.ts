@@ -12,9 +12,10 @@ export interface EliminarPropertyCommand {
  * US1.7 / US4.1 — Soft delete de un inmueble (cambia a `DELETED`).
  * Nunca borrado físico. Tras la escritura se revalida (US0.3).
  */
-export class EliminarPropertyUseCase
-  implements UseCase<EliminarPropertyCommand, EliminarPropertyResult>
-{
+export class EliminarPropertyUseCase implements UseCase<
+  EliminarPropertyCommand,
+  EliminarPropertyResult
+> {
   constructor(
     private readonly properties: PropertiesRepository,
     private readonly revalidateContent: RevalidateContent,
