@@ -29,6 +29,12 @@ function makePorts(): ApplicationPorts {
       hide: vi.fn(),
       softDelete: vi.fn(),
     },
+    services: {
+      listar: vi.fn(),
+    },
+    about: {
+      obtener: vi.fn(),
+    },
     mediaStorage: {
       presignPut: vi.fn(),
       confirmarSubida: vi.fn(),

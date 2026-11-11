@@ -42,6 +42,12 @@ function makePorts() {
       hide: vi.fn(),
       softDelete: vi.fn(),
     },
+    services: {
+      listar: vi.fn(),
+    },
+    about: {
+      obtener: vi.fn(),
+    },
     mediaStorage: {
       presignPut: vi.fn(),
       confirmarSubida: vi.fn(),
@@ -51,18 +57,16 @@ function makePorts() {
       generarDerivados: vi.fn(),
     },
   };
-
-  return { ports, logger, identityVerifier, authorizedUsers };
+  return { ...ports, logger };
 }
 
 function setup() {
   const deps = makePorts();
-  const app = appBuilder(buildUseCases(deps.ports), {
+  const app = appBuilder(buildUseCases(deps), {
     internalKey: INTERNAL_KEY,
     logger: deps.logger,
-    secretComparator: deps.ports.secretComparator,
+    secretComparator: deps.secretComparator,
   });
-
   return { app, ...deps };
 }
 

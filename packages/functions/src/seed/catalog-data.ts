@@ -595,7 +595,6 @@ export const aboutCatalogo = {
         es: 'Experto en inmobiliaria con 15 años de experiencia',
         en: 'Real estate expert with 15 years of experience',
       },
-      foto: undefined,
     },
     {
       id: 'integrante-2',
@@ -605,7 +604,6 @@ export const aboutCatalogo = {
         es: 'Especialista en atención al cliente y negociación',
         en: 'Customer service and negotiation specialist',
       },
-      foto: undefined,
     },
   ],
   updatedAt: ahora.toISOString(),
