@@ -38,11 +38,7 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
 
   return (
     <article className={styles.card}>
-      {isNew && (
-        <div className={styles.newBadge}>
-          {locale === 'es' ? 'Nuevo' : 'New'}
-        </div>
-      )}
+      {isNew && <div className={styles.newBadge}>{locale === 'es' ? 'Nuevo' : 'New'}</div>}
 
       <div className={styles.imageContainer}>
         {portada ? (
@@ -63,9 +59,7 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
         )}
 
         {property.destacada && (
-          <div className={styles.featuredBadge}>
-            {locale === 'es' ? 'Destacada' : 'Featured'}
-          </div>
+          <div className={styles.featuredBadge}>{locale === 'es' ? 'Destacada' : 'Featured'}</div>
         )}
       </div>
 
@@ -84,10 +78,7 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
         {renderSpecs(property)}
 
         <div className={styles.actions}>
-          <a
-            href={`/${locale}/propiedad/${property.slug}`}
-            className={styles.detailsLink}
-          >
+          <a href={`/${locale}/propiedad/${property.slug}`} className={styles.detailsLink}>
             {t('details')}
           </a>
           <a

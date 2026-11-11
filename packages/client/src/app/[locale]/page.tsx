@@ -79,9 +79,7 @@ export default async function HomePage({ params }: HomePageProps) {
             {Array.from({ length: 4 }).map((_, i) => (
               <article key={i} className={styles.featuredCard} role="listitem">
                 <div className={styles.featuredImage} aria-hidden="true" />
-                <div className={styles.featuredBadge}>
-                  {tHome('operation')}
-                </div>
+                <div className={styles.featuredBadge}>{tHome('operation')}</div>
                 <h3 className={styles.featuredTitle}>
                   {tHome('featuredCardTitle', { index: i + 1 })}
                 </h3>
@@ -118,27 +116,25 @@ export default async function HomePage({ params }: HomePageProps) {
             <p className={styles.sectionSubtitle}>{tHome('servicesPreviewSubtitle')}</p>
           </header>
           <div className={styles.servicesGrid} role="list">
-            {servicesPreview.map((service: { id: string; title: string; description: string; icon: string }) => (
-              <article key={service.id} className={styles.serviceCard} role="listitem">
-                <div className={styles.serviceIcon} aria-hidden="true">
-                  {service.icon === 'home' && (
-                    <span className={styles.iconHome}>🏠</span>
-                  )}
-                  {service.icon === 'building' && (
-                    <span className={styles.iconBuilding}>🏗️</span>
-                  )}
-                  {service.icon === 'calculator' && (
-                    <span className={styles.iconCalculator}>🧮</span>
-                  )}
-                </div>
-                <h3 className={styles.serviceTitle}>{service.title}</h3>
-                <p className={styles.serviceDescription}>{service.description}</p>
-                <a href={getRoute('services', locale)} className={styles.serviceLink}>
-                  {tHome('learnMore')}
-                  <span className={styles.arrow}>→</span>
-                </a>
-              </article>
-            ))}
+            {servicesPreview.map(
+              (service: { id: string; title: string; description: string; icon: string }) => (
+                <article key={service.id} className={styles.serviceCard} role="listitem">
+                  <div className={styles.serviceIcon} aria-hidden="true">
+                    {service.icon === 'home' && <span className={styles.iconHome}>🏠</span>}
+                    {service.icon === 'building' && <span className={styles.iconBuilding}>🏗️</span>}
+                    {service.icon === 'calculator' && (
+                      <span className={styles.iconCalculator}>🧮</span>
+                    )}
+                  </div>
+                  <h3 className={styles.serviceTitle}>{service.title}</h3>
+                  <p className={styles.serviceDescription}>{service.description}</p>
+                  <a href={getRoute('services', locale)} className={styles.serviceLink}>
+                    {tHome('learnMore')}
+                    <span className={styles.arrow}>→</span>
+                  </a>
+                </article>
+              ),
+            )}
           </div>
           <footer className={styles.sectionFooter}>
             <a href={getRoute('contact', locale)} className={styles.aboutLink}>

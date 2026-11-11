@@ -22,9 +22,7 @@ export default async function AdminPage() {
         <header className={styles.header}>
           <h1 className={styles.title}>Panel de Administración</h1>
           <p className={styles.subtitle}>
-            {claims
-              ? 'Sesión activa'
-              : 'No se pudo verificar la cookie de sesión'}
+            {claims ? 'Sesión activa' : 'No se pudo verificar la cookie de sesión'}
           </p>
         </header>
 
@@ -45,9 +43,7 @@ export default async function AdminPage() {
           </div>
         ) : (
           <div className={styles.errorBox}>
-            <p className={styles.errorText}>
-              No se pudo verificar la cookie de sesión.
-            </p>
+            <p className={styles.errorText}>No se pudo verificar la cookie de sesión.</p>
           </div>
         )}
 

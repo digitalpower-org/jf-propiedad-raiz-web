@@ -21,7 +21,11 @@ function LanguageSwitcherFallback({ targetLocale }: { targetLocale: Locale }) {
   );
 }
 
-function LanguageSwitcherInner({ locale, className, 'aria-label': ariaLabel }: LanguageSwitcherProps) {
+function LanguageSwitcherInner({
+  locale,
+  className,
+  'aria-label': ariaLabel,
+}: LanguageSwitcherProps) {
   const t = useTranslations('localeSwitcher');
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -42,7 +46,11 @@ function LanguageSwitcherInner({ locale, className, 'aria-label': ariaLabel }: L
   );
 }
 
-export function LanguageSwitcher({ locale, className, 'aria-label': ariaLabel }: LanguageSwitcherProps) {
+export function LanguageSwitcher({
+  locale,
+  className,
+  'aria-label': ariaLabel,
+}: LanguageSwitcherProps) {
   const targetLocale = locale === 'es' ? 'en' : 'es';
 
   return (

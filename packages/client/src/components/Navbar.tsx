@@ -109,7 +109,9 @@ export default function Navbar({ locale }: NavbarProps) {
             aria-controls="mobile-menu"
             type="button"
           >
-            <span className={styles.mobileMenuIcon} aria-hidden="true">☰</span>
+            <span className={styles.mobileMenuIcon} aria-hidden="true">
+              ☰
+            </span>
           </button>
         </div>
       </div>

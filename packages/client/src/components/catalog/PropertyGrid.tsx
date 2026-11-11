@@ -45,8 +45,8 @@ export function PropertyGrid({
   // Combine initialData with fetched data without local state
   const featuredItems = React.useMemo(() => {
     if (!featuredData) return initialData || [];
-    const fetchedItems = featuredData.pages.flatMap(
-      (page) => (page.success ? page.data.items : []),
+    const fetchedItems = featuredData.pages.flatMap((page) =>
+      page.success ? page.data.items : [],
     );
     const initial = initialData || [];
     const existingIds = new Set(initial.map((p) => p.id));
@@ -62,20 +62,12 @@ export function PropertyGrid({
 
   // Active-query params (destacadas or not)
   const activeParams = buildQueryParams(operacion, showDestacadas, undefined, filters);
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-  } = usePropertiesQuery(activeParams, httpClient);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
+    usePropertiesQuery(activeParams, httpClient);
 
   const allItems = React.useMemo(() => {
     if (!data) return featuredItems;
-    const fetchedItems = data.pages.flatMap(
-      (page) => (page.success ? page.data.items : []),
-    );
+    const fetchedItems = data.pages.flatMap((page) => (page.success ? page.data.items : []));
     const existingIds = new Set(featuredItems.map((p) => p.id));
     const newItems = fetchedItems.filter((p) => !existingIds.has(p.id));
     return [...featuredItems, ...newItems];
@@ -103,17 +95,9 @@ export function PropertyGrid({
         ))}
       </div>
 
-      {renderLoadMore(
-        hasNextPage,
-        isFetchingNextPage,
-        fetchNextPage,
-        locale,
-        ref,
-      )}
+      {renderLoadMore(hasNextPage, isFetchingNextPage, fetchNextPage, locale, ref)}
 
-      {!hasNextPage && !isFetchingNextPage && allItems.length > 0 && (
-        renderEndOfList(locale)
-      )}
+      {!hasNextPage && !isFetchingNextPage && allItems.length > 0 && renderEndOfList(locale)}
     </>
   );
 }

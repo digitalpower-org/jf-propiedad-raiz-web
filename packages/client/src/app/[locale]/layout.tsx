@@ -79,9 +79,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <AuthProvider>
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Bogota">
             <MantineProvider theme={theme}>
-              <LayoutWrapper locale={locale}>
-                {children}
-              </LayoutWrapper>
+              <LayoutWrapper locale={locale}>{children}</LayoutWrapper>
             </MantineProvider>
           </NextIntlClientProvider>
         </AuthProvider>

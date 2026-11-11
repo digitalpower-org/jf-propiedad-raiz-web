@@ -169,14 +169,10 @@ export default async function PropiedadDetailPage({ params }: PropiedadDetailPag
       <nav className={styles.breadcrumb} aria-label="Breadcrumb">
         <ol className={styles.breadcrumbList}>
           <li>
-            <a href={getRoute('home', locale)}>
-              {tProperty('breadcrumbHome')}
-            </a>
+            <a href={getRoute('home', locale)}>{tProperty('breadcrumbHome')}</a>
           </li>
           <li>
-            <a href={getRoute('sale', locale)}>
-              {tProperty('operation')}
-            </a>
+            <a href={getRoute('sale', locale)}>{tProperty('operation')}</a>
           </li>
           <li aria-current="page">{titulo}</li>
         </ol>

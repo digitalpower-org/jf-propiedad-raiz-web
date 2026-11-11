@@ -16,7 +16,10 @@ type MobileMenuProps = {
   readonly locale: 'es' | 'en';
 };
 
-const links: { readonly key: RouteKey; readonly label: { readonly es: string; readonly en: string } }[] = [
+const links: {
+  readonly key: RouteKey;
+  readonly label: { readonly es: string; readonly en: string };
+}[] = [
   { key: 'home', label: { es: 'Inicio', en: 'Home' } },
   { key: 'sale', label: { es: 'Venta', en: 'For Sale' } },
   { key: 'rent', label: { es: 'Alquiler', en: 'For Rent' } },
@@ -45,7 +48,7 @@ export function MobileMenu({ isOpen, onClose, locale }: MobileMenuProps) {
 
     // Focus the first focusable element (close button)
     const focusableElements = menuElement.querySelectorAll<HTMLElement>(
-      'a[href], button, [tabindex]:not([tabindex="-1"])'
+      'a[href], button, [tabindex]:not([tabindex="-1"])',
     );
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements[focusableElements.length - 1];

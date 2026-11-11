@@ -21,9 +21,7 @@ export default async function ServiciosPage({ params }: ServiciosPageProps) {
         <div className={styles.header}>
           <h1 className={styles.title}>{locale === 'es' ? 'Servicios' : 'Services'}</h1>
           <p className={styles.subtitle}>
-            {locale === 'es'
-              ? 'Nuestros servicios inmobiliarios.'
-              : 'Our real estate services.'}
+            {locale === 'es' ? 'Nuestros servicios inmobiliarios.' : 'Our real estate services.'}
           </p>
         </div>
 

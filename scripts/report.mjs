@@ -15,7 +15,14 @@ const REPORTS_DIR = path.join(ROOT, 'docs/reports');
 
 function runCmd(cmd, cwd = ROOT, options = {}) {
   try {
-    return execSync(cmd, { cwd, encoding: 'utf-8', stdio: 'pipe', maxBuffer: 10 * 1024 * 1024, shell: true, ...options }).trim();
+    return execSync(cmd, {
+      cwd,
+      encoding: 'utf-8',
+      stdio: 'pipe',
+      maxBuffer: 10 * 1024 * 1024,
+      shell: true,
+      ...options,
+    }).trim();
   } catch (e) {
     if (e.stdout) return e.stdout.toString().trim();
     throw new Error(`Error running: ${cmd}\n${e.message}`);
@@ -78,9 +85,14 @@ if (!needsRerun) {
 // Step 1: vitest
 if (needsRerun || !fs.existsSync(path.join(REPORTS_DIR, 'vitest-results.json'))) {
   console.log('📥 Ejecutando vitest...');
-  const vitestOut = runCmd('VITE_CONFIG_NATIVE_IGNORE_WARNING=true cd packages/client && npx vitest run --reporter=json', ROOT);
+  const vitestOut = runCmd(
+    'VITE_CONFIG_NATIVE_IGNORE_WARNING=true cd packages/client && npx vitest run --reporter=json',
+    ROOT,
+  );
   fs.writeFileSync(path.join(REPORTS_DIR, 'vitest-results.json'), vitestOut);
-  console.log(`   ${vitestOut.split('\n').find(l => l.includes('Tests')) || vitestOut.split('\n').pop()}`);
+  console.log(
+    `   ${vitestOut.split('\n').find((l) => l.includes('Tests')) || vitestOut.split('\n').pop()}`,
+  );
 }
 
 // Step 2: eslint

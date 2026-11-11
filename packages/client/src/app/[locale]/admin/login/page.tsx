@@ -136,9 +136,7 @@ export default function AdminLogin() {
               className={styles.input}
               disabled={isLoading}
             />
-            {form.errors.email && (
-              <p className={styles.errorText}>{form.errors.email}</p>
-            )}
+            {form.errors.email && <p className={styles.errorText}>{form.errors.email}</p>}
           </div>
 
           <div className={styles.formGroup}>
@@ -154,16 +152,10 @@ export default function AdminLogin() {
               className={styles.input}
               disabled={isLoading}
             />
-            {form.errors.password && (
-              <p className={styles.errorText}>{form.errors.password}</p>
-            )}
+            {form.errors.password && <p className={styles.errorText}>{form.errors.password}</p>}
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={styles.signInBtn}
-          >
+          <button type="submit" disabled={isLoading} className={styles.signInBtn}>
             {isLoading ? t.signingIn : t.signIn}
           </button>
 

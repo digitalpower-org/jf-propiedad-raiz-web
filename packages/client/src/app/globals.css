@@ -21,7 +21,9 @@
   --mantine-color-dimmed: #4d4d4d;
 
   /* Typography - Font Families */
-  --font-regola: 'Plus Jakarta Sans', 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-regola:
+    'Plus Jakarta Sans', 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
 
   /* Typography - Scale */
   --text-caption-sm: 12px;
@@ -113,7 +115,7 @@ html[data-mantine-color-scheme='light'] {
 }
 
 /* Force Mantine dimmed text to WCAG AA contrast (overrides inline style injected by Mantine) */
-[style*="--mantine-color-dimmed"] {
+[style*='--mantine-color-dimmed'] {
   color: #4d4d4d !important;
 }
 

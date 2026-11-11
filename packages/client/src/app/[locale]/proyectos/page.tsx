@@ -20,7 +20,7 @@ export default async function ProyectosPage({ params }: CatalogoPageProps) {
   const t = await getTranslations();
 
   return (
-      <div className={styles.page}>
+    <div className={styles.page}>
       <div className={styles.content}>
         <div className={styles.header}>
           <h1 className={styles.title}>{t('projects.title')}</h1>
@@ -32,7 +32,7 @@ export default async function ProyectosPage({ params }: CatalogoPageProps) {
             <CatalogClient operacion="PROYECTO_SOBRE_PLANOS" locale={locale} />
           </QueryClientProviderWrapper>
         </Suspense>
-        </div>
+      </div>
     </div>
   );
 }

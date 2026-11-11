@@ -86,13 +86,18 @@ function analyzeBundles() {
     { key: 'proyectos', pattern: /pages\/\[locale\]\/proyectos/ },
     { key: 'propiedad', pattern: /pages\/\[locale\]\/propiedad/ },
     { key: 'aviso-de-privacidad', pattern: /pages\/\[locale\]\/aviso-de-privacidad/ },
-    { key: 'politica-de-tratamiento-de-datos', pattern: /pages\/\[locale\]\/politica-de-tratamiento-de-datos/ },
+    {
+      key: 'politica-de-tratamiento-de-datos',
+      pattern: /pages\/\[locale\]\/politica-de-tratamiento-de-datos/,
+    },
     { key: 'terminos', pattern: /pages\/\[locale\]\/terminos/ },
   ];
 
   for (const { key, pattern } of pagePaths) {
     // Buscar el chunk JS de la página
-    const chunkFiles = fs.readdirSync(chunksDir).filter(f => f.endsWith('.js') && pattern.test(f));
+    const chunkFiles = fs
+      .readdirSync(chunksDir)
+      .filter((f) => f.endsWith('.js') && pattern.test(f));
     let totalJs = 0;
     let totalJsGzip = 0;
 
@@ -115,7 +120,7 @@ function analyzeBundles() {
   // 2. Analizar CSS
   const cssDir = path.join(BUILD_DIR, 'static', 'css');
   if (fs.existsSync(cssDir)) {
-    const cssFiles = fs.readdirSync(cssDir).filter(f => f.endsWith('.css'));
+    const cssFiles = fs.readdirSync(cssDir).filter((f) => f.endsWith('.css'));
     let totalCss = 0;
     let totalCssGzip = 0;
     for (const css of cssFiles) {
@@ -123,13 +128,18 @@ function analyzeBundles() {
       totalCss += getRawSize(filepath);
       totalCssGzip += getGzipSize(filepath);
     }
-    results.css = { raw: totalCss, gzip: totalCssGzip, rawFmt: formatBytes(totalCss), gzipFmt: formatBytes(totalCssGzip) };
+    results.css = {
+      raw: totalCss,
+      gzip: totalCssGzip,
+      rawFmt: formatBytes(totalCss),
+      gzipFmt: formatBytes(totalCssGzip),
+    };
   }
 
   // 3. Fuentes
   const fontDir = path.join(BUILD_DIR, 'static', 'media');
   if (fs.existsSync(fontDir)) {
-    const fontFiles = fs.readdirSync(fontDir).filter(f => /\.(woff2|woff|ttf)$/.test(f));
+    const fontFiles = fs.readdirSync(fontDir).filter((f) => /\.(woff2|woff|ttf)$/.test(f));
     let totalFonts = 0;
     let totalFontsGzip = 0;
     for (const font of fontFiles) {
@@ -137,7 +147,12 @@ function analyzeBundles() {
       totalFonts += getRawSize(filepath);
       totalFontsGzip += getGzipSize(filepath);
     }
-    results.fonts = { raw: totalFonts, gzip: totalFontsGzip, rawFmt: formatBytes(totalFonts), gzipFmt: formatBytes(totalFontsGzip) };
+    results.fonts = {
+      raw: totalFonts,
+      gzip: totalFontsGzip,
+      rawFmt: formatBytes(totalFonts),
+      gzipFmt: formatBytes(totalFontsGzip),
+    };
   }
 
   // 4. JSON de listado (simulado - endpoint API)
@@ -161,18 +176,46 @@ function analyzeBundles() {
   console.log('\n=== PRESUPUESTOS (PERFORMANCE.md §3) ===\n');
 
   const budgetChecks = [
-    { key: 'venta', budget: BUDGETS['list-page-js'], value: results.venta?.jsGzip || 0, label: 'JS hidratado /es/venta' },
-    { key: 'alquiler', budget: BUDGETS['list-page-js'], value: results.alquiler?.jsGzip || 0, label: 'JS hidratado /es/alquiler' },
-    { key: 'proyectos', budget: BUDGETS['list-page-js'], value: results.proyectos?.jsGzip || 0, label: 'JS hidratado /es/proyectos' },
-    { key: 'propiedad', budget: BUDGETS['detail-page-total'], value: (results.propiedad?.jsGzip || 0) + (results.css?.gzip || 0) + (results.fonts?.gzip || 0), label: 'Total ficha /es/propiedad' },
-    { key: 'home', budget: BUDGETS['list-page-total'], value: (results.home?.jsGzip || 0) + (results.css?.gzip || 0) + (results.fonts?.gzip || 0), label: 'Total home /es' },
+    {
+      key: 'venta',
+      budget: BUDGETS['list-page-js'],
+      value: results.venta?.jsGzip || 0,
+      label: 'JS hidratado /es/venta',
+    },
+    {
+      key: 'alquiler',
+      budget: BUDGETS['list-page-js'],
+      value: results.alquiler?.jsGzip || 0,
+      label: 'JS hidratado /es/alquiler',
+    },
+    {
+      key: 'proyectos',
+      budget: BUDGETS['list-page-js'],
+      value: results.proyectos?.jsGzip || 0,
+      label: 'JS hidratado /es/proyectos',
+    },
+    {
+      key: 'propiedad',
+      budget: BUDGETS['detail-page-total'],
+      value:
+        (results.propiedad?.jsGzip || 0) + (results.css?.gzip || 0) + (results.fonts?.gzip || 0),
+      label: 'Total ficha /es/propiedad',
+    },
+    {
+      key: 'home',
+      budget: BUDGETS['list-page-total'],
+      value: (results.home?.jsGzip || 0) + (results.css?.gzip || 0) + (results.fonts?.gzip || 0),
+      label: 'Total home /es',
+    },
   ];
 
   let allPass = true;
   for (const check of budgetChecks) {
     const status = check.value <= check.budget.max ? '✅ PASS' : '❌ FAIL';
     if (status === '❌ FAIL') allPass = false;
-    console.log(`${status} ${check.label}: ${formatBytes(check.value)} / ${formatBytes(check.budget.max)} (${((check.value / check.budget.max) * 100).toFixed(1)}%)`);
+    console.log(
+      `${status} ${check.label}: ${formatBytes(check.value)} / ${formatBytes(check.budget.max)} (${((check.value / check.budget.max) * 100).toFixed(1)}%)`,
+    );
   }
 
   // Guardar reporte JSON
@@ -180,7 +223,7 @@ function analyzeBundles() {
     timestamp: new Date().toISOString(),
     budgets: BUDGETS,
     results,
-    budgetChecks: budgetChecks.map(c => ({
+    budgetChecks: budgetChecks.map((c) => ({
       label: c.label,
       value: c.value,
       valueFmt: formatBytes(c.value),

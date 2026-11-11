@@ -21,11 +21,11 @@ const eslintConfig = defineConfig([
       'no-restricted-syntax': [
         'error',
         {
-          selector: "Literal[value=/wa\\.me|whatsapp\\.com/i]",
+          selector: 'Literal[value=/wa\\.me|whatsapp\\.com/i]',
           message: 'Usa buildWhatsAppUrl de lib/whatsapp.ts',
         },
         {
-          selector: "TemplateElement[value.raw=/wa\\.me|whatsapp\\.com/i]",
+          selector: 'TemplateElement[value.raw=/wa\\.me|whatsapp\\.com/i]',
           message: 'Usa buildWhatsAppUrl de lib/whatsapp.ts',
         },
       ],

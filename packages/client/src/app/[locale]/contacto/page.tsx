@@ -44,7 +44,12 @@ export default async function ContactoPage({ params }: ContactoPageProps) {
               {locale === 'es' ? 'Escríbanos por WhatsApp' : 'Message us on WhatsApp'}
             </p>
             {ctaUrl && (
-              <a href={ctaUrl} className={styles.whatsappBtn} target="_blank" rel="noopener noreferrer">
+              <a
+                href={ctaUrl}
+                className={styles.whatsappBtn}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <span className={styles.whatsappIcon}>📱</span>
                 {locale === 'es' ? 'Hablar por WhatsApp' : 'Chat on WhatsApp'}
               </a>
@@ -65,10 +70,7 @@ export default async function ContactoPage({ params }: ContactoPageProps) {
         </div>
 
         <div className={styles.localeSwitcher}>
-          <a
-            href={locale === 'es' ? '/en/contact' : '/es/contacto'}
-            className={styles.localeLink}
-          >
+          <a href={locale === 'es' ? '/en/contact' : '/es/contacto'} className={styles.localeLink}>
             {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
           </a>
         </div>

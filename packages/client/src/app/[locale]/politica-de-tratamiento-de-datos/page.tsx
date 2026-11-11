@@ -20,7 +20,9 @@ export default async function DataProcessingPage({ params }: DataProcessingPageP
 
   const messagesData = messages as Record<string, unknown>;
   const dataProcessing = messagesData.dataProcessing as Record<string, unknown> | undefined;
-  const principlesItems = Array.isArray(dataProcessing?.principles) ? dataProcessing.principles : [];
+  const principlesItems = Array.isArray(dataProcessing?.principles)
+    ? dataProcessing.principles
+    : [];
   const dutiesItems = Array.isArray(dataProcessing?.duties) ? dataProcessing.duties : [];
 
   return (

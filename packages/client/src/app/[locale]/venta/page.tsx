@@ -21,7 +21,7 @@ export default async function VentaPage({ params }: CatalogoPageProps) {
 
   return (
     <div className={styles.page}>
-        <div className={styles.content}>
+      <div className={styles.content}>
         <div className={styles.header}>
           <h1 className={styles.title}>{t('sale.title')}</h1>
           <p className={styles.subtitle}>{t('sale.empty')}</p>

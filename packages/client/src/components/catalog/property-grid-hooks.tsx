@@ -31,17 +31,11 @@ export function buildQueryParams(
  * Hook personalizado: encapsula la lógica de fetching paginado con TanStack Query.
  * SRP: solo maneja data fetching, no rendering.
  */
-export function usePropertiesQuery(
-  params: PropertyListParams,
-  httpClient?: IHttpClient,
-) {
+export function usePropertiesQuery(params: PropertyListParams, httpClient?: IHttpClient) {
   return useInfiniteQuery({
     queryKey: ['properties', params.operacion, params.destacada, params.cursor],
     queryFn: ({ pageParam }) =>
-      fetchPropertiesPage(
-        { ...params, cursor: pageParam as string | undefined },
-        httpClient,
-      ),
+      fetchPropertiesPage({ ...params, cursor: pageParam as string | undefined }, httpClient),
     getNextPageParam: (lastPage) => {
       if (lastPage.success && lastPage.data.nextCursor) {
         return lastPage.data.nextCursor;
@@ -158,7 +152,9 @@ export function renderEmpty(locale: 'es' | 'en'): ReactElement {
         />
       </svg>
       <h3 className="text-lg font-medium text-gray-900 mb-1">
-        {locale === 'es' ? 'No hay inmuebles en este momento.' : 'No properties available at the moment.'}
+        {locale === 'es'
+          ? 'No hay inmuebles en este momento.'
+          : 'No properties available at the moment.'}
       </h3>
       <p className="text-gray-500">
         {locale === 'es'
@@ -209,8 +205,6 @@ export function renderLoadMore(
  */
 export function renderEndOfList(locale: 'es' | 'en'): ReactElement {
   return (
-    <div className={styles.endOfList}>
-      {locale === 'es' ? 'Fin de la lista' : 'End of list'}
-    </div>
+    <div className={styles.endOfList}>{locale === 'es' ? 'Fin de la lista' : 'End of list'}</div>
   );
 }

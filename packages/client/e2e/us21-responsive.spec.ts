@@ -1,6 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-const PAGES = ['', '/venta', '/alquiler', '/proyectos', '/servicios', '/nosotros', '/contacto', '/consigne-su-propiedad'];
+const PAGES = [
+  '',
+  '/venta',
+  '/alquiler',
+  '/proyectos',
+  '/servicios',
+  '/nosotros',
+  '/contacto',
+  '/consigne-su-propiedad',
+];
 const NARROW = [320, 375, 414];
 const WIDE = [768, 1024];
 

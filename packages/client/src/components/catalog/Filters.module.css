@@ -54,7 +54,7 @@
 }
 
 .fieldSpan2 {
-  gridColumn: span 2;
+  gridcolumn: span 2;
 }
 
 .priceGrid {

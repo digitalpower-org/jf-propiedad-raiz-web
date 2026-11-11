@@ -294,9 +294,7 @@ export function Filters({
         )}
       </div>
 
-      <Grid
-        className={styles.grid}
-      >
+      <Grid className={styles.grid}>
         {/* Tipo de inmueble */}
         <div className={`${styles.field} ${styles.fieldSpan2}`}>
           <Text size="sm" fw={500} c="dimmed" className={styles.label}>

@@ -16,7 +16,10 @@ const LANGUAGE_SWITCH_CASES = [
 
 const QUERY_SWITCH_CASES = [
   { from: '/es/venta?page=2', to: '/en/sale?page=2' },
-  { from: '/es/alquiler?tipo=CASA&departamento=Antioquia', to: '/en/rent?tipo=CASA&departamento=Antioquia' },
+  {
+    from: '/es/alquiler?tipo=CASA&departamento=Antioquia',
+    to: '/en/rent?tipo=CASA&departamento=Antioquia',
+  },
 ];
 
 for (const { from, to } of LANGUAGE_SWITCH_CASES) {
@@ -86,7 +89,6 @@ for (const { from, to } of QUERY_SWITCH_CASES) {
     await expect(page).toHaveURL(to);
   });
 }
-
 
 test('navbar: WhatsApp href usa buildWhatsAppUrl helper', async ({ page }) => {
   await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });

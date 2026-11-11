@@ -7,9 +7,7 @@ export default function NotFoundPage() {
     <div className={styles.page}>
       <div className={styles.content}>
         <h1 className={styles.title}>404</h1>
-        <p className={styles.subtitle}>
-          Página no encontrada / Page not found
-        </p>
+        <p className={styles.subtitle}>Página no encontrada / Page not found</p>
         <Link href="/" className={styles.homeLink}>
           Volver a la página de inicio / Go to homepage
         </Link>

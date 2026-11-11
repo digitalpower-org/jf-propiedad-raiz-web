@@ -19,7 +19,14 @@ const NOTES_PATH = path.join(REPORTS_DIR, 'DOD_NOTES.md');
 
 function runCmd(cmd, cwd = ROOT, options = {}) {
   try {
-    return execSync(cmd, { cwd, encoding: 'utf-8', stdio: 'pipe', maxBuffer: 10 * 1024 * 1024, shell: true, ...options }).trim();
+    return execSync(cmd, {
+      cwd,
+      encoding: 'utf-8',
+      stdio: 'pipe',
+      maxBuffer: 10 * 1024 * 1024,
+      shell: true,
+      ...options,
+    }).trim();
   } catch (e) {
     if (e.stdout) return e.stdout.toString().trim();
     throw new Error(`Error running: ${cmd}\n${e.message}`);
@@ -69,14 +76,17 @@ const vitestByFile = {};
 for (const suite of vitest.testResults || []) {
   const file = path.basename(suite.name);
   vitestByFile[file] = {
-    passed: suite.assertionResults.filter(r => r.status === 'passed').length,
-    failed: suite.assertionResults.filter(r => r.status === 'failed').length,
-    skipped: suite.assertionResults.filter(r => r.status === 'skipped').length,
+    passed: suite.assertionResults.filter((r) => r.status === 'passed').length,
+    failed: suite.assertionResults.filter((r) => r.status === 'failed').length,
+    skipped: suite.assertionResults.filter((r) => r.status === 'skipped').length,
   };
 }
 
 // Playwright - agrupar por proyecto y archivo, y también extraer violaciones axe
-let pwTotal = 0, pwPassed = 0, pwFailed = 0, pwSkipped = 0;
+let pwTotal = 0,
+  pwPassed = 0,
+  pwFailed = 0,
+  pwSkipped = 0;
 const pwByProject = {};
 const pwByFile = {};
 const axeViolations = []; // { page, project, violations: [{impact, description, nodes}] }
@@ -93,7 +103,8 @@ for (const suite of playwright.suites || []) {
     else if (status === 'failed') pwFailed++;
     else if (status === 'skipped') pwSkipped++;
 
-    if (!pwByProject[projectName]) pwByProject[projectName] = { total: 0, passed: 0, failed: 0, skipped: 0 };
+    if (!pwByProject[projectName])
+      pwByProject[projectName] = { total: 0, passed: 0, failed: 0, skipped: 0 };
     pwByProject[projectName].total++;
     pwByProject[projectName][status]++;
 
@@ -108,14 +119,14 @@ for (const suite of playwright.suites || []) {
         if (result.status === 'failed' && result.error) {
           const errorMsg = result.error.message || '';
           // Parsear las violaciones del mensaje de error
-          const violations = errorMsg.split('=== VIOLATION:').filter(v => v.trim());
+          const violations = errorMsg.split('=== VIOLATION:').filter((v) => v.trim());
           for (const v of violations) {
             const lines = v.trim().split('\n');
             const impactLine = lines[0] || '';
             const impact = impactLine.replace(/^[A-Z ]+:/, '').trim() || 'unknown';
-            const descLine = lines.find(l => l.startsWith('Description:')) || '';
+            const descLine = lines.find((l) => l.startsWith('Description:')) || '';
             const description = descLine.replace('Description:', '').trim();
-            const nodesLine = lines.find(l => l.startsWith('Nodes affected:')) || '';
+            const nodesLine = lines.find((l) => l.startsWith('Nodes affected:')) || '';
             const nodesCount = nodesLine.match(/\d+/)?.[0] || '0';
             axeViolations.push({
               page: spec.title,
@@ -132,7 +143,8 @@ for (const suite of playwright.suites || []) {
 }
 
 // ESLint
-let eslintErrors = 0, eslintWarnings = 0;
+let eslintErrors = 0,
+  eslintWarnings = 0;
 for (const file of eslint) {
   eslintErrors += file.errorCount || 0;
   eslintWarnings += file.warningCount || 0;
@@ -144,11 +156,15 @@ for (const file of eslint) {
 // En la integración con report.mjs, estos valores vendrán de las salidas reales.
 
 // Bundle analysis - solo salida literal, sin inventar filas
-const bundleLines = bundleTxt.split('\n').filter(l => l.trim());
+const bundleLines = bundleTxt.split('\n').filter((l) => l.trim());
 
 // AC Coverage - parsear desde AC_COVERAGE.md con lógica corregida
-const acLines = acCoverage.split('\n').filter(l => l.startsWith('| AC'));
-let acPass = 0, acFail = 0, acSkip = 0, acPartial = 0, acNoTest = 0;
+const acLines = acCoverage.split('\n').filter((l) => l.startsWith('| AC'));
+let acPass = 0,
+  acFail = 0,
+  acSkip = 0,
+  acPartial = 0,
+  acNoTest = 0;
 for (const line of acLines) {
   if (line.includes('✅ PASS')) acPass++;
   else if (line.includes('❌ FAIL')) acFail++;
@@ -214,13 +230,13 @@ md += `*Fuente: \`scripts/check-ac-coverage.mjs\` con resultados reales de vites
 md += `| AC ID | US | MT | Estado | Test / Evidencia |\n`;
 md += `|-------|----|----|--------|------------------|\n`;
 
-const acTableLines = acCoverage.split('\n').filter(l => l.startsWith('| AC'));
+const acTableLines = acCoverage.split('\n').filter((l) => l.startsWith('| AC'));
 for (const line of acTableLines) {
   // Las líneas ya tienen pipes correctos de AC_COVERAGE.md, no escapar
   md += `${line}\n`;
 }
 
-md += `\n**Resumen:** ${acTotal} ACs totales | ✅ PASS: ${acPass} | ❌ FAIL: ${acFail} | ⏭️ SKIP: ${acSkip} | ⚠️ PARTIAL: ${acPartial} | ❌ SIN TEST: ${acNoTest} | **Cubiertos (PASS): ${((acPass/acTotal)*100).toFixed(1)}%**\n\n`;
+md += `\n**Resumen:** ${acTotal} ACs totales | ✅ PASS: ${acPass} | ❌ FAIL: ${acFail} | ⏭️ SKIP: ${acSkip} | ⚠️ PARTIAL: ${acPartial} | ❌ SIN TEST: ${acNoTest} | **Cubiertos (PASS): ${((acPass / acTotal) * 100).toFixed(1)}%**\n\n`;
 md += `> Nota: Los tests unitarios de WhatsApp (\`whatsapp.test.ts\`) cubren AC2.5.1–2.5.4.\n\n`;
 
 md += `---\n\n`;
@@ -281,7 +297,9 @@ for (const suite of playwright.suites || []) {
       const firstResult = spec.tests[0]?.results[0];
       const projectName = spec.tests[0]?.projectName || 'unknown';
       const errorMsg = firstResult?.error?.message?.split('\n')[0] || 'Unknown error';
-      const cause = errorMsg.includes('aria-hidden') ? 'Violación real de accesibilidad' : 'Ver detalle';
+      const cause = errorMsg.includes('aria-hidden')
+        ? 'Violación real de accesibilidad'
+        : 'Ver detalle';
       md += `| ${escapePipe(spec.title)} | ${projectName} | \`${errorMsg.substring(0, 80)}...\` | ${cause} |\n`;
     }
   }
@@ -296,11 +314,16 @@ for (const suite of playwright.suites || []) {
     if (spec.ok === true && spec.tests[0]?.results[0]?.status === 'skipped') {
       const projectName = spec.tests[0]?.projectName || 'unknown';
       const annotations = spec.tests[0]?.annotations || [];
-      const fixme = annotations.find(a => a.type === 'fixme');
-      const reason = fixme ? 'Hamburger menu no implementado / requiere seed MT2.4' :
-                     spec.title.includes('placeholder') ? 'Toolchain placeholder' :
-                     spec.title.includes('Auth session') ? 'Requiere E2E_AUTH=1 + seed Firebase' :
-                     spec.title.includes('admin') ? 'Requiere autenticación' : 'Ver detalle';
+      const fixme = annotations.find((a) => a.type === 'fixme');
+      const reason = fixme
+        ? 'Hamburger menu no implementado / requiere seed MT2.4'
+        : spec.title.includes('placeholder')
+          ? 'Toolchain placeholder'
+          : spec.title.includes('Auth session')
+            ? 'Requiere E2E_AUTH=1 + seed Firebase'
+            : spec.title.includes('admin')
+              ? 'Requiere autenticación'
+              : 'Ver detalle';
       md += `| ${escapePipe(spec.title)} | ${projectName} | ${reason} |\n`;
     }
   }

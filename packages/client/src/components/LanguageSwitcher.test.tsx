@@ -84,13 +84,15 @@ vi.mock('@/i18n/routes', () => ({
     if (routePath.startsWith('servicios/')) {
       // Dynamic route with slug: /es/servicios/asesoria-legal
       const slug = routePath.replace('servicios/', '');
-      const serviceDetailTemplate = targetLocale === 'es' ? '/es/servicios/[slug]' : '/en/services/[slug]';
+      const serviceDetailTemplate =
+        targetLocale === 'es' ? '/es/servicios/[slug]' : '/en/services/[slug]';
       return `${serviceDetailTemplate.replace('[slug]', slug)}${search}`;
     }
     if (routePath.startsWith('services/')) {
       // Dynamic route with slug: /en/services/asesoria-legal
       const slug = routePath.replace('services/', '');
-      const serviceDetailTemplate = targetLocale === 'es' ? '/es/servicios/[slug]' : '/en/services/[slug]';
+      const serviceDetailTemplate =
+        targetLocale === 'es' ? '/es/servicios/[slug]' : '/en/services/[slug]';
       return `${serviceDetailTemplate.replace('[slug]', slug)}${search}`;
     }
     if (routePath === 'venta') {

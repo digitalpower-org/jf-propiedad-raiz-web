@@ -11,7 +11,9 @@ import AxeBuilder from '@axe-core/playwright';
 test.describe('AC2.1.1 | Menú principal - desktop', () => {
   test.use({ viewport: { width: 1280, height: 720 } });
 
-  test('tiene accesos a Venta, Alquiler, Proyectos, Servicios y selector de idioma', async ({ page }) => {
+  test('tiene accesos a Venta, Alquiler, Proyectos, Servicios y selector de idioma', async ({
+    page,
+  }) => {
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
 
     const nav = page.locator('nav');
@@ -31,7 +33,9 @@ test.describe('AC2.1.1 | Menú principal - desktop', () => {
 });
 
 // AC2.1.1 mobile: verificar que los enlaces existen en DOM aunque ocultos por CSS
-test('AC2.1.1 | Menú principal - enlaces existen en DOM en mobile (CSS display:none)', async ({ page }) => {
+test('AC2.1.1 | Menú principal - enlaces existen en DOM en mobile (CSS display:none)', async ({
+  page,
+}) => {
   await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
 
   // En mobile viewport, los links están en el DOM pero con display:none
@@ -49,7 +53,9 @@ test('AC2.1.1 | Menú principal - enlaces existen en DOM en mobile (CSS display:
   }
 
   // Selector de idioma sí es visible
-  await expect(page.locator('nav').getByRole('link', { name: /ver en inglés|view in spanish/i })).toBeVisible();
+  await expect(
+    page.locator('nav').getByRole('link', { name: /ver en inglés|view in spanish/i }),
+  ).toBeVisible();
   await expect(page.locator('nav').getByRole('link', { name: /JF Propiedad Raíz/i })).toBeVisible();
 });
 
@@ -66,7 +72,10 @@ test('AC2.1.2 | Cambio de pestaña resetea filtros y parámetros', async ({ page
     await menuButton.click();
   }
 
-  await page.locator('nav').getByRole('link', { name: /alquiler|for rent/i }).click();
+  await page
+    .locator('nav')
+    .getByRole('link', { name: /alquiler|for rent/i })
+    .click();
 
   await expect(page).toHaveURL('/es/alquiler');
   await expect(page).not.toHaveURL(/page=2/);
@@ -75,7 +84,9 @@ test('AC2.1.2 | Cambio de pestaña resetea filtros y parámetros', async ({ page
 
 // AC2.1.3: Inmueble aparece solo en pestaña de su operación
 // NOTA: Requiere datos de catálogo (MT2.4 seed). Simulable con page.route mock del API.
-test.skip('AC2.1.3 | Inmueble aparece solo en pestaña de su operación (requiere seed MT2.4)', async ({ page }) => {
+test.skip('AC2.1.3 | Inmueble aparece solo en pestaña de su operación (requiere seed MT2.4)', async ({
+  page,
+}) => {
   // Simulación con mock de API:
   // await page.route('**/api/catalog/properties*', route => {
   //   const cursor = new URL(route.request().url()).searchParams.get('cursor');
@@ -88,15 +99,19 @@ test.skip('AC2.1.3 | Inmueble aparece solo en pestaña de su operación (requier
 test.describe.configure({ retries: 0 });
 test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
   test.use({ viewport: { width: 375, height: 667 }, isMobile: true });
-  
+
   // AC2.1.4: Mobile < 768px → menú hamburguesa con label accesible
-  test('AC2.1.4 | Mobile 375px: accesos detrás de botón menú con label "Abrir menú"', async ({ page }) => {
+  test('AC2.1.4 | Mobile 375px: accesos detrás de botón menú con label "Abrir menú"', async ({
+    page,
+  }) => {
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
 
     const viewport = page.viewportSize();
     expect(viewport?.width).toBe(375);
 
-    await expect(page.locator('nav').getByRole('link', { name: /JF Propiedad Raíz/i })).toBeVisible();
+    await expect(
+      page.locator('nav').getByRole('link', { name: /JF Propiedad Raíz/i }),
+    ).toBeVisible();
 
     // Los accesos NO están en línea (están ocultos detrás del menú)
     const ventaLink = page.locator('nav').getByRole('link', { name: /venta|for sale/i });
@@ -116,7 +131,9 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
     const menuButton = page.locator('nav').getByRole('button', { name: /abrir menú|open menu/i });
     await menuButton.click();
 
-    const panel = page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]');
+    const panel = page.locator(
+      'nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]',
+    );
     await expect(panel).toBeVisible({ timeout: 10000 });
 
     const links = panel.getByRole('link');
@@ -133,40 +150,59 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
   });
 
   // AC2.1.6: Panel se cierra al navegar, con botón cerrar, Escape, click fuera
-  test('AC2.1.6 | Panel se cierra: navegar, botón cerrar, Escape, click fuera', async ({ page }) => {
+  test('AC2.1.6 | Panel se cierra: navegar, botón cerrar, Escape, click fuera', async ({
+    page,
+  }) => {
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
     const menuButton = page.locator('nav').getByRole('button', { name: /abrir menú|open menu/i });
 
     // Caso 1: Cerrar al navegar a un acceso
     await menuButton.click();
-    await expect(page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')).toBeVisible();
-    await page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]').getByRole('link', { name: /alquiler|for rent/i }).click();
+    await expect(
+      page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
+    ).toBeVisible();
+    await page
+      .locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')
+      .getByRole('link', { name: /alquiler|for rent/i })
+      .click();
     await expect(page).toHaveURL('/es/alquiler');
-    await expect(page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')).toBeHidden();
+    await expect(
+      page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
+    ).toBeHidden();
 
     // Caso 2: Cerrar con botón cerrar
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
     await menuButton.click();
-    const closeButton = page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]').getByRole('button', { name: /cerrar|close/i });
+    const closeButton = page
+      .locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')
+      .getByRole('button', { name: /cerrar|close/i });
     await expect(closeButton).toBeVisible();
     await closeButton.click();
-    await expect(page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')).toBeHidden();
+    await expect(
+      page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
+    ).toBeHidden();
 
     // Caso 3: Cerrar con Escape
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
     await menuButton.click();
     await page.keyboard.press('Escape');
-    await expect(page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')).toBeHidden();
+    await expect(
+      page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
+    ).toBeHidden();
 
     // Caso 4: Cerrar al tocar fuera
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
     await menuButton.click();
     await page.mouse.click(10, 10);
-    await expect(page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')).toBeHidden();
+    await expect(
+      page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
+    ).toBeHidden();
   });
 
   // AC2.1.7: aria-expanded, foco, no scroll fondo, foco vuelve al botón
-  test('AC2.1.7 | Panel: aria-expanded, foco trap, no scroll fondo, foco regresa', async ({ page }) => {
+  test('AC2.1.7 | Panel: aria-expanded, foco trap, no scroll fondo, foco regresa', async ({
+    page,
+  }) => {
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
     const menuButton = page.locator('nav').getByRole('button', { name: /abrir menú|open menu/i });
 
@@ -175,7 +211,9 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
     // Wait for aria-expanded to update
     await expect(menuButton).toHaveAttribute('aria-expanded', 'true', { timeout: 10000 });
 
-    const panel = page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]');
+    const panel = page.locator(
+      'nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]',
+    );
     const firstFocusable = panel.locator('a, button, [tabindex]:not([tabindex="-1"])').first();
     await expect(firstFocusable).toBeFocused();
 
@@ -205,7 +243,7 @@ for (const { path: pagePath, name } of ACCESSIBILITY_PAGES) {
       .analyze();
 
     const criticalSerious = accessibilityScanResults.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
+      (v) => v.impact === 'critical' || v.impact === 'serious',
     );
 
     if (criticalSerious.length > 0) {
@@ -223,7 +261,10 @@ for (const { path: pagePath, name } of ACCESSIBILITY_PAGES) {
       }
 
       const details = criticalSerious
-        .map((v) => `${(v.impact ?? 'unknown').toUpperCase()}: ${v.description} (${v.helpUrl}) — Nodos: ${v.nodes.length}`)
+        .map(
+          (v) =>
+            `${(v.impact ?? 'unknown').toUpperCase()}: ${v.description} (${v.helpUrl}) — Nodos: ${v.nodes.length}`,
+        )
         .join('\n');
       throw new Error(`Violaciones de accesibilidad en ${name} (${pagePath}):\n${details}`);
     }

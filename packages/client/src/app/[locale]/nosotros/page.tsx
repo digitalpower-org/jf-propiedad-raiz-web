@@ -3,7 +3,6 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { loadMessages } from '@/i18n/messages';
 import { isLocale } from '@/i18n/config';
 
-
 import styles from './page.module.css';
 
 type NosotrosPageProps = {
@@ -29,8 +28,8 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
   }>;
 
   return (
-      <div className={styles.page}>
-        <div className={styles.content}>
+    <div className={styles.page}>
+      <div className={styles.content}>
         <div className={styles.header}>
           <h1 className={styles.title}>{t('title')}</h1>
           <p className={styles.lastUpdated}>{t('lastUpdated', { date: today })}</p>
@@ -43,9 +42,7 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
         {sections.map((section) => (
           <section key={section.id} className={styles.section}>
             <h2 className={styles.sectionTitle}>{section.titulo}</h2>
-            <div className={styles.sectionBody}>
-              {section.cuerpo}
-            </div>
+            <div className={styles.sectionBody}>{section.cuerpo}</div>
           </section>
         ))}
 
@@ -82,4 +79,3 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
     </div>
   );
 }
-

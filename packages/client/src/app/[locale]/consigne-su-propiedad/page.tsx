@@ -6,7 +6,6 @@ import { getWhatsAppNumber, buildWhatsAppUrl } from '@/lib/whatsapp';
 
 import styles from './page.module.css';
 
-
 type ConsignPageProps = {
   params: Promise<{ locale: string }>;
 };
@@ -60,10 +59,7 @@ export default async function ConsignPage({ params }: ConsignPageProps) {
               {t('consign.whatsapp')}
             </a>
           )}
-          <a
-            href={locale === 'es' ? '/es/contacto' : '/en/contact'}
-            className={styles.contactLink}
-          >
+          <a href={locale === 'es' ? '/es/contacto' : '/en/contact'} className={styles.contactLink}>
             {locale === 'es' ? 'Contactarnos directamente' : 'Contact us directly'}
             <span className={styles.arrow}>→</span>
           </a>

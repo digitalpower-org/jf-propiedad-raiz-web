@@ -13,15 +13,12 @@ test.describe('US2.4 - Ficha de inmueble', () => {
       waitUntil: 'networkidle',
     });
     const errorHeading = page.locator('h1').filter({ hasText: /couldn.t load|server error/i });
-    const isErrorPage =
-      (await errorHeading.count()) > 0 || !response || response.status() >= 400;
+    const isErrorPage = (await errorHeading.count()) > 0 || !response || response.status() >= 400;
     return { response, isErrorPage };
   }
 
   // AC2.4.1 | Ficha renderiza con datos básicos
-  test('AC2.4.1 | ficha renderiza con título, precio, ubicación', async ({
-    page,
-  }) => {
+  test('AC2.4.1 | ficha renderiza con título, precio, ubicación', async ({ page }) => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     await expect(page).not.toHaveURL(/404/);
@@ -34,13 +31,9 @@ test.describe('US2.4 - Ficha de inmueble', () => {
   test('AC2.4.2 | gallery muestra imágenes y thumbnails', async ({ page }) => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
-    const mainImage = page.locator(
-      '[data-testid="gallery-main-image"], .gallery-main img'
-    ).first();
+    const mainImage = page.locator('[data-testid="gallery-main-image"], .gallery-main img').first();
     await expect(mainImage).toBeVisible();
-    const thumbnails = page.locator(
-      '[data-testid="gallery-thumbnail"], .gallery-thumbnails img'
-    );
+    const thumbnails = page.locator('[data-testid="gallery-thumbnail"], .gallery-thumbnails img');
     const thumbCount = await thumbnails.count();
     if (thumbCount > 1) {
       await expect(thumbnails.first()).toBeVisible();
@@ -48,9 +41,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
   });
 
   // AC2.4.3 | Sticky sidebar con precio, operación, botón WhatsApp
-  test('AC2.4.3 | sticky sidebar muestra precio, operación, botón WhatsApp', async ({
-    page,
-  }) => {
+  test('AC2.4.3 | sticky sidebar muestra precio, operación, botón WhatsApp', async ({ page }) => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     await expect(page.locator('text=/\\$.*COP/')).toBeVisible();
@@ -65,7 +56,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const poisSection = page.locator('text=Puntos de interés');
-    const hasPois = await poisSection.count() > 0;
+    const hasPois = (await poisSection.count()) > 0;
     if (hasPois) {
       await expect(poisSection).toBeVisible();
       const poiItems = page.locator('[role="list"] li, .poi-item');
@@ -78,7 +69,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const descSection = page.locator('text=Descripción');
-    const hasDesc = await descSection.count() > 0;
+    const hasDesc = (await descSection.count()) > 0;
     if (hasDesc) {
       await expect(descSection).toBeVisible();
       const descText = page.locator('.description-text, [data-testid="description"]');
@@ -87,19 +78,17 @@ test.describe('US2.4 - Ficha de inmueble', () => {
   });
 
   // AC2.4.6 | VideoFacade - videos de YouTube con lazy load
-  test('AC2.4.6 | videos se muestran con thumbnail y abren modal', async ({
-    page,
-  }) => {
+  test('AC2.4.6 | videos se muestran con thumbnail y abren modal', async ({ page }) => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const videosSection = page.locator('text=Videos');
-    const hasVideos = await videosSection.count() > 0;
+    const hasVideos = (await videosSection.count()) > 0;
     if (hasVideos) {
       await expect(videosSection).toBeVisible();
       const videoThumb = page.locator('img[src*="img.youtube.com"]').first();
       await expect(videoThumb).toBeVisible();
       const playBtn = page.locator('button[aria-label*="Video"]').first();
-      if (await playBtn.count() > 0) {
+      if ((await playBtn.count()) > 0) {
         await playBtn.click();
         await expect(page.locator('[role="dialog"]')).toBeVisible();
         const iframe = page.locator('iframe[src*="youtube-nocookie.com"]');
@@ -115,13 +104,13 @@ test.describe('US2.4 - Ficha de inmueble', () => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const panoramaSection = page.locator('text=/Tour virtual|360/');
-    const hasPanoramas = await panoramaSection.count() > 0;
+    const hasPanoramas = (await panoramaSection.count()) > 0;
     if (hasPanoramas) {
       await expect(panoramaSection).toBeVisible();
       const viewBtn = page
         .locator('button:has-text("Ver en 360°"), button:has-text("360°")')
         .first();
-      if (await viewBtn.count() > 0) {
+      if ((await viewBtn.count()) > 0) {
         await viewBtn.click();
         await expect(page.locator('[role="dialog"]')).toBeVisible();
         const pannellumContainer = page.locator('.pnlm-container, canvas').first();
@@ -148,9 +137,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
     const jsonContent = await jsonLd.textContent();
     expect(jsonContent).toContain('RealEstateListing');
     expect(jsonContent).toContain('JF Propiedad Raíz');
-    const hreflangEs = page.locator(
-      'link[rel="alternate"][hreflang="es-CO"]'
-    );
+    const hreflangEs = page.locator('link[rel="alternate"][hreflang="es-CO"]');
     await expect(hreflangEs).toHaveAttribute('href', /\/es\/propiedad\//);
     const hreflangEn = page.locator('link[rel="alternate"][hreflang="en"]');
     await expect(hreflangEn).toHaveAttribute('href', /\/en\/property\//);
@@ -168,18 +155,13 @@ test.describe('US2.4 - Ficha de inmueble', () => {
   });
 
   // AC2.4.10 | Lighthouse performance ≥ 85 en móvil (solo verificación manual)
-  test.skip(
-    'AC2.4.10 | Lighthouse performance móvil ≥ 85',
-    async ({ page }) => {
-      // Esta prueba se ejecuta manualmente con Lighthouse CI
-      // Se omite en CI automatizado
-    }
-  );
+  test.skip('AC2.4.10 | Lighthouse performance móvil ≥ 85', async ({ page }) => {
+    // Esta prueba se ejecuta manualmente con Lighthouse CI
+    // Se omite en CI automatizado
+  });
 
   // AC2.5.1 | botón WhatsApp abre wa.me con mensaje codificado
-  test('AC2.5.1 | botón WhatsApp abre wa.me con mensaje codificado', async ({
-    page,
-  }) => {
+  test('AC2.5.1 | botón WhatsApp abre wa.me con mensaje codificado', async ({ page }) => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const whatsappBtn = page.locator('a[href*="wa.me"]').first();
@@ -189,9 +171,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
     expect(href).not.toBeNull();
     if (href) {
       const textMatch = href.match(/\?text=([^&]*)/);
-      const decodedText = textMatch?.[1]
-        ? decodeURIComponent(textMatch[1])
-        : '';
+      const decodedText = textMatch?.[1] ? decodeURIComponent(textMatch[1]) : '';
       expect(decodedText).toContain('JF-'); // código
     }
   });
@@ -206,9 +186,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
     expect(href).not.toBeNull();
     if (href) {
       const textMatch = href.match(/\?text=([^&]*)/);
-      const decodedText = textMatch?.[1]
-        ? decodeURIComponent(textMatch[1])
-        : '';
+      const decodedText = textMatch?.[1] ? decodeURIComponent(textMatch[1]) : '';
       expect(decodedText).toMatch(/información|interesa|propiedad/i);
     }
   });
@@ -223,9 +201,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
   });
 
   // AC2.5.4 | buildWhatsAppUrl helper usado en todos los enlaces
-  test('AC2.5.4 | buildWhatsAppUrl helper usado en todos los enlaces', async ({
-    page,
-  }) => {
+  test('AC2.5.4 | buildWhatsAppUrl helper usado en todos los enlaces', async ({ page }) => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const whatsappLinks = page.locator('a[href*="wa.me"]');
@@ -240,9 +216,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
   test('AC2.5.5 | un solo botón WhatsApp en la ficha', async ({ page }) => {
     const { isErrorPage } = await gotoProperty(page, 'casa-centro');
     test.skip(isErrorPage, 'requiere seed MT2.4');
-    const fichaWhatsApp = page.locator(
-      'main a[href*="wa.me"], article a[href*="wa.me"]'
-    );
+    const fichaWhatsApp = page.locator('main a[href*="wa.me"], article a[href*="wa.me"]');
     const count = await fichaWhatsApp.count();
     expect(count).toBe(1);
   });

@@ -19,7 +19,19 @@ const PLAYWRIGHT_RESULTS = path.join(ROOT, 'docs/reports/playwright-results.json
 const OUTPUT_PATH = path.join(ROOT, 'docs/reports/AC_COVERAGE.md');
 
 // US objetivo para Ola 2: US2.1-2.7 (MT2.3) + US5.3 (MT3.2) + US7.1, US7.3, US7.4 (cliente, MT2.3)
-const TARGET_US = ['US2.1', 'US2.2', 'US2.3', 'US2.4', 'US2.5', 'US2.6', 'US2.7', 'US5.3', 'US7.1', 'US7.3', 'US7.4'];
+const TARGET_US = [
+  'US2.1',
+  'US2.2',
+  'US2.3',
+  'US2.4',
+  'US2.5',
+  'US2.6',
+  'US2.7',
+  'US5.3',
+  'US7.1',
+  'US7.3',
+  'US7.4',
+];
 
 // 1. Extraer ACs [agente] de TASKS.md para US objetivo
 function extractACsFromTasks() {
@@ -80,7 +92,8 @@ function extractVitestResults() {
 
 // 3. Extraer títulos y resultados de tests de playwright POR PROYECTO
 function extractPlaywrightResults() {
-  if (!fs.existsSync(PLAYWRIGHT_RESULTS)) return { titles: [], results: new Map(), byProject: new Map() };
+  if (!fs.existsSync(PLAYWRIGHT_RESULTS))
+    return { titles: [], results: new Map(), byProject: new Map() };
   const data = JSON.parse(fs.readFileSync(PLAYWRIGHT_RESULTS, 'utf-8'));
   const titles = [];
   const results = new Map();
@@ -94,9 +107,9 @@ function extractPlaywrightResults() {
         const firstResult = spec.tests[0]?.results[0];
         const status = firstResult?.status || (spec.ok ? 'passed' : 'failed');
         const project = firstResult?.projectName || spec.tests[0]?.projectName || 'unknown';
-        
+
         results.set(fullTitle, status);
-        
+
         if (!byProject.has(project)) byProject.set(project, new Map());
         byProject.get(project).set(fullTitle, status);
       }
@@ -145,15 +158,16 @@ function getACStatusPerProject(acId, vitestTitles, pwByProject, vitestResults) {
 
   // Check playwright projects
   const pwStatuses = Array.from(projectStatuses.values());
-  if (pwStatuses.some(s => s === 'failed')) return 'FAIL';
-  if (pwStatuses.some(s => s === 'timedOut')) return 'FAIL';
-  if (pwStatuses.every(s => s === 'skipped')) return 'SKIP';
-  if (pwStatuses.every(s => s === 'passed')) {
+  if (pwStatuses.some((s) => s === 'failed')) return 'FAIL';
+  if (pwStatuses.some((s) => s === 'timedOut')) return 'FAIL';
+  if (pwStatuses.every((s) => s === 'skipped')) return 'SKIP';
+  if (pwStatuses.every((s) => s === 'passed')) {
     if (hasVitest && vitestStatus === 'passed') return 'PASS';
     if (!hasVitest) return 'PASS';
     if (hasVitest && vitestStatus === 'skipped') return 'SKIP'; // vitest skipped but pw passed
   }
-  if (pwStatuses.some(s => s === 'passed') && pwStatuses.some(s => s === 'skipped')) return 'PARTIAL'; // some passed, some skipped
+  if (pwStatuses.some((s) => s === 'passed') && pwStatuses.some((s) => s === 'skipped'))
+    return 'PARTIAL'; // some passed, some skipped
 
   return 'SIN TEST';
 }
@@ -204,11 +218,16 @@ function generateReport(acs, vitestTitles, pwTitles, vitestResults, pwResults, p
       ? found.replace(/.*packages\/client\//, '').replace(/.*e2e\//, 'e2e/')
       : '—';
 
-    const statusBadge = status === 'PASS' ? '✅ PASS'
-      : status === 'FAIL' ? '❌ FAIL'
-      : status === 'SKIP' ? '⏭️ SKIP'
-      : status === 'PARTIAL' ? '⚠️ PARTIAL'
-      : '❌ SIN TEST';
+    const statusBadge =
+      status === 'PASS'
+        ? '✅ PASS'
+        : status === 'FAIL'
+          ? '❌ FAIL'
+          : status === 'SKIP'
+            ? '⏭️ SKIP'
+            : status === 'PARTIAL'
+              ? '⚠️ PARTIAL'
+              : '❌ SIN TEST';
 
     md += `| ${ac.id} | ${ac.us} | ${ac.mt} | ${statusBadge} | ${testInfo} |\n`;
   }
@@ -220,7 +239,7 @@ function generateReport(acs, vitestTitles, pwTitles, vitestResults, pwResults, p
   md += `- ⏭️ SKIP: ${skipCount}\n`;
   md += `- ⚠️ PARTIAL: ${partialCount}\n`;
   md += `- ❌ SIN TEST: ${noTestCount}\n`;
-  md += `- **Cubiertos (PASS):** ${passCount}/${total} (${((passCount/total)*100).toFixed(1)}%)\n`;
+  md += `- **Cubiertos (PASS):** ${passCount}/${total} (${((passCount / total) * 100).toFixed(1)}%)\n`;
 
   return md;
 }
