@@ -1,43 +1,73 @@
-/**
- * RevalidationClient (MT1.4, AC0.3.1, AC0.3.3)
- *
- * Cliente en Firebase Functions para invocar `POST /api/revalidate`
- * en el BFF (Next.js en Firebase App Hosting).
- *
- * Envía el X-Internal-Key para autenticación server-to-server.
- * No revierte escrituras si la revalidación falla; solo registra (AC0.3.4).
- */
+import { z } from 'zod';
 
-import type { Logger } from '../logging/logger';
+import type { Logger } from '../../application/ports/logger';
+import type {
+  RevalidateRequest,
+  RevalidateResponse,
+  RevalidationGateway,
+  RevalidationResult,
+} from '../../application/ports/revalidation-gateway';
 
 export interface RevalidationClientConfig {
-  readonly bffUrl: string; // ej. https://mi-proyecto.web.app o https://dominio.com
+  readonly bffUrl: string;
   readonly internalKey: string;
   readonly timeoutMs?: number;
   readonly logger: Logger;
 }
 
-export interface RevalidateRequest {
-  readonly paths?: readonly string[];
-  readonly tags?: readonly string[];
+const RevalidateResponseSchema = z.object({
+  success: z.boolean(),
+  data: z
+    .object({
+      revalidated: z.number(),
+      failed: z.number(),
+      errors: z.array(z.string()),
+    })
+    .optional(),
+  error: z
+    .object({
+      code: z.string(),
+      message: z.string(),
+      details: z.array(z.unknown()).optional(),
+      requestId: z.string(),
+    })
+    .optional(),
+});
+
+type ParsedResponse = z.infer<typeof RevalidateResponseSchema>;
+
+function toResponse(input: ParsedResponse): RevalidateResponse {
+  const { data, error } = input;
+  return {
+    success: input.success,
+    ...(data !== undefined
+      ? { data: { revalidated: data.revalidated, failed: data.failed, errors: data.errors } }
+      : {}),
+    ...(error !== undefined
+      ? {
+          error: {
+            code: error.code,
+            message: error.message,
+            requestId: error.requestId,
+            ...(error.details !== undefined ? { details: error.details } : {}),
+          },
+        }
+      : {}),
+  };
 }
 
-export interface RevalidateResponse {
-  readonly success: boolean;
-  readonly data?: {
-    readonly revalidated: number;
-    readonly failed: number;
-    readonly errors: readonly string[];
-  };
-  readonly error?: {
-    readonly code: string;
-    readonly message: string;
-    readonly details?: readonly unknown[];
-    readonly requestId: string;
+function invalidResponse(): RevalidateResponse {
+  return {
+    success: false,
+    error: {
+      code: 'INVALID_RESPONSE',
+      message: 'Respuesta no válida del BFF',
+      requestId: crypto.randomUUID(),
+    },
   };
 }
 
-export class RevalidationClient {
+export class RevalidationClient implements RevalidationGateway {
   private readonly bffUrl: string;
   private readonly internalKey: string;
   private readonly timeoutMs: number;
@@ -50,24 +80,12 @@ export class RevalidationClient {
     this.logger = config.logger;
   }
 
-  /**
-   * Revalida rutas y/o etiquetas en el BFF.
-   * Devuelve true si la revalidación fue exitosa (o parcialmente exitosa),
-   * false si falló completamente (error de red, 401, 5xx).
-   *
-   * AC0.3.4: Si la revalidación falla, la escritura no se revierte; solo se registra.
-   */
-  async revalidate(
-    request: RevalidateRequest,
-  ): Promise<{ ok: boolean; response?: RevalidateResponse }> {
+  async revalidate(request: RevalidateRequest): Promise<RevalidationResult> {
     if (
       (!request.paths || request.paths.length === 0) &&
       (!request.tags || request.tags.length === 0)
     ) {
-      this.logger.warn('revalidation_skipped', {
-        requestId: this.logger.requestId,
-        reason: 'empty_request',
-      });
+      this.logger.warn('revalidation_skipped', { reason: 'empty_request' });
       return { ok: true };
     }
 
@@ -87,23 +105,11 @@ export class RevalidationClient {
 
       clearTimeout(timeoutId);
 
-      let body: RevalidateResponse;
-      try {
-        body = (await response.json()) as RevalidateResponse;
-      } catch {
-        body = {
-          success: false,
-          error: {
-            code: 'INVALID_RESPONSE',
-            message: 'Respuesta no JSON del BFF',
-            requestId: crypto.randomUUID(),
-          },
-        };
-      }
+      const parsed = RevalidateResponseSchema.safeParse(await response.json().catch(() => null));
+      const body = parsed.success ? toResponse(parsed.data) : invalidResponse();
 
       if (!response.ok) {
-        this.logger.error('revalidation_failed', {
-          requestId: this.logger.requestId,
+        this.logger.error('revalidation_failed', undefined, {
           status: response.status,
           error: body.error,
         });
@@ -111,30 +117,20 @@ export class RevalidationClient {
       }
 
       if (!body.success) {
-        this.logger.warn('revalidation_partial', {
-          requestId: this.logger.requestId,
-          data: body.data,
-        });
+        this.logger.warn('revalidation_partial', { data: body.data });
         return { ok: true, response: body };
       }
 
-      this.logger.info('revalidation_success', {
-        requestId: this.logger.requestId,
-        revalidated: body.data?.revalidated,
-      });
+      this.logger.info('revalidation_success', { revalidated: body.data?.revalidated });
       return { ok: true, response: body };
-    } catch (err) {
+    } catch (error) {
       clearTimeout(timeoutId);
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.error('revalidation_error', {
-        requestId: this.logger.requestId,
-        error: message,
-      });
+      this.logger.error('revalidation_error', error);
       return { ok: false };
     }
   }
 }
 
-export function createRevalidationClient(config: RevalidationClientConfig): RevalidationClient {
+export function createRevalidationClient(config: RevalidationClientConfig): RevalidationGateway {
   return new RevalidationClient(config);
 }

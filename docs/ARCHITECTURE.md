@@ -135,13 +135,16 @@ Navegador ──idToken (solo canje)──> BFF ──POST /internal/auth/verify
 
 ## 4. Capas del backend (Clean Architecture)
 
+El detalle normativo de cada capa vive en [`BACKEND-ARCHITECTURE.md`](./BACKEND-ARCHITECTURE.md).
+
 | Capa | Contenido | Depende de |
 | :---- | :---- | :---- |
-| Dominio | Entidades, invariantes y reglas (precio en COP entero, una sola `operacion`…) | nada |
-| Aplicación | Casos de uso (consulta pública, CRUD de inmuebles, media, correo, traducción) | dominio |
-| Infraestructura | Firestore, R2, Resend | aplicación |
-| Interfaces | Handlers HTTP, validación contra las specs OpenAPI, mapeo al catálogo de errores | aplicación |
+| Dominio | Entidades, value objects (Zod brandeados), invariantes y reglas (precio en COP entero, una sola `operacion`…), catálogo de errores | nada |
+| Aplicación | Casos de uso (consulta pública, CRUD de inmuebles, media, correo, traducción), puertos y `buildUseCases` | dominio |
+| Presentation | Enrutamiento Express (una sola Cloud Function `api`), handlers finos, validación Zod en la frontera, envelope y mapeo de errores a estados HTTP | aplicación |
+| Infraestructura | Adaptadores de los puertos: Firestore, R2, Resend, Google Cloud Translation, Sharp, Firebase Admin, logger | aplicación |
 
+- El catálogo de errores en runtime es `domain/errors/errorCatalog.ts`; la relación código → estado HTTP vive solo en Presentation (`presentation/errorStatus.ts`).
 - Las respuestas de error siguen el catálogo estándar (`VALIDATION_ERROR`, `PERMISSION_DENIED`, etc.), nunca códigos crudos de infraestructura.
 - El contrato con el BFF es la spec interna; el contrato con el navegador es la spec pública (D26).
 

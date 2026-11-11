@@ -40,16 +40,16 @@ export const POST = bffRoute(async (request): Promise<NextResponse> => {
     return errorEnvelope('UNAUTHORIZED', 'El idToken no puede estar vacío', 401);
   }
 
-  // 2. Llamar al backend interno (3.1). La URL incluye el nombre de la función
-  // exportada (`internalAuth`); nunca se resuelve sobre request.url porque eso
+  // 2. Llamar al backend interno (3.1). La URL incluye el nombre de la única
+  // función exportada (`api`); nunca se resuelve sobre request.url porque eso
   // apuntaría a la propia app Next.js, no al backend.
   const internalKey = env.BFF_INTERNAL_KEY;
-  const internalAuthUrl = backendUrl('/internal/auth/verify');
+  const verifySessionUrl = backendUrl('/internal/auth/verify');
 
   // 3. Llamar al backend
   let backendResponse: Response;
   try {
-    backendResponse = await fetch(internalAuthUrl, {
+    backendResponse = await fetch(verifySessionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

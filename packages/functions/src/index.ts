@@ -1,13 +1,18 @@
 import { setGlobalOptions } from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
 
-import { HEALTH_OK } from './health';
-import { internalAuth } from './presentation/http/internal-auth';
+import { buildUseCases } from './application/buildUseCases';
+import { createInfrastructure } from './infrastructure/composition';
+import { appBuilder } from './presentation/appBuilder';
 
 setGlobalOptions({ region: 'us-central1', maxInstances: 10 });
 
-export const health = onRequest((_request, response) => {
-  response.status(200).json(HEALTH_OK);
+const infrastructure = createInfrastructure();
+const useCases = buildUseCases(infrastructure);
+const app = appBuilder(useCases, {
+  internalKey: infrastructure.config.internalKey,
+  logger: infrastructure.logger,
+  secretComparator: infrastructure.secretComparator,
 });
 
-export { internalAuth };
+export const api = onRequest(app);
