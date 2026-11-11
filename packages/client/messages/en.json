@@ -394,5 +394,10 @@
       "dataPolicy": "Data Processing Policy",
       "terms": "Terms and Conditions"
     }
+  },
+  "legal": {
+    "draftNotice": "Notice: This document is a preliminary draft subject to final legal review.",
+    "courtesyTranslation": "Note: This English version is provided as a courtesy translation. The Spanish version shall prevail in the event of any discrepancy.",
+    "formStorageNotice": "Data submitted via contact and consignment forms is not stored in platform databases; it is transmitted directly via email using the Resend provider."
   }
 }

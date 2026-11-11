@@ -394,5 +394,10 @@
       "dataPolicy": "Política de Tratamiento",
       "terms": "Términos y Condiciones"
     }
+  },
+  "legal": {
+    "draftNotice": "Aviso: Este documento es un borrador preliminar sujeto a revisión jurídica definitiva.",
+    "courtesyTranslation": "Nota: Esta versión en inglés se proporciona como traducción de cortesía. La versión en español prevalecerá en caso de discrepancia.",
+    "formStorageNotice": "Los datos enviados a través de formularios de contacto y consignación no se almacenan en bases de datos de la plataforma; se transmiten directamente por correo electrónico mediante el proveedor Resend."
   }
 }

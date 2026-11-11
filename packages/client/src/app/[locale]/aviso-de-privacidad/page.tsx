@@ -15,6 +15,7 @@ export default async function PrivacidadPage({ params }: PrivacidadPageProps) {
 
   setRequestLocale(locale);
   const t = await getTranslations('privacy');
+  const tLegal = await getTranslations('legal');
   const messages = await loadMessages(locale);
   const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CO' : 'en-US');
 
@@ -24,6 +25,16 @@ export default async function PrivacidadPage({ params }: PrivacidadPageProps) {
   return (
     <div className={styles.page}>
       <div className={styles.content}>
+        {locale === 'es' && (
+          <div className={styles.draftBanner} role="status" aria-live="polite">
+            {tLegal('draftNotice')}
+          </div>
+        )}
+        {locale === 'en' && (
+          <div className={styles.courtesyBanner} role="status" aria-live="polite">
+            {tLegal('courtesyTranslation')}
+          </div>
+        )}
         <div className={styles.header}>
           <h1 className={styles.title}>{t('title')}</h1>
           <p className={styles.lastUpdated}>{t('lastUpdated', { date: today })}</p>
