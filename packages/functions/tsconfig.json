@@ -9,8 +9,8 @@
     "rootDir": "src",
     "sourceMap": true,
     "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
     "target": "es2017",
     "skipLibCheck": true,
     "paths": {

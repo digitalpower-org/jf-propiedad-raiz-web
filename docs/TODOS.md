@@ -69,10 +69,10 @@
 
 ## OLA 2 — Dominio backend y catálogo público
 
-- [ ] **MT2.1** `[D1]` Dominio de inmuebles y media ← MT1.1, MT1.2, MT1.4, MT0.3
-  - [ ] US1.7 `[D1]` Ciclo de vida del inmueble y código secuencial
-  - [ ] US1.8 `[D1]` URLs presignadas de R2
-  - [ ] US1.9 `[D1]` Confirmación de subida y derivados
+- [x] **MT2.1** `[D1]` Dominio de inmuebles y media ← MT1.1, MT1.2, MT1.4, MT0.3
+  - [x] US1.7 `[D1]` Ciclo de vida del inmueble y código secuencial
+  - [x] US1.8 `[D1]` URLs presignadas de R2
+  - [x] US1.9 `[D1]` Confirmación de subida y derivados
 - [ ] **MT2.2** `[D1]` Consulta pública y vigencia ← MT2.1, MT1.2, MT1.4, MT0.3
   - [ ] US1.10 `[D1]` Consulta pública (filtros, orden, cursor, índices)
   - [ ] US1.11 `[D1]` Bandera «Nuevo» (tarea programada)
