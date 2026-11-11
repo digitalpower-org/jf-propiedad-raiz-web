@@ -33,7 +33,7 @@ describe('Property.create', () => {
     const input = { ...inputValido, titulo: { es: '' } };
 
     expect(() => Property.create(input, 'doc-1', 'JF-0001', ahora)).toThrow(
-      'El título en español es obligatorio'
+      'El título en español es obligatorio',
     );
   });
 
@@ -42,7 +42,7 @@ describe('Property.create', () => {
       { ...inputValido, titulo: { es: 'Casa Bonita en Venta' } },
       'doc-2',
       'JF-0002',
-      ahora
+      ahora,
     );
 
     expect(propiedad.slug).toBe('casa-bonita-en-venta-jf-0002');
@@ -56,7 +56,7 @@ describe('Property.update', () => {
 
     const actualizada = propiedad.update(
       { precio: parsePrecio(200000000), departamento: 'Bogotá' },
-      ahoraMasTarde
+      ahoraMasTarde,
     );
 
     expect(actualizada.id).toBe(propiedad.id);
@@ -87,18 +87,14 @@ describe('Property.activate', () => {
     const primera = propiedad.activate(ahora);
     const ahoraMasTarde = new Date('2026-01-16T10:00:00Z');
 
-    expect(() => primera.property.activate(ahoraMasTarde)).toThrow(
-      'El inmueble ya está activo'
-    );
+    expect(() => primera.property.activate(ahoraMasTarde)).toThrow('El inmueble ya está activo');
   });
 
   it('lanza error si ya está ACTIVE', () => {
     const propiedad = Property.create(inputValido, 'doc-1', 'JF-0001', ahora);
     const activada = propiedad.activate(ahora);
 
-    expect(() => activada.property.activate(ahora)).toThrow(
-      'El inmueble ya está activo'
-    );
+    expect(() => activada.property.activate(ahora)).toThrow('El inmueble ya está activo');
   });
 
   it('lanza error si faltan campos obligatorios', () => {
@@ -106,12 +102,10 @@ describe('Property.activate', () => {
       { ...inputValido, departamento: '', municipio: '', precio: 0 as unknown as Precio },
       'doc-1',
       'JF-0001',
-      ahora
+      ahora,
     );
 
-    expect(() => propiedad.activate(ahora)).toThrow(
-      'Campos obligatorios para activar'
-    );
+    expect(() => propiedad.activate(ahora)).toThrow('Campos obligatorios para activar');
   });
 });
 
@@ -130,9 +124,7 @@ describe('Property.hide', () => {
   it('lanza error si ya está HIDDEN', () => {
     const propiedad = Property.create(inputValido, 'doc-1', 'JF-0001', ahora);
 
-    expect(() => propiedad.hide(ahora)).toThrow(
-      'El inmueble ya está oculto'
-    );
+    expect(() => propiedad.hide(ahora)).toThrow('El inmueble ya está oculto');
   });
 });
 
@@ -151,8 +143,6 @@ describe('Property.softDelete', () => {
     const activada = propiedad.activate(ahora);
     const eliminada = activada.property.softDelete(ahora);
 
-    expect(() => eliminada.softDelete(ahora)).toThrow(
-      'El inmueble ya está eliminado'
-    );
+    expect(() => eliminada.softDelete(ahora)).toThrow('El inmueble ya está eliminado');
   });
 });
