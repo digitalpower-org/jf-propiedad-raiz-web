@@ -1,6 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('./catalog-seed', () => ({
+  seedCatalog: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../infrastructure/config/env', () => ({
+  loadEnv: vi.fn().mockReturnValue({
+    internalKey: 'test-key-01234567890123456789012345678901',
+    bffUrl: 'http://localhost:3000',
+    firebaseProjectId: 'test-project',
+    useFakeTranslator: true,
+  }),
+}));
+
+vi.mock('../infrastructure/firebase/admin-app', () => ({
+  getAdminApp: vi.fn().mockReturnValue({ name: 'test-app' }),
+}));
+
+vi.mock('../infrastructure/firebase/firestore', () => ({
+  createFirestore: vi.fn().mockReturnValue({}),
+}));
+
 import { sampleData, seedFirestore } from './sample-data';
+import { seedCatalog } from './catalog-seed';
 
 let logSpy: ReturnType<typeof vi.spyOn>;
 
@@ -131,11 +153,14 @@ describe('sample-data (US6.1, MT1.5)', () => {
       expect(output).not.toContain('Seed a Firestore no implementado aún');
     });
 
-    it('skips persistence and reports that the Firestore seed is pending MT2.4', async () => {
+    it('llama a seedCatalog con dryRun=false cuando no es dry-run (MT2.4)', async () => {
       await expect(seedFirestore(false)).resolves.toBeUndefined();
 
+      expect(seedCatalog).toHaveBeenCalledTimes(1);
+      expect(seedCatalog).toHaveBeenCalledWith(expect.anything(), false);
+
       const output = loggedText();
-      expect(output).toContain('Seed a Firestore no implementado aún - espera a MT2.4');
+      expect(output).not.toContain('Seed a Firestore no implementado aún');
       expect(output).not.toContain('=== Seed de muestra (US6.1, MT1.5) ===');
     });
   });
