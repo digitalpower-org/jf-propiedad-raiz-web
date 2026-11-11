@@ -54,10 +54,7 @@ export function createInfrastructure(overrides: Partial<Infrastructure> = {}): I
     properties:
       overrides.properties ??
       createFirestorePropertiesRepository(createFirestore(requireAdminApp())),
-    imageProcessor:
-      overrides.imageProcessor ?? createSharpImageProcessor(),
-    mediaStorage:
-      overrides.mediaStorage ??
-      createR2MediaStorage(createSharpImageProcessor()),
+    imageProcessor: overrides.imageProcessor ?? createSharpImageProcessor(),
+    mediaStorage: overrides.mediaStorage ?? createR2MediaStorage(createSharpImageProcessor()),
   };
 }

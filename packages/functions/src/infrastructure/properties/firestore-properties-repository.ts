@@ -50,9 +50,7 @@ function documentoAPropertyDto(snap: { id: string; data(): unknown }): PropertyD
     municipio: String(data.municipio ?? ''),
     createdAt: data.createdAt ? toISO(data.createdAt) : new Date().toISOString(),
     updatedAt: data.updatedAt ? toISO(data.updatedAt) : new Date().toISOString(),
-    fechaPublicacion: data.fechaPublicacion
-      ? toISO(data.fechaPublicacion)
-      : undefined,
+    fechaPublicacion: data.fechaPublicacion ? toISO(data.fechaPublicacion) : undefined,
     destacada: !!data.destacada,
     estrato: data.estrato,
     predial: data.predial,
@@ -101,9 +99,7 @@ function extraerPortada(fotos?: unknown[]): PropertyCardDto['portada'] {
  * No importa Domain: devuelve DTOs planos. Application se encarga de
  * convertirlos a entidades si necesita reglas de dominio.
  */
-export function createFirestorePropertiesRepository(
-  db: Firestore,
-): PropertiesRepository {
+export function createFirestorePropertiesRepository(db: Firestore): PropertiesRepository {
   const propiedades = db.collection('properties');
 
   async function generarCodigoSecuencial(): Promise<string> {
@@ -111,9 +107,7 @@ export function createFirestorePropertiesRepository(
 
     const siguiente = await db.runTransaction(async (tx) => {
       const snap = await tx.get(contadorRef);
-      const actual = snap.exists
-        ? ((snap.data() as { secuencial: number }).secuencial ?? 0)
-        : 0;
+      const actual = snap.exists ? ((snap.data() as { secuencial: number }).secuencial ?? 0) : 0;
       const nuevo = actual + 1;
       tx.set(contadorRef, { secuencial: nuevo }, { merge: true });
       return nuevo;
@@ -122,9 +116,7 @@ export function createFirestorePropertiesRepository(
     return `JF-${String(siguiente).padStart(4, '0')}`;
   }
 
-  async function crear(
-    input: CrearPropertyInputDto,
-  ): Promise<CrearPropertyResult> {
+  async function crear(input: CrearPropertyInputDto): Promise<CrearPropertyResult> {
     const id = crypto.randomUUID();
     const codigo = await generarCodigoSecuencial();
     const ahora = new Date().toISOString();
@@ -221,10 +213,7 @@ export function createFirestorePropertiesRepository(
     }
 
     // 2) Intentar por slug
-    const porSlugSnap = await propiedades
-      .where('slug', '==', idOrSlug)
-      .limit(1)
-      .get();
+    const porSlugSnap = await propiedades.where('slug', '==', idOrSlug).limit(1).get();
     if (porSlugSnap.empty) {
       return null;
     }
@@ -233,9 +222,7 @@ export function createFirestorePropertiesRepository(
     return { property, esPublico };
   }
 
-  async function listPublico(
-    filtros: FiltrosListadoPublico,
-  ): Promise<ListadoPublicoResult> {
+  async function listPublico(filtros: FiltrosListadoPublico): Promise<ListadoPublicoResult> {
     let consulta = propiedades
       .where('status', '==', 'ACTIVE')
       .where('operacion', '==', filtros.operacion)
@@ -263,9 +250,7 @@ export function createFirestorePropertiesRepository(
     consulta = consulta.limit(filtros.limit ?? 12);
 
     if (filtros.cursor) {
-      const cursorData = JSON.parse(
-        Buffer.from(filtros.cursor, 'base64').toString('utf-8'),
-      );
+      const cursorData = JSON.parse(Buffer.from(filtros.cursor, 'base64').toString('utf-8'));
       consulta = consulta.startAfter(cursorData.createdAt, cursorData.id);
     }
 
@@ -346,10 +331,7 @@ export function createFirestorePropertiesRepository(
     let docRef = db.doc(`properties/${idOrSlug}`);
 
     if (!snap.exists) {
-      const porSlugSnap = await propiedades
-        .where('slug', '==', idOrSlug)
-        .limit(1)
-        .get();
+      const porSlugSnap = await propiedades.where('slug', '==', idOrSlug).limit(1).get();
       if (porSlugSnap.empty) {
         throw new Error(errPropertyNotFound(idOrSlug));
       }
@@ -362,37 +344,26 @@ export function createFirestorePropertiesRepository(
     if (input.operacion !== undefined) actualizaciones.operacion = input.operacion;
     if (input.tipo !== undefined) actualizaciones.tipo = input.tipo;
     if (input.titulo !== undefined) actualizaciones.titulo = input.titulo;
-    if (input.descripcion !== undefined)
-      actualizaciones.descripcion = input.descripcion;
+    if (input.descripcion !== undefined) actualizaciones.descripcion = input.descripcion;
     if (input.precio !== undefined) actualizaciones.precio = input.precio;
-    if (input.departamento !== undefined)
-      actualizaciones.departamento = input.departamento;
-    if (input.municipio !== undefined)
-      actualizaciones.municipio = input.municipio;
+    if (input.departamento !== undefined) actualizaciones.departamento = input.departamento;
+    if (input.municipio !== undefined) actualizaciones.municipio = input.municipio;
     if (input.estrato !== undefined) actualizaciones.estrato = input.estrato;
     if (input.predial !== undefined) actualizaciones.predial = input.predial;
-    if (input.administracion !== undefined)
-      actualizaciones.administracion = input.administracion;
+    if (input.administracion !== undefined) actualizaciones.administracion = input.administracion;
     if (input.acabados !== undefined) actualizaciones.acabados = input.acabados;
-    if (input.antiguedad !== undefined)
-      actualizaciones.antiguedad = input.antiguedad;
-    if (input.areaConstruida !== undefined)
-      actualizaciones.areaConstruida = input.areaConstruida;
+    if (input.antiguedad !== undefined) actualizaciones.antiguedad = input.antiguedad;
+    if (input.areaConstruida !== undefined) actualizaciones.areaConstruida = input.areaConstruida;
     if (input.areaLote !== undefined) actualizaciones.areaLote = input.areaLote;
-    if (input.dormitorios !== undefined)
-      actualizaciones.dormitorios = input.dormitorios;
+    if (input.dormitorios !== undefined) actualizaciones.dormitorios = input.dormitorios;
     if (input.banos !== undefined) actualizaciones.banos = input.banos;
-    if (input.parqueaderos !== undefined)
-      actualizaciones.parqueaderos = input.parqueaderos;
+    if (input.parqueaderos !== undefined) actualizaciones.parqueaderos = input.parqueaderos;
     if (input.deposito !== undefined) actualizaciones.deposito = input.deposito;
-    if (input.amenidades !== undefined)
-      actualizaciones.amenidades = input.amenidades;
-    if (input.puntosInteres !== undefined)
-      actualizaciones.puntosInteres = input.puntosInteres;
+    if (input.amenidades !== undefined) actualizaciones.amenidades = input.amenidades;
+    if (input.puntosInteres !== undefined) actualizaciones.puntosInteres = input.puntosInteres;
     if (input.fotos !== undefined) actualizaciones.fotos = input.fotos;
     if (input.videos !== undefined) actualizaciones.videos = input.videos;
-    if (input.panoramas !== undefined)
-      actualizaciones.panoramas = input.panoramas;
+    if (input.panoramas !== undefined) actualizaciones.panoramas = input.panoramas;
     if (input.destacada !== undefined) actualizaciones.destacada = input.destacada;
     if (input.proyecto !== undefined) actualizaciones.proyecto = input.proyecto;
 
@@ -417,8 +388,7 @@ export function createFirestorePropertiesRepository(
     return {
       property,
       primeraActivacion: property.fechaPublicacion !== undefined,
-      fechaPublicacion:
-        property.fechaPublicacion ?? new Date().toISOString(),
+      fechaPublicacion: property.fechaPublicacion ?? new Date().toISOString(),
     };
   }
 
@@ -448,19 +418,13 @@ export function createFirestorePropertiesRepository(
     return { property };
   }
 
-  async function cambiarEstado(
-    idOrSlug: string,
-    estado: EstadoPropiedad,
-  ): Promise<void> {
+  async function cambiarEstado(idOrSlug: string, estado: EstadoPropiedad): Promise<void> {
     // Resolver referencia (por id o por slug)
     const snap = await db.doc(`properties/${idOrSlug}`).get();
     let docRef = db.doc(`properties/${idOrSlug}`);
 
     if (!snap.exists) {
-      const porSlugSnap = await propiedades
-        .where('slug', '==', idOrSlug)
-        .limit(1)
-        .get();
+      const porSlugSnap = await propiedades.where('slug', '==', idOrSlug).limit(1).get();
       if (porSlugSnap.empty) {
         throw new Error(errPropertyNotFound(idOrSlug));
       }

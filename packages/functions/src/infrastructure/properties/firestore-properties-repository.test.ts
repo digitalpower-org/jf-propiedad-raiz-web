@@ -29,11 +29,13 @@ function makeMockFirestore() {
     doc: vi.fn().mockImplementation((path: string) => {
       const existing = docs.get(path);
       return {
-        get: vi.fn().mockResolvedValue(
-          existing
-            ? makeMockDocSnapshot(existing, true, path.split('/').pop())
-            : makeMockDocSnapshot(null, false, path.split('/').pop()),
-        ),
+        get: vi
+          .fn()
+          .mockResolvedValue(
+            existing
+              ? makeMockDocSnapshot(existing, true, path.split('/').pop())
+              : makeMockDocSnapshot(null, false, path.split('/').pop()),
+          ),
         set: vi.fn().mockImplementation((data: unknown) => {
           docs.set(path, data as Record<string, unknown>);
           return Promise.resolve();
@@ -45,13 +47,22 @@ function makeMockFirestore() {
         }),
       };
     }),
-    runTransaction: vi.fn().mockImplementation(async (fn: (tx: { get: () => Promise<{ secuencial: number }>; set: () => Promise<void> }) => Promise<unknown>) => {
-      const tx = {
-        get: vi.fn().mockResolvedValue(makeMockDocSnapshot({ secuencial: 0 }, true)),
-        set: vi.fn().mockResolvedValue(undefined),
-      };
-      return fn(tx);
-    }),
+    runTransaction: vi
+      .fn()
+      .mockImplementation(
+        async (
+          fn: (tx: {
+            get: () => Promise<{ secuencial: number }>;
+            set: () => Promise<void>;
+          }) => Promise<unknown>,
+        ) => {
+          const tx = {
+            get: vi.fn().mockResolvedValue(makeMockDocSnapshot({ secuencial: 0 }, true)),
+            set: vi.fn().mockResolvedValue(undefined),
+          };
+          return fn(tx);
+        },
+      ),
     _docs: docs,
     _collectionQuery: collectionQuery,
   } as unknown as Firestore;
@@ -103,9 +114,9 @@ describe('createFirestorePropertiesRepository', () => {
     const db = makeMockFirestore();
     const repo = createFirestorePropertiesRepository(db);
 
-    await expect(
-      repo.update('inexistente', { precio: 200000000 }),
-    ).rejects.toThrow('Inmueble no encontrado: inexistente');
+    await expect(repo.update('inexistente', { precio: 200000000 })).rejects.toThrow(
+      'Inmueble no encontrado: inexistente',
+    );
   });
 
   it('activate, hide y softDelete lanzan error si el documento no existe', async () => {
@@ -115,9 +126,7 @@ describe('createFirestorePropertiesRepository', () => {
     await expect(repo.activate('inexistente')).rejects.toThrow(
       'Inmueble no encontrado: inexistente',
     );
-    await expect(repo.hide('inexistente')).rejects.toThrow(
-      'Inmueble no encontrado: inexistente',
-    );
+    await expect(repo.hide('inexistente')).rejects.toThrow('Inmueble no encontrado: inexistente');
     await expect(repo.softDelete('inexistente')).rejects.toThrow(
       'Inmueble no encontrado: inexistente',
     );

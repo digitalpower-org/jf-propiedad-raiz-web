@@ -24,9 +24,7 @@ import {
  * Sharp → generar derivados WebP → subir derivados a R2 → eliminar original
  * de `pending/`.
  */
-export function createR2MediaStorage(
-  imageProcessor: ImageProcessor,
-): MediaStorage {
+export function createR2MediaStorage(imageProcessor: ImageProcessor): MediaStorage {
   async function presignPut(
     nombre: string,
     mimeType: string,
@@ -71,10 +69,7 @@ export function createR2MediaStorage(
 
     // 4) Generar derivados WebP (buffers en memoria)
     const claveBase = `${key.replace(new RegExp(`^${R2_PREFIX_PENDING}`), '').replace(/\.[^/.]+$/, '')}`;
-    const { derivados } = await imageProcessor.generarDerivados(
-      buffer,
-      claveBase,
-    );
+    const { derivados } = await imageProcessor.generarDerivados(buffer, claveBase);
 
     // 5) Subir cada derivado a R2 bajo derivados/<recurso>/
     for (const derivado of derivados) {
@@ -89,12 +84,10 @@ export function createR2MediaStorage(
     await r2Del(key);
 
     return {
-      derivados: derivados.map(
-        (d: { readonly clave: string; readonly ancho: number }) => ({
-          clave: d.clave,
-          ancho: d.ancho,
-        }),
-      ),
+      derivados: derivados.map((d: { readonly clave: string; readonly ancho: number }) => ({
+        clave: d.clave,
+        ancho: d.ancho,
+      })),
     };
   }
 

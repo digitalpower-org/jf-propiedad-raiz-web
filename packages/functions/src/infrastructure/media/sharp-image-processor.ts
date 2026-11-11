@@ -46,9 +46,7 @@ export function createSharpImageProcessor(): ImageProcessor {
 
     const pixeles = ancho * alto;
     if (pixeles > PIXELES_MAXIMOS) {
-      throw new Error(
-        `Imagen demasiado grande: ${pixeles}px, máximo ${PIXELES_MAXIMOS}px`,
-      );
+      throw new Error(`Imagen demasiado grande: ${pixeles}px, máximo ${PIXELES_MAXIMOS}px`);
     }
 
     return { ancho, alto };
@@ -79,9 +77,7 @@ export function createSharpImageProcessor(): ImageProcessor {
     // Siempre incluir el derivado completo (tamaño original en WebP)
     if (!derivados.some((d) => d.ancho === anchoOriginal)) {
       const claveCompleta = `${claveBase}-full.webp`;
-      const bufferCompleto = await sharp(buffer)
-        .webp({ quality: 85, effort: 4 })
-        .toBuffer();
+      const bufferCompleto = await sharp(buffer).webp({ quality: 85, effort: 4 }).toBuffer();
 
       derivados.push({
         clave: claveCompleta,

@@ -31,7 +31,10 @@ describe('createSharpImageProcessor', () => {
   });
 
   it('rechaza una imagen sin dimensiones', async () => {
-    (mockSharp().metadata as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ width: undefined, height: undefined });
+    (mockSharp().metadata as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      width: undefined,
+      height: undefined,
+    });
     const processor = createSharpImageProcessor();
 
     await expect(processor.validarImagen(Buffer.from('imagen'), 'image/jpeg')).rejects.toThrow(
@@ -40,7 +43,10 @@ describe('createSharpImageProcessor', () => {
   });
 
   it('rechaza una imagen demasiado pequeña', async () => {
-    (mockSharp().metadata as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ width: 100, height: 100 });
+    (mockSharp().metadata as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      width: 100,
+      height: 100,
+    });
     const processor = createSharpImageProcessor();
 
     await expect(processor.validarImagen(Buffer.from('imagen'), 'image/jpeg')).rejects.toThrow(
