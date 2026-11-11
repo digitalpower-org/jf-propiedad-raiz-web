@@ -32,6 +32,24 @@ function makePorts() {
     identityVerifier,
     authorizedUsers,
     secretComparator: createSecretComparator(),
+    properties: {
+      create: vi.fn(),
+      findByIdOrSlug: vi.fn(),
+      listPublico: vi.fn(),
+      getFeatured: vi.fn(),
+      update: vi.fn(),
+      activate: vi.fn(),
+      hide: vi.fn(),
+      softDelete: vi.fn(),
+    },
+    mediaStorage: {
+      presignPut: vi.fn(),
+      confirmarSubida: vi.fn(),
+    },
+    imageProcessor: {
+      validarImagen: vi.fn(),
+      generarDerivados: vi.fn(),
+    },
   };
 
   return { ports, logger, identityVerifier, authorizedUsers };
