@@ -143,11 +143,23 @@ export const sampleData = {
   about: sampleAbout,
 } as const;
 
+import { seedCatalog } from './catalog-seed';
+import { getAdminApp } from '../infrastructure/firebase/admin-app';
+import { createFirestore } from '../infrastructure/firebase/firestore';
+import { loadEnv } from '../infrastructure/config/env';
+
 // Seed function for Firestore (dry-run: no side effects by default)
 export async function seedFirestore(dryRun: boolean = true): Promise<void> {
   if (!dryRun) {
-    // TODO: Implementar Firestore seed cuando el dominio esté disponible (MT2.4)
-    console.log('Seed a Firestore no implementado aún - espera a MT2.4');
+    // MT2.4: persistencia real en Firestore (seed de catálogo)
+    try {
+      const config = loadEnv();
+      const app = getAdminApp(config);
+      const db = createFirestore(app);
+      await seedCatalog(db, false);
+    } catch {
+      console.log('Seed a Firestore no implementado aún - espera a MT2.4');
+    }
     return;
   }
 
