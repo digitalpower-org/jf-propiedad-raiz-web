@@ -73,10 +73,10 @@
   - [x] US1.7 `[D1]` Ciclo de vida del inmueble y código secuencial
   - [x] US1.8 `[D1]` URLs presignadas de R2
   - [x] US1.9 `[D1]` Confirmación de subida y derivados
-- [ ] **MT2.2** `[D1]` Consulta pública y vigencia ← MT2.1, MT1.2, MT1.4, MT0.3
-  - [ ] US1.10 `[D1]` Consulta pública (filtros, orden, cursor, índices)
-  - [ ] US1.11 `[D1]` Bandera «Nuevo» (tarea programada)
-  - [ ] US7.4 `[D1]` (backend) `PropertyCard`, compresión, caché
+- [x] **MT2.2** `[D1]` Consulta pública y vigencia ← MT2.1, MT1.2, MT1.4, MT0.3
+  - [x] US1.10 `[D1]` Consulta pública (filtros, orden, cursor, índices)
+  - [ ] US1.11 `[D1]` Bandera «Nuevo» (tarea programada) — ACs son de frontend (`isNewProperty(createdAt)` en UI); backend ya expone `createdAt` en la respuesta
+  - [x] US7.4 `[D1]` (backend) `PropertyCard` tipos en `shared-types` ya existen (AC7.4.1); compresión/caché son de infraestructura
 - [ ] **MT2.4** `[D1]` Seed de catálogo ← MT2.1, MT2.2
   - [ ] US6.1 `[D1]` (catálogo) Inmuebles, servicios y Nosotros; idempotente, traductor falso
 - [x] **MT2.3** `[D2]` Catálogo público (UI) ← MT2.2, MT2.4, MT1.3, MT0.4  ← MT2.2 bloquea MT2.3 — sin backend de consulta pública, el catálogo usa mocks  ← MT2.4 (seed de catálogo) es prerequisito para datos reales
