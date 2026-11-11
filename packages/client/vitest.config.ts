@@ -43,6 +43,22 @@ export default defineConfig({
           },
         },
         test: {
+          name: 'lib',
+          environment: 'node',
+          include: [
+            'src/lib/**/*.{test,spec}.ts',
+            'src/i18n/**/*.{test,spec}.ts',
+            'src/server/**/*.{test,spec}.ts',
+          ],
+        },
+      },
+      {
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+          },
+        },
+        test: {
           name: 'component',
           environment: 'jsdom',
           globals: true,

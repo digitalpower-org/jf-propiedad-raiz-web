@@ -1,9 +1,12 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { getRoute } from '@/i18n/routes';
+import { Select, Button, Group } from '@mantine/core';
+
+import styles from './HeroSearchForm.module.css';
 
 const TIPO_OPTIONS = {
   es: [
@@ -93,13 +96,32 @@ interface HeroSearchFormProps {
 
 export function HeroSearchForm({ locale }: HeroSearchFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const tSearch = useTranslations('search');
 
-  const [tipo, setTipo] = useState('');
-  const [ubicacion, setUbicacion] = useState('');
-  const [precioMax, setPrecioMax] = useState('');
+  const initialTipo = searchParams.get('tipo') || '';
+  const initialDepartamento = searchParams.get('departamento') || '';
+  const initialMunicipio = searchParams.get('municipio') || '';
+  const initialPrecioMax = searchParams.get('precioMax') || '';
+
+  const initialUbicacion =
+    initialDepartamento && initialMunicipio
+      ? `${initialDepartamento},${initialMunicipio}`
+      : initialDepartamento;
+
+  const initialOperacion: 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS' =
+    pathname.includes('/alquiler') || pathname.includes('/rent')
+      ? 'ALQUILER'
+      : pathname.includes('/proyectos') || pathname.includes('/projects')
+        ? 'PROYECTO_SOBRE_PLANOS'
+        : 'VENTA';
+
+  const [tipo, setTipo] = useState(initialTipo);
+  const [ubicacion, setUbicacion] = useState(initialUbicacion);
+  const [precioMax, setPrecioMax] = useState(initialPrecioMax);
   const [operacion, setOperacion] = useState<'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS'>(
-    'VENTA',
+    initialOperacion,
   );
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -126,83 +148,89 @@ export function HeroSearchForm({ locale }: HeroSearchFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="searchForm"
+      className={styles.searchForm}
       role="search"
       aria-label={tSearch('filters')}
     >
-      <div className="searchField">
-        <label htmlFor="hero-operacion" className="searchLabel">
-          {locale === 'es' ? 'Operación' : 'Operation'}
+      <div className={styles.searchField}>
+        <label htmlFor="hero-operacion" className={styles.searchLabel}>
+          {tSearch('operation')}
         </label>
-        <select
+        <Select
           id="hero-operacion"
-          className="searchSelect"
+          data={OPERACION_OPTIONS[locale].map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+          }))}
           value={operacion}
-          onChange={(e) =>
-            setOperacion(e.target.value as 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS')
+          onChange={(value) =>
+            setOperacion(value as 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS')
           }
-        >
-          {OPERACION_OPTIONS[locale].map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          placeholder={tSearch('operation')}
+          size="sm"
+          clearable
+          rightSectionWidth={28}
+        />
       </div>
-      <div className="searchField">
-        <label htmlFor="hero-tipo" className="searchLabel">
-          {locale === 'es' ? 'Tipo de inmueble' : 'Property Type'}
+      <div className={styles.searchField}>
+        <label htmlFor="hero-tipo" className={styles.searchLabel}>
+          {tSearch('propertyType')}
         </label>
-        <select
+        <Select
           id="hero-tipo"
-          className="searchSelect"
+          data={TIPO_OPTIONS[locale].map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+          }))}
           value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
-        >
-          {TIPO_OPTIONS[locale].map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setTipo(value as string)}
+          placeholder={tSearch('propertyType')}
+          size="sm"
+          clearable
+          rightSectionWidth={28}
+        />
       </div>
-      <div className="searchField">
-        <label htmlFor="hero-ubicacion" className="searchLabel">
-          {locale === 'es' ? 'Ubicación' : 'Location'}
+      <div className={styles.searchField}>
+        <label htmlFor="hero-ubicacion" className={styles.searchLabel}>
+          {tSearch('location')}
         </label>
-        <select
+        <Select
           id="hero-ubicacion"
-          className="searchSelect"
+          data={UBICACION_OPTIONS[locale].map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+          }))}
           value={ubicacion}
-          onChange={(e) => setUbicacion(e.target.value)}
-        >
-          {UBICACION_OPTIONS[locale].map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setUbicacion(value as string)}
+          placeholder={tSearch('location')}
+          size="sm"
+          clearable
+          rightSectionWidth={28}
+        />
       </div>
-      <div className="searchField">
-        <label htmlFor="hero-precio" className="searchLabel">
-          {locale === 'es' ? 'Precio máximo (COP)' : 'Max Price (COP)'}
+      <div className={styles.searchField}>
+        <label htmlFor="hero-precio" className={styles.searchLabel}>
+          {tSearch('priceMaxLabel')}
         </label>
-        <select
+        <Select
           id="hero-precio"
-          className="searchSelect"
+          data={PRECIO_OPTIONS[locale].map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+          }))}
           value={precioMax}
-          onChange={(e) => setPrecioMax(e.target.value)}
-        >
-          {PRECIO_OPTIONS[locale].map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setPrecioMax(value as string)}
+          placeholder={tSearch('priceMaxLabel')}
+          size="sm"
+          clearable
+          rightSectionWidth={28}
+        />
       </div>
-      <button type="submit" className="searchButton">
-        {locale === 'es' ? 'Buscar' : 'Search'}
-      </button>
+      <Group justify="right">
+        <Button type="submit" className={styles.searchButton}>
+          {tSearch('btnSearch')}
+        </Button>
+      </Group>
     </form>
   );
 }

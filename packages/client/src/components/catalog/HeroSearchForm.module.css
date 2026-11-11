@@ -1,0 +1,99 @@
+.searchForm {
+  background: var(--color-blanco-puro);
+  border-radius: var(--radius-search);
+  box-shadow: var(--shadow-search);
+  padding: var(--spacing-16);
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+@media (min-width: 768px) {
+  .searchForm {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: var(--spacing-12);
+  }
+
+  .searchField {
+    flex: 1;
+  }
+
+  .searchField + .searchField {
+    margin-left: 0;
+  }
+}
+
+.searchField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.searchLabel {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-grafito);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.searchButton {
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+  border-radius: var(--radius-buttons);
+  font-family: var(--font-regola);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-14) var(--spacing-24);
+  height: 48px;
+  min-height: 48px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.searchButton:hover {
+  background: var(--color-verde-profundo);
+}
+
+.searchButton:focus-visible {
+  outline: 2px solid var(--color-verde-bosque);
+  outline-offset: 2px;
+}
+
+/* Mantine Select custom styling overrides */
+:global([data-mantine-select-target]) {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: var(--radius-inputs) !important;
+  color: var(--color-tinta) !important;
+  font-family: var(--font-regola) !important;
+  font-size: var(--text-body) !important;
+  height: 48px !important;
+  padding: var(--spacing-12) var(--spacing-14) !important;
+}
+
+:global([data-mantine-select-target]:focus-within),
+:global([data-mantine-select-target].focused) {
+  border-color: var(--color-verde-bosque) !important;
+  box-shadow: 0 0 0 2px rgba(39, 119, 48, 0.25) !important;
+}
+
+:global([data-mantine-select-dropdown]) {
+  background: var(--color-blanco-puro) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: var(--radius-inputs) !important;
+}
+
+:global([data-mantine-select-item][data-checked]) {
+  background: var(--color-bruma-verde) !important;
+  color: var(--color-verde-bosque) !important;
+}
+
+:global([data-mantine-select-item]:hover) {
+  background: var(--color-arena-suave) !important;
+}

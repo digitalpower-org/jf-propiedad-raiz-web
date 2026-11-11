@@ -3,6 +3,8 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { loadMessages } from '@/i18n/messages';
 import { isLocale } from '@/i18n/config';
 
+import styles from './page.module.css';
+
 type PrivacidadPageProps = {
   params: Promise<{ locale: string }>;
 };
@@ -20,62 +22,66 @@ export default async function PrivacidadPage({ params }: PrivacidadPageProps) {
   const purposeItems = messages.privacy.purpose.items as string[];
 
   return (
-    <div className="prose max-w-3xl mx-auto p-4 md:p-8">
-      <h1>{t('title')}</h1>
-      <p className="text-sm text-muted-foreground mb-8">{t('lastUpdated', { date: today })}</p>
+    <div className={styles.page}>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>{t('title')}</h1>
+          <p className={styles.lastUpdated}>{t('lastUpdated', { date: today })}</p>
+        </div>
 
-      <section className="mb-8">
-        <h2>{t('controller.title')}</h2>
-        <p>{t('controller.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('controller.title')}</h2>
+          <p className={styles.sectionBody}>{t('controller.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('dataCollected.title')}</h2>
-        <ul className="list-disc pl-6 space-y-2">
-          {dataCollectedItems.map((item: string, i: number) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('dataCollected.title')}</h2>
+          <ul className={styles.list}>
+            {dataCollectedItems.map((item: string, i: number) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('purpose.title')}</h2>
-        <ul className="list-disc pl-6 space-y-2">
-          {purposeItems.map((item: string, i: number) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('purpose.title')}</h2>
+          <ul className={styles.list}>
+            {purposeItems.map((item: string, i: number) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('rights.title')}</h2>
-        <p>{t('rights.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('rights.title')}</h2>
+          <p className={styles.sectionBody}>{t('rights.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('exerciseRights.title')}</h2>
-        <p>{t('exerciseRights.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('exerciseRights.title')}</h2>
+          <p className={styles.sectionBody}>{t('exerciseRights.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('security.title')}</h2>
-        <p>{t('security.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('security.title')}</h2>
+          <p className={styles.sectionBody}>{t('security.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('retention.title')}</h2>
-        <p>{t('retention.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('retention.title')}</h2>
+          <p className={styles.sectionBody}>{t('retention.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('changes.title')}</h2>
-        <p>{t('changes.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('changes.title')}</h2>
+          <p className={styles.sectionBody}>{t('changes.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('contact.title')}</h2>
-        <p>{t('contact.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('contact.title')}</h2>
+          <p className={styles.sectionBody}>{t('contact.content')}</p>
+        </section>
+      </div>
     </div>
   );
 }

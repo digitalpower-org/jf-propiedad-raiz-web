@@ -18,10 +18,12 @@
   letter-spacing: var(--tracking-subheading);
   font-weight: var(--font-weight-regular);
   color: var(--color-tinta);
+  margin: 0;
 }
 
 .clearAllBtn {
-  flex-shrink: 0;
+  font-size: var(--text-caption);
+  color: var(--color-grafito);
 }
 
 .grid {
@@ -46,4 +48,56 @@
   margin-top: var(--spacing-8);
   padding-top: var(--spacing-16);
   border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-8);
+}
+
+.fieldSpan2 {
+  gridcolumn: span 2;
+}
+
+.priceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-8);
+}
+
+.featuredField {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    padding: var(--spacing-12);
+  }
+
+  .header {
+    margin-bottom: var(--spacing-12);
+  }
+
+  .grid {
+    margin-bottom: var(--spacing-12);
+  }
+
+  .actions {
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-12);
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--spacing-10);
+    border-radius: var(--radius-cards);
+  }
+
+  .title {
+    font-size: var(--text-body);
+  }
+
+  .label {
+    font-size: var(--text-caption);
+  }
 }

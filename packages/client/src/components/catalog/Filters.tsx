@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Checkbox, Select, Input, Button, Group, Text, Grid, Divider } from '@mantine/core';
 import type { TipoInmueble, Operacion } from '@jf/shared-types';
 import styles from './Filters.module.css';
-
 export interface PropertyFilters {
   tipo?: string | undefined;
   departamento?: string | undefined;
@@ -295,13 +294,9 @@ export function Filters({
         )}
       </div>
 
-      <Grid
-        style={{ gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' }}
-        gap={4}
-        className={styles.grid}
-      >
+      <Grid className={styles.grid}>
         {/* Tipo de inmueble */}
-        <div className={styles.field} style={{ gridColumn: 'span 2' }}>
+        <div className={`${styles.field} ${styles.fieldSpan2}`}>
           <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.tipo}
           </Text>
@@ -363,7 +358,7 @@ export function Filters({
           <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.precio}
           </Text>
-          <Grid gap={2} style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <Grid gap={2} className={styles.priceGrid}>
             <Input
               type="number"
               placeholder={t.min}
@@ -386,7 +381,7 @@ export function Filters({
         </div>
 
         {/* Destacada */}
-        <div className={styles.field} style={{ display: 'flex', alignItems: 'center' }}>
+        <div className={`${styles.field} ${styles.featuredField}`}>
           <Checkbox
             label={t.destacada}
             checked={destacada}

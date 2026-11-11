@@ -13,11 +13,54 @@
     "consign": "Consigne su propiedad",
     "login": "Acceso administrador"
   },
+  "navbar": {
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "Hola, me interesa la propiedad. ¿Podrían darme más información?",
+    "menuOpen": "Abrir menú",
+    "menuClose": "Cerrar menú"
+  },
   "home": {
     "title": "Inmuebles en el Valle de Aburrá",
     "intro": "Compra, venta y alquiler de propiedades.",
     "featured": "Destacados",
-    "aboutExtract": "Extracto de nosotros"
+    "aboutExtract": "Extracto de nosotros",
+    "servicesPreview": [
+      {
+        "id": "asesoria",
+        "title": "Asesoría Inmobiliaria",
+        "description": "Acompañamiento experto en compra, venta y alquiler de propiedades.",
+        "icon": "home"
+      },
+      {
+        "id": "gestion",
+        "title": "Gestión de Proyectos",
+        "description": "Supervisión y ejecución de proyectos de construcción y desarrollo.",
+        "icon": "building"
+      },
+      {
+        "id": "avalúos",
+        "title": "Avalúos y Peritajes",
+        "description": "Valoración técnica profesional de inmuebles para decisiones informadas.",
+        "icon": "calculator"
+      }
+    ],
+    "quickAccessAriaLabel": "Accesos rápidos",
+    "featuredSubtitle": "Las mejores oportunidades seleccionadas por nuestro equipo",
+    "featuredCardTitle": "Propiedad Destacada {index}",
+    "featuredCardLocation": "Medellín, Antioquia",
+    "featuredCardBedrooms": "{count} hab.",
+    "featuredCardBathrooms": "{count} baños",
+    "featuredCardArea": "{area} m²",
+    "viewAllSale": "Ver todas las propiedades en venta",
+    "servicesPreviewSubtitle": "Soluciones integrales para tus proyectos inmobiliarios y de ingeniería",
+    "learnMore": "Conocer más",
+    "viewAllServicesContact": "Ver todos los servicios y contactarnos",
+    "aboutImageAlt": "Imagen de nuestras oficinas en Rionegro",
+    "partnersTitle": "Empresas Aliadas",
+    "partnersSubtitle": "Trabajamos con las mejores marcas para garantizar calidad en cada proyecto",
+    "partnersAriaLabel": "Logos de empresas aliadas",
+    "partners": ["Coninsa", "Colpatria", "Bancolombia", "Davivienda", "Coomeva", "Sura"],
+    "operation": "Venta"
   },
   "localeSwitcher": {
     "switchTo": "Ver en inglés"
@@ -63,7 +106,14 @@
     "published": "Publicado",
     "gallery": "Galería",
     "virtualTour": "Tour virtual 360°",
-    "videos": "Videos"
+    "videos": "Videos",
+    "breadcrumbHome": "Inicio",
+    "descriptionTitle": "Descripción",
+    "projectTitle": "Información del Proyecto",
+    "projectStage": "Etapa",
+    "projectDelivery": "Entrega estimada",
+    "projectUnits": "Unidades disponibles",
+    "langSwitcher": "Ver en español"
   },
   "search": {
     "placeholder": "Buscar por tipo, ubicación, precio...",
@@ -78,7 +128,11 @@
     "clear": "Limpiar",
     "results": "resultados",
     "loading": "Cargando...",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "operation": "Operación",
+    "propertyType": "Tipo de inmueble",
+    "priceMaxLabel": "Precio máximo (COP)",
+    "btnSearch": "Buscar"
   },
   "privacy": {
     "title": "Aviso de Privacidad",
@@ -247,6 +301,16 @@
     "dateFormat": "DD/MM/YYYY",
     "currency": "COP"
   },
+  "contact": {
+    "title": "Contacto",
+    "contactMessage": "Hola, me gustaría más información sobre sus servicios.",
+    "whatsappMessage": "Hola, me gustaría más información sobre sus servicios."
+  },
+  "consign": {
+    "title": "Consigne su propiedad",
+    "whatsapp": "Contactar por WhatsApp",
+    "whatsappMessage": "Hola, me gustaría consignar mi propiedad."
+  },
   "about": {
     "title": "Nosotros",
     "extracto": "JF PROPIEDAD RAÍZ SAS es una empresa fundada en 2018 en Rionegro, Antioquia, dedicada a brindar soluciones integrales en el sector inmobiliario y de ingeniería. Nos distinguimos por ofrecer un servicio basado en la calidad humana, la ética, la transparencia y la atención personalizada, construyendo relaciones de confianza y acompañando a nuestros clientes en cada etapa de sus proyectos.",
@@ -311,6 +375,24 @@
       "about": "Nosotros",
       "contact": "Contacto",
       "logout": "Cerrar sesión"
+    }
+  },
+  "footer": {
+    "navigation": "Navegación",
+    "contact": "Contacto",
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "Hola, me interesa un inmueble. ¿Podrían darme más información?",
+    "whatsappText": "Escríbanos por WhatsApp",
+    "language": "Idioma",
+    "companyName": "JF Propiedad Raíz",
+    "companySubtitle": "Inmuebles en el Valle de Aburrá y zonas aledañas",
+    "contactLabel": "Gerencia / Dirección",
+    "contactEmailPlaceholder": "contacto@ejemplo.com",
+    "copyright": "© {year} JF Propiedad Raíz SAS. Todos los derechos reservados.",
+    "legal": {
+      "privacy": "Aviso de Privacidad",
+      "dataPolicy": "Política de Tratamiento",
+      "terms": "Términos y Condiciones"
     }
   }
 }

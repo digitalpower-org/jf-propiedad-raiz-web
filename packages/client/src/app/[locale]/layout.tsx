@@ -3,16 +3,40 @@ import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import '@mantine/core/styles.css';
 import { ColorSchemeScript, MantineProvider, createTheme } from '@mantine/core';
 
+import '../globals.css';
 import { AuthProvider } from './AuthProvider';
-import { isLocale, locales } from '@/i18n/config';
+import { isLocale, locales, type Locale } from '@/i18n/config';
 import { loadMessages } from '@/i18n/messages';
+import LayoutWrapper from '@/components/catalog/LayoutWrapper';
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  weight: ['400', '500'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-regola',
+});
 
 const theme = createTheme({
-  primaryColor: 'green',
-  // Los tokens de diseño detallados en DESIGN-SYSTEM.md se pueden extender aquí
+  primaryColor: 'myGreen',
+  fontFamily: plusJakartaSans.style.fontFamily ?? 'Plus Jakarta Sans, sans-serif',
+  colors: {
+    myGreen: [
+      '#f7f9f8',
+      '#e9f2ec',
+      '#d0e6da',
+      '#b7dac9',
+      '#9eceb7',
+      '#5a9a7c',
+      '#336650',
+      '#2d5a48',
+      '#277730',
+      '#1e5a26',
+    ],
+  },
 });
 
 type LocaleLayoutProps = {
@@ -46,14 +70,17 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const messages = await loadMessages(locale);
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={plusJakartaSans.className} suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <ColorSchemeScript />
       </head>
       <body>
         <AuthProvider>
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Bogota">
-            <MantineProvider theme={theme}>{children}</MantineProvider>
+            <MantineProvider theme={theme}>
+              <LayoutWrapper locale={locale}>{children}</LayoutWrapper>
+            </MantineProvider>
           </NextIntlClientProvider>
         </AuthProvider>
       </body>

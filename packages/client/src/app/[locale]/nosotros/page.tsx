@@ -3,6 +3,8 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { loadMessages } from '@/i18n/messages';
 import { isLocale } from '@/i18n/config';
 
+import styles from './page.module.css';
+
 type NosotrosPageProps = {
   params: Promise<{ locale: string }>;
 };
@@ -26,49 +28,54 @@ export default async function NosotrosPage({ params }: NosotrosPageProps) {
   }>;
 
   return (
-    <div className="prose max-w-3xl mx-auto p-4 md:p-8">
-      <h1>{t('title')}</h1>
-      <p className="text-sm text-muted-foreground mb-8">{t('lastUpdated', { date: today })}</p>
+    <div className={styles.page}>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>{t('title')}</h1>
+          <p className={styles.lastUpdated}>{t('lastUpdated', { date: today })}</p>
+        </div>
 
-      <section className="mb-12">
-        <p className="text-lg leading-relaxed">{t('extracto')}</p>
-      </section>
-
-      {sections.map((section) => (
-        <section key={section.id} className="mb-12">
-          <h2>{section.titulo}</h2>
-          <div className="mt-4 whitespace-pre-wrap leading-relaxed">{section.cuerpo}</div>
+        <section className={styles.extractSection}>
+          <p className={styles.extractText}>{t('extracto')}</p>
         </section>
-      ))}
 
-      {equipo.length > 0 && (
-        <section className="mb-12">
-          <h2>{locale === 'es' ? 'Nuestro Equipo' : 'Our Team'}</h2>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {equipo.map((member) => (
-              <article
-                key={member.id}
-                className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
-              >
-                {member.foto && (
-                  <div className="mb-4 aspect-square rounded-lg overflow-hidden bg-gray-100">
-                    <img
-                      src={member.foto}
-                      alt={member.nombre}
-                      className="w-full h-full object-cover"
-                    />
+        {sections.map((section) => (
+          <section key={section.id} className={styles.section}>
+            <h2 className={styles.sectionTitle}>{section.titulo}</h2>
+            <div className={styles.sectionBody}>{section.cuerpo}</div>
+          </section>
+        ))}
+
+        {equipo.length > 0 && (
+          <section className={styles.teamSection}>
+            <h2 className={styles.sectionTitle}>
+              {locale === 'es' ? 'Nuestro Equipo' : 'Our Team'}
+            </h2>
+            <div className={styles.teamGrid}>
+              {equipo.map((member) => (
+                <article key={member.id} className={styles.teamCard}>
+                  {member.foto && (
+                    <div className={styles.memberPhoto}>
+                      <img
+                        src={member.foto}
+                        alt={member.nombre}
+                        className={styles.memberPhotoImg}
+                      />
+                    </div>
+                  )}
+                  <div className={styles.memberContent}>
+                    <h3 className={styles.memberName}>{member.nombre}</h3>
+                    <p className={styles.memberRole}>{member.cargo}</p>
+                    {member.descripcion && (
+                      <p className={styles.memberDesc}>{member.descripcion}</p>
+                    )}
                   </div>
-                )}
-                <h3 className="text-lg font-semibold text-gray-900">{member.nombre}</h3>
-                <p className="text-green-600 font-medium mb-2">{member.cargo}</p>
-                {member.descripcion && (
-                  <p className="text-gray-600 text-sm">{member.descripcion}</p>
-                )}
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

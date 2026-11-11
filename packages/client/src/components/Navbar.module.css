@@ -1,0 +1,196 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-blanco-puro);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.navbarContainer {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-16);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbarLeft {
+  display: flex;
+  align-items: center;
+}
+
+.navbarLogo {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-tinta);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.navbarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+}
+
+.navbarLinks {
+  display: none;
+  gap: var(--spacing-24);
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .navbarLinks {
+    display: flex;
+  }
+}
+
+.navbarLink {
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-grafito);
+  text-decoration: none;
+  padding: var(--spacing-8) var(--spacing-12);
+  border-radius: var(--radius-buttons);
+  transition: all 0.2s ease;
+}
+
+.navbarLink:hover {
+  color: var(--color-verde-bosque);
+  background: var(--color-bruma-verde);
+}
+
+.navbarLinkActive {
+  color: var(--color-verde-bosque);
+  background: var(--color-bruma-verde);
+}
+
+.languageSwitcher {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  color: var(--color-verde-bosque);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  padding: var(--spacing-10) var(--spacing-16);
+  border: 1px solid var(--color-verde-bosque);
+  border-radius: var(--radius-buttons);
+  line-height: 1;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.languageSwitcher:hover {
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+}
+
+.languageIcon {
+  font-size: var(--text-body-sm);
+}
+
+.whatsappButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-10);
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  padding: var(--spacing-14) var(--spacing-24);
+  border-radius: var(--radius-pills);
+  min-height: 48px;
+  transition: background 0.2s ease;
+}
+
+.whatsappButton:hover {
+  background: var(--color-verde-profundo);
+}
+
+.whatsappIcon {
+  font-size: var(--text-body-sm);
+}
+
+/* Mobile menu toggle */
+.mobileMenuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-tinta);
+  border-radius: var(--radius-buttons);
+  transition: background 0.2s ease;
+}
+
+.mobileMenuButton:hover {
+  background: var(--color-bruma-verde);
+}
+
+.mobileMenuButton:focus-visible {
+  outline: 2px solid var(--color-verde-bosque);
+  outline-offset: 2px;
+}
+
+.mobileMenuIcon {
+  font-size: 24px;
+}
+
+@media (max-width: 767px) {
+  .mobileMenuButton {
+    display: flex;
+  }
+}
+
+.mobileMenuIcon {
+  font-size: 24px;
+}
+
+/* Mobile drawer - would be handled by Mantine Menu or similar */
+@media (max-width: 767px) {
+  .navbarContainer {
+    flex-wrap: wrap;
+    height: auto;
+    padding: var(--spacing-12);
+    gap: var(--spacing-12);
+  }
+
+  .navbarRight {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: var(--spacing-12);
+  }
+
+  .navbarLinks {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-12);
+    width: 100%;
+    padding-top: var(--spacing-16);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .navbarLink {
+    display: block;
+    text-align: center;
+    padding: var(--spacing-12);
+  }
+
+  .languageSwitcher,
+  .whatsappButton {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: var(--spacing-12) var(--spacing-16);
+    font-size: var(--text-body-sm);
+  }
+}

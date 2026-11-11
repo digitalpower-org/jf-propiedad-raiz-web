@@ -1,0 +1,127 @@
+{
+  "timestamp": "2026-11-09T11:40:08.720Z",
+  "budgets": {
+    "list-page-js": {
+      "max": 204800,
+      "label": "JS hidratado listado (gz)"
+    },
+    "list-page-total": {
+      "max": 1048576,
+      "label": "Total listado (gz)"
+    },
+    "detail-page-total": {
+      "max": 1572864,
+      "label": "Total ficha (gz)"
+    },
+    "list-json": {
+      "max": 30720,
+      "label": "JSON listado 12 tarjetas (raw)"
+    },
+    "locale-bundle": {
+      "max": 51200,
+      "label": "Bundle idioma (gz)"
+    }
+  },
+  "results": {
+    "home": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "venta": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "alquiler": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "proyectos": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "propiedad": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "aviso-de-privacidad": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "politica-de-tratamiento-de-datos": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "terminos": {
+      "jsRaw": 0,
+      "jsGzip": 0,
+      "jsRawFmt": "0 B",
+      "jsGzipFmt": "0 B"
+    },
+    "fonts": {
+      "raw": 58968,
+      "gzip": 59060,
+      "rawFmt": "57.6 KB",
+      "gzipFmt": "57.7 KB"
+    },
+    "list-json-estimated": {
+      "note": "Requiere endpoint API real; estimado desde chunks"
+    }
+  },
+  "budgetChecks": [
+    {
+      "label": "JS hidratado /es/venta",
+      "value": 0,
+      "valueFmt": "0 B",
+      "budget": 204800,
+      "budgetFmt": "200.0 KB",
+      "pass": true
+    },
+    {
+      "label": "JS hidratado /es/alquiler",
+      "value": 0,
+      "valueFmt": "0 B",
+      "budget": 204800,
+      "budgetFmt": "200.0 KB",
+      "pass": true
+    },
+    {
+      "label": "JS hidratado /es/proyectos",
+      "value": 0,
+      "valueFmt": "0 B",
+      "budget": 204800,
+      "budgetFmt": "200.0 KB",
+      "pass": true
+    },
+    {
+      "label": "Total ficha /es/propiedad",
+      "value": 59060,
+      "valueFmt": "57.7 KB",
+      "budget": 1572864,
+      "budgetFmt": "1.50 MB",
+      "pass": true
+    },
+    {
+      "label": "Total home /es",
+      "value": 59060,
+      "valueFmt": "57.7 KB",
+      "budget": 1048576,
+      "budgetFmt": "1.00 MB",
+      "pass": true
+    }
+  ],
+  "allPass": true
+}

@@ -148,17 +148,8 @@ vi.mock('@jf/shared-types', () => ({
 
 // @/lib/whatsapp
 vi.mock('@/lib/whatsapp', () => ({
-  buildWhatsAppUrl: ({
-    number,
-    message,
-    isMobile,
-  }: {
-    number: string;
-    message: string;
-    isMobile: boolean;
-  }) => {
-    const base = isMobile ? 'https://api.whatsapp.com/send' : 'https://web.whatsapp.com/send';
-    return `${base}?phone=${number}&text=${encodeURIComponent(message)}`;
+  buildWhatsAppUrl: ({ number, message }: { number: string; message: string }) => {
+    return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
   },
 }));
 

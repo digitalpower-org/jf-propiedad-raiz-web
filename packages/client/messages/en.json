@@ -13,11 +13,54 @@
     "consign": "List Your Property",
     "login": "Admin Access"
   },
+  "navbar": {
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "Hello, I'm interested in the property. Could you provide more information?",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu"
+  },
   "home": {
     "title": "Properties in the Aburrá Valley",
     "intro": "Buy, sell and rent properties.",
     "featured": "Featured",
-    "aboutExtract": "About us extract"
+    "aboutExtract": "About us extract",
+    "servicesPreview": [
+      {
+        "id": "asesoria",
+        "title": "Real Estate Advisory",
+        "description": "Expert guidance in buying, selling, and renting properties.",
+        "icon": "home"
+      },
+      {
+        "id": "gestion",
+        "title": "Project Management",
+        "description": "Supervision and execution of construction and development projects.",
+        "icon": "building"
+      },
+      {
+        "id": "avalúos",
+        "title": "Appraisals & Expert Reports",
+        "description": "Professional technical valuation of properties for informed decisions.",
+        "icon": "calculator"
+      }
+    ],
+    "quickAccessAriaLabel": "Quick access",
+    "featuredSubtitle": "The best opportunities selected by our team",
+    "featuredCardTitle": "Featured Property {index}",
+    "featuredCardLocation": "Medellín, Antioquia",
+    "featuredCardBedrooms": "{count} bed.",
+    "featuredCardBathrooms": "{count} bath.",
+    "featuredCardArea": "{area} m²",
+    "viewAllSale": "View all properties for sale",
+    "servicesPreviewSubtitle": "Comprehensive solutions for your real estate and engineering projects",
+    "learnMore": "Learn more",
+    "viewAllServicesContact": "View all services and contact us",
+    "aboutImageAlt": "Image of our offices in Rionegro",
+    "partnersTitle": "Partner Companies",
+    "partnersSubtitle": "We work with the best brands to guarantee quality in every project",
+    "partnersAriaLabel": "Partner company logos",
+    "partners": ["Coninsa", "Colpatria", "Bancolombia", "Davivienda", "Coomeva", "Sura"],
+    "operation": "For Sale"
   },
   "localeSwitcher": {
     "switchTo": "View in Spanish"
@@ -63,7 +106,14 @@
     "published": "Published",
     "gallery": "Gallery",
     "virtualTour": "360° Virtual Tour",
-    "videos": "Videos"
+    "videos": "Videos",
+    "breadcrumbHome": "Home",
+    "descriptionTitle": "Description",
+    "projectTitle": "Project Information",
+    "projectStage": "Stage",
+    "projectDelivery": "Estimated delivery",
+    "projectUnits": "Available units",
+    "langSwitcher": "View in English"
   },
   "search": {
     "placeholder": "Search by type, location, price...",
@@ -78,7 +128,11 @@
     "clear": "Clear",
     "results": "results",
     "loading": "Loading...",
-    "loadMore": "Load More"
+    "loadMore": "Load More",
+    "operation": "Operation",
+    "propertyType": "Property Type",
+    "priceMaxLabel": "Max Price (COP)",
+    "btnSearch": "Search"
   },
   "privacy": {
     "title": "Privacy Notice",
@@ -247,6 +301,16 @@
     "dateFormat": "MM/DD/YYYY",
     "currency": "COP"
   },
+  "contact": {
+    "title": "Contact",
+    "contactMessage": "Hello, I would like more information about your services.",
+    "whatsappMessage": "Hello, I would like more information about your services."
+  },
+  "consign": {
+    "title": "List Your Property",
+    "whatsapp": "Contact via WhatsApp",
+    "whatsappMessage": "Hello, I would like to list my property."
+  },
   "about": {
     "title": "About Us",
     "extracto": "JF PROPIEDAD RAÍZ SAS is a company founded in 2018 in Rionegro, Antioquia, dedicated to providing comprehensive solutions in the real estate and engineering sectors. We stand out for offering a service based on human quality, ethics, transparency, and personalized attention, building trust relationships and accompanying our clients at every stage of their projects.",
@@ -311,6 +375,24 @@
       "about": "About Us",
       "contact": "Contact",
       "logout": "Logout"
+    }
+  },
+  "footer": {
+    "navigation": "Navigation",
+    "contact": "Contact",
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "Hello, I'm interested in a property. Could you provide more information?",
+    "whatsappText": "Write to us on WhatsApp",
+    "language": "Language",
+    "companyName": "JF Propiedad Raíz",
+    "companySubtitle": "Properties in the Aburrá Valley and surrounding areas",
+    "contactLabel": "Management / Direction",
+    "contactEmailPlaceholder": "contact@example.com",
+    "copyright": "© {year} JF Propiedad Raíz SAS. All rights reserved.",
+    "legal": {
+      "privacy": "Privacy Notice",
+      "dataPolicy": "Data Processing Policy",
+      "terms": "Terms and Conditions"
     }
   }
 }

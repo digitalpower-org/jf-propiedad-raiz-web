@@ -9,6 +9,15 @@ export * from "./errors";
 export * from "./filters";
 export * from "./models";
 
+/** Tipos del helper de WhatsApp (T3, AC2.5.4, D35). */
+export interface BuildWhatsAppUrlParams {
+  readonly number: string;
+  readonly message: string;
+}
+export interface BuildWhatsAppUrl {
+  (params: BuildWhatsAppUrlParams): string;
+}
+
 import type * as BackendSpec from "./api/backend.gen";
 import type * as BffSpec from "./api/bff.gen";
 

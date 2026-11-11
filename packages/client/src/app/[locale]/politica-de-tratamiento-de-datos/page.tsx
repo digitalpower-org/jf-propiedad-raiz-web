@@ -3,11 +3,13 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { loadMessages } from '@/i18n/messages';
 import { isLocale } from '@/i18n/config';
 
-type PoliticaPageProps = {
+import styles from './page.module.css';
+
+type DataProcessingPageProps = {
   params: Promise<{ locale: string }>;
 };
 
-export default async function PoliticaPage({ params }: PoliticaPageProps) {
+export default async function DataProcessingPage({ params }: DataProcessingPageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -16,51 +18,59 @@ export default async function PoliticaPage({ params }: PoliticaPageProps) {
   const messages = await loadMessages(locale);
   const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CO' : 'en-US');
 
-  const principlesItems = messages.dataProcessing.principles.items as string[];
-  const dutiesItems = messages.dataProcessing.duties.items as string[];
+  const messagesData = messages as Record<string, unknown>;
+  const dataProcessing = messagesData.dataProcessing as Record<string, unknown> | undefined;
+  const principlesItems = Array.isArray(dataProcessing?.principles)
+    ? dataProcessing.principles
+    : [];
+  const dutiesItems = Array.isArray(dataProcessing?.duties) ? dataProcessing.duties : [];
 
   return (
-    <div className="prose max-w-3xl mx-auto p-4 md:p-8">
-      <h1>{t('title')}</h1>
-      <p className="text-sm text-muted-foreground mb-8">{t('lastUpdated', { date: today })}</p>
+    <div className={styles.page}>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>{t('title')}</h1>
+          <p className={styles.lastUpdated}>{t('lastUpdated', { date: today })}</p>
+        </div>
 
-      <section className="mb-8">
-        <h2>{t('principles.title')}</h2>
-        <ul className="list-disc pl-6 space-y-2">
-          {principlesItems.map((item: string, i: number) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('principles.title')}</h2>
+          <ul className={styles.list}>
+            {principlesItems.map((item: string, i: number) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('authorization.title')}</h2>
-        <p>{t('authorization.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('authorization.title')}</h2>
+          <p className={styles.sectionBody}>{t('authorization.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('duties.title')}</h2>
-        <ul className="list-disc pl-6 space-y-2">
-          {dutiesItems.map((item: string, i: number) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('duties.title')}</h2>
+          <ul className={styles.list}>
+            {dutiesItems.map((item: string, i: number) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('internationalTransfer.title')}</h2>
-        <p>{t('internationalTransfer.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('internationalTransfer.title')}</h2>
+          <p className={styles.sectionBody}>{t('internationalTransfer.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('children.title')}</h2>
-        <p>{t('children.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('children.title')}</h2>
+          <p className={styles.sectionBody}>{t('children.content')}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2>{t('contact.title')}</h2>
-        <p>{t('contact.content')}</p>
-      </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t('contact.title')}</h2>
+          <p className={styles.sectionBody}>{t('contact.content')}</p>
+        </section>
+      </div>
     </div>
   );
 }

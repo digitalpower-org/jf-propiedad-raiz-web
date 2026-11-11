@@ -1,0 +1,198 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+.drawer {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 100vh;
+  background: var(--color-blanco-puro);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.drawerHeader {
+  position: relative;
+  padding: var(--spacing-16);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawerTitle {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-tinta);
+  margin: 0;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-tinta);
+  border-radius: var(--radius-buttons);
+  transition: background 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--color-bruma-verde);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid var(--color-verde-bosque);
+  outline-offset: 2px;
+}
+
+.drawerNav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-16);
+}
+
+.drawerLinks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.drawerLinkItem {
+  width: 100%;
+}
+
+.drawerLink {
+  display: block;
+  text-align: center;
+  padding: var(--spacing-14) var(--spacing-16);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-grafito);
+  text-decoration: none;
+  border-radius: var(--radius-buttons);
+  transition: all 0.2s ease;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drawerLink:hover {
+  color: var(--color-verde-bosque);
+  background: var(--color-bruma-verde);
+}
+
+.drawerLink:focus-visible {
+  outline: 2px solid var(--color-verde-bosque);
+  outline-offset: 2px;
+}
+
+.drawerLinkActive {
+  color: var(--color-verde-bosque);
+  background: var(--color-bruma-verde);
+}
+
+.drawerActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  padding: var(--spacing-16);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.languageSwitcher {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  color: var(--color-verde-bosque);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid var(--color-verde-bosque);
+  border-radius: var(--radius-buttons);
+  line-height: 1;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  width: 100%;
+  min-height: 48px;
+}
+
+.languageSwitcher:hover {
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+}
+
+.whatsappButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-10);
+  background: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  padding: var(--spacing-14) var(--spacing-24);
+  border-radius: var(--radius-pills);
+  min-height: 48px;
+  transition: background 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.whatsappButton:hover {
+  background: var(--color-verde-profundo);
+}
+
+.whatsappButton:focus-visible {
+  outline: 2px solid var(--color-verde-bosque);
+  outline-offset: 2px;
+}
+
+.whatsappIcon {
+  font-size: var(--text-body-sm);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Responsive: on very small screens, make drawer full width */
+@media (max-width: 320px) {
+  .drawer {
+    max-width: 100%;
+  }
+}
