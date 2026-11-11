@@ -1,4 +1,4 @@
-import type { Translatable } from '@jf/shared-types';
+import type { EstadoPropiedad, Translatable } from '@jf/shared-types';
 
 import { ApiError } from '../errors/api-error';
 import {
@@ -108,7 +108,7 @@ export class Property {
     readonly id: string,
     readonly codigo: string,
     readonly slug: string,
-    readonly status: 'ACTIVE' | 'HIDDEN' | 'DELETED',
+    readonly status: EstadoPropiedad,
     readonly operacion: Operacion,
     readonly tipo: TipoPropiedad,
     readonly titulo: Translatable,
