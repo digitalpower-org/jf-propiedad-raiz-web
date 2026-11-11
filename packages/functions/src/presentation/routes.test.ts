@@ -28,9 +28,10 @@ describe('apiRouter', () => {
     const router = apiRouter(useCases, deps);
 
     const paths = router.stack
-      .flatMap((layer: any) =>
-        layer.route ? layer.route.path : [],
-      )
+      .flatMap((layer) => {
+        const route = (layer as { route?: { path: string } }).route;
+        return route ? [route.path] : [];
+      })
       .filter(Boolean);
 
     expect(paths).toContain('/internal/auth/verify');
