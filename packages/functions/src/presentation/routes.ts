@@ -96,13 +96,25 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
       method: 'get',
       path: API_PATHS.featuredProperties,
       guards: [],
-      handler: handlers.listProperties,
+      handler: handlers.listFeaturedProperties,
     },
     {
       method: 'get',
       path: API_PATHS.property,
       guards: [],
       handler: handlers.obtenerProperty,
+    },
+    {
+      method: 'get',
+      path: API_PATHS.services,
+      guards: [],
+      handler: handlers.listServices,
+    },
+    {
+      method: 'get',
+      path: API_PATHS.about,
+      guards: [],
+      handler: handlers.getAbout,
     },
     // Media — presignar y confirmar subida (requieren sesión de admin)
     {

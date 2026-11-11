@@ -6,6 +6,8 @@ import type { MediaStorage } from './media-storage';
 import type { PropertiesRepository } from './properties-repository';
 import type { RevalidationGateway } from './revalidation-gateway';
 import type { SecretComparator } from './secret-comparator';
+import type { ServiciosRepository } from './services-repository';
+import type { AboutRepository } from './about-repository';
 import type { Translator } from './translator';
 
 export type { AuthorizedUser, AuthorizedUsersRepository } from './authorized-users-repository';
@@ -21,6 +23,8 @@ export type {
   RevalidationResult,
 } from './revalidation-gateway';
 export type { SecretComparator } from './secret-comparator';
+export type { ServiciosRepository } from './services-repository';
+export type { AboutRepository } from './about-repository';
 export type {
   TranslateResult,
   TranslationInput,
@@ -38,6 +42,8 @@ export interface ApplicationPorts {
   readonly authorizedUsers: AuthorizedUsersRepository;
   readonly secretComparator: SecretComparator;
   readonly properties: PropertiesRepository;
+  readonly services: ServiciosRepository;
+  readonly about: AboutRepository;
   readonly mediaStorage: MediaStorage;
   readonly imageProcessor: ImageProcessor;
 }
