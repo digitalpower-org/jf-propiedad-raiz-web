@@ -59,7 +59,11 @@ describe('writeError', () => {
     writeError(
       res,
       422,
-      { code: 'VALIDATION_ERROR', details: [{ field: 'precio', issue: 'Debe ser positivo' }], requestId: 'req-2' },
+      {
+        code: 'VALIDATION_ERROR',
+        details: [{ field: 'precio', issue: 'Debe ser positivo' }],
+        requestId: 'req-2',
+      },
       'Datos inválidos',
     );
 

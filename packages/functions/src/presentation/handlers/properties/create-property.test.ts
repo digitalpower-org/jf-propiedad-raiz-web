@@ -38,7 +38,9 @@ const validBody: CrearPropertyInputDto = {
 describe('makeCreatePropertyHandler', () => {
   it('responde 201 con la propiedad creada y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as CrearPropertyUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ property: { codigo: 'JF-0001' } });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+    });
     const handler = makeCreatePropertyHandler(useCase);
     const res = makeRes();
     const req = makeReq(validBody);

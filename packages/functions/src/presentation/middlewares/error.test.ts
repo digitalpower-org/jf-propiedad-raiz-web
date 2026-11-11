@@ -22,7 +22,12 @@ describe('makeErrorMiddleware', () => {
     const middleware = makeErrorMiddleware(logger);
     const res = makeRes();
 
-    middleware(new ApiError('NOT_FOUND', 'Recurso no encontrado'), {} as unknown as Request, res, next);
+    middleware(
+      new ApiError('NOT_FOUND', 'Recurso no encontrado'),
+      {} as unknown as Request,
+      res,
+      next,
+    );
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
@@ -39,7 +44,13 @@ describe('makeErrorMiddleware', () => {
     const middleware = makeErrorMiddleware(logger);
     const res = makeRes();
 
-    const issue: { code: 'invalid_type'; expected: string; received: unknown; path: (string | number)[]; message: string } = {
+    const issue: {
+      code: 'invalid_type';
+      expected: string;
+      received: unknown;
+      path: (string | number)[];
+      message: string;
+    } = {
       code: 'invalid_type',
       expected: 'string',
       received: 'number',
@@ -52,7 +63,11 @@ describe('makeErrorMiddleware', () => {
     expect(res.status).toHaveBeenCalledWith(422);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
-      data: { code: 'VALIDATION_ERROR', details: [{ field: 'titulo.es', issue: 'Requerido' }], requestId: 'req-123' },
+      data: {
+        code: 'VALIDATION_ERROR',
+        details: [{ field: 'titulo.es', issue: 'Requerido' }],
+        requestId: 'req-123',
+      },
       message: 'Datos inválidos',
     });
   });
@@ -79,7 +94,9 @@ describe('makeErrorMiddleware', () => {
 
     middleware(new Error('algo salio mal'), {} as unknown as Request, res, next);
 
-    expect(logger.error).toHaveBeenCalledWith('unhandled_error', expect.any(Error), { requestId: 'req-123' });
+    expect(logger.error).toHaveBeenCalledWith('unhandled_error', expect.any(Error), {
+      requestId: 'req-123',
+    });
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
       success: false,

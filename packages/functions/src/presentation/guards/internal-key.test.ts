@@ -37,8 +37,6 @@ describe('internalKeyGuard', () => {
     guard(req, res, next);
 
     expect(deps.secretComparator.equals).toHaveBeenCalledWith('clave-mala', 'clave-secreta');
-    expect(next).toHaveBeenCalledWith(
-      new ApiError('UNAUTHORIZED', 'Clave interna inválida'),
-    );
+    expect(next).toHaveBeenCalledWith(new ApiError('UNAUTHORIZED', 'Clave interna inválida'));
   });
 });

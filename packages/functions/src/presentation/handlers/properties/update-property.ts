@@ -31,9 +31,7 @@ const bodySchema = z.object({
  * Construye el DTO de entrada para actualizar un inmueble a partir del
  * cuerpo de petición ya validado por Zod.
  */
-function buildUpdatePropertyInput(
-  body: z.infer<typeof bodySchema>,
-): ActualizarPropertyInputDto {
+function buildUpdatePropertyInput(body: z.infer<typeof bodySchema>): ActualizarPropertyInputDto {
   return {
     ...(body.operacion !== undefined ? { operacion: body.operacion } : {}),
     ...(body.tipo !== undefined ? { tipo: body.tipo } : {}),
@@ -49,16 +47,12 @@ function buildUpdatePropertyInput(
       ? {
           descripcion: {
             es: body.descripcion.es,
-            ...(body.descripcion.en !== undefined
-              ? { en: body.descripcion.en }
-              : {}),
+            ...(body.descripcion.en !== undefined ? { en: body.descripcion.en } : {}),
           },
         }
       : {}),
     ...(body.precio !== undefined ? { precio: body.precio } : {}),
-    ...(body.departamento !== undefined
-      ? { departamento: body.departamento }
-      : {}),
+    ...(body.departamento !== undefined ? { departamento: body.departamento } : {}),
     ...(body.municipio !== undefined ? { municipio: body.municipio } : {}),
   };
 }

@@ -28,7 +28,9 @@ const next = vi.fn() as unknown as NextFunction;
 describe('makeConfirmarMediaUploadHandler', () => {
   it('responde con los derivados y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as ConfirmarMediaUploadUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ derivados: [{ clave: 'abc-320.webp', ancho: 320 }] });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      derivados: [{ clave: 'abc-320.webp', ancho: 320 }],
+    });
     const handler = makeConfirmarMediaUploadHandler(useCase);
     const res = makeRes();
     const req = makeReq({ key: 'pending/abc-123.jpg', recurso: 'foto' });

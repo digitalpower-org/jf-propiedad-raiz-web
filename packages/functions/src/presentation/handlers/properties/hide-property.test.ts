@@ -28,7 +28,9 @@ const next = vi.fn() as unknown as NextFunction;
 describe('makeHidePropertyHandler', () => {
   it('responde 200 con la propiedad oculta y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as OcultarPropertyUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ property: { codigo: 'JF-0001' } });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+    });
     const handler = makeHidePropertyHandler(useCase);
     const res = makeRes();
     const req = makeReq({ idOrSlug: 'doc-1' });

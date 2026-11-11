@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-import type {
-  ListarPropertiesUseCase,
-} from '../../../application/use-cases/properties/listar-properties';
+import type { ListarPropertiesUseCase } from '../../../application/use-cases/properties/listar-properties';
 import type { FiltrosListadoPublico } from '../../../application/ports/properties-repository';
 import { OPERACIONES } from '../../../domain/value-objects/operacion';
 import { TIPOS_INMUEBLE } from '../../../domain/value-objects/tipo-propiedad';
@@ -26,9 +24,7 @@ const querySchema = z.object({
  * Construye el objeto de filtros para listado público a partir del
  * cuerpo de consulta ya validado por Zod.
  */
-function buildFiltrosListadoPublico(
-  raw: z.infer<typeof querySchema>,
-): FiltrosListadoPublico {
+function buildFiltrosListadoPublico(raw: z.infer<typeof querySchema>): FiltrosListadoPublico {
   return {
     operacion: raw.operacion,
     destacada: raw.destacada,

@@ -28,7 +28,11 @@ const next = vi.fn() as unknown as NextFunction;
 describe('makePresignMediaUploadHandler', () => {
   it('responde con la URL presignada y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as PresignMediaUploadUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ url: 'https://bucket/pending/abc.jpg', key: 'pending/abc.jpg', expiresInSeconds: 900 });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      url: 'https://bucket/pending/abc.jpg',
+      key: 'pending/abc.jpg',
+      expiresInSeconds: 900,
+    });
     const handler = makePresignMediaUploadHandler(useCase);
     const res = makeRes();
     const req = makeReq({ nombre: 'foto.jpg', mimeType: 'image/jpeg' });
@@ -39,7 +43,11 @@ describe('makePresignMediaUploadHandler', () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
-      data: { url: 'https://bucket/pending/abc.jpg', key: 'pending/abc.jpg', expiresInSeconds: 900 },
+      data: {
+        url: 'https://bucket/pending/abc.jpg',
+        key: 'pending/abc.jpg',
+        expiresInSeconds: 900,
+      },
       message: 'URL presignada generada',
     });
     expect(next).not.toHaveBeenCalled();

@@ -27,23 +27,23 @@ const bodySchema = z.object({
  * Construye el DTO de entrada para crear un inmueble a partir del
  * cuerpo de petición ya validado por Zod.
  */
-function buildCreatePropertyInput(
-  body: z.infer<typeof bodySchema>,
-): CrearPropertyInputDto {
+function buildCreatePropertyInput(body: z.infer<typeof bodySchema>): CrearPropertyInputDto {
   return {
     operacion: body.operacion,
     tipo: body.tipo,
-    titulo: body.titulo.en !== undefined
-      ? { es: body.titulo.es, en: body.titulo.en }
-      : { es: body.titulo.es },
+    titulo:
+      body.titulo.en !== undefined
+        ? { es: body.titulo.es, en: body.titulo.en }
+        : { es: body.titulo.es },
     precio: body.precio,
     departamento: body.departamento,
     municipio: body.municipio,
     ...(body.descripcion
       ? {
-          descripcion: body.descripcion.en !== undefined
-            ? { es: body.descripcion.es, en: body.descripcion.en }
-            : { es: body.descripcion.es },
+          descripcion:
+            body.descripcion.en !== undefined
+              ? { es: body.descripcion.es, en: body.descripcion.en }
+              : { es: body.descripcion.es },
         }
       : {}),
   };

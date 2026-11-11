@@ -12,8 +12,6 @@ describe('notFoundMiddleware', () => {
 
     notFoundMiddleware(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(
-      new ApiError('NOT_FOUND', 'Recurso no encontrado'),
-    );
+    expect(next).toHaveBeenCalledWith(new ApiError('NOT_FOUND', 'Recurso no encontrado'));
   });
 });

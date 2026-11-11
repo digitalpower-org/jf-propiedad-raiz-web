@@ -28,7 +28,10 @@ const next = vi.fn() as unknown as NextFunction;
 describe('makeObtenerPropertyHandler', () => {
   it('responde con la propiedad obtenida y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as ObtenerPropertyUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ property: { codigo: 'JF-0001' }, esPublico: true });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+      esPublico: true,
+    });
     const handler = makeObtenerPropertyHandler(useCase);
     const res = makeRes();
     const req = makeReq({ idOrSlug: 'doc-1' });

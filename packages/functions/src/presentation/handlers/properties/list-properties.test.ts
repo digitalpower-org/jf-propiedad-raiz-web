@@ -28,7 +28,10 @@ const next = vi.fn() as unknown as NextFunction;
 describe('makeListPropertiesHandler', () => {
   it('responde con el listado paginado y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ items: [], nextCursor: undefined });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      items: [],
+      nextCursor: undefined,
+    });
     const handler = makeListPropertiesHandler(useCase);
     const res = makeRes();
     const req = makeReq({ operacion: 'VENTA', destacada: 'false' });

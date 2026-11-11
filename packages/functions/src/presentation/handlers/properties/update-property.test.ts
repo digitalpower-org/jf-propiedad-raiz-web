@@ -37,7 +37,9 @@ const validHeaders = {
 describe('makeUpdatePropertyHandler', () => {
   it('responde 200 con la propiedad actualizada y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as ActualizarPropertyUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({ property: { codigo: 'JF-0001' } });
+    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+    });
     const handler = makeUpdatePropertyHandler(useCase);
     const res = makeRes();
     const req = makeReq(validParams, validBody, validHeaders);
@@ -56,7 +58,9 @@ describe('makeUpdatePropertyHandler', () => {
 
   it('pasa el error a next cuando el use case falla', async () => {
     const useCase = { execute: vi.fn() } as unknown as ActualizarPropertyUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('error_actualizando'));
+    (useCase.execute as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('error_actualizando'),
+    );
     const handler = makeUpdatePropertyHandler(useCase);
     const res = makeRes();
     const req = makeReq(validParams, validBody, validHeaders);
