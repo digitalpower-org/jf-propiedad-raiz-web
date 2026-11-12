@@ -70,7 +70,11 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const messages = await loadMessages(locale);
 
   return (
-    <html lang={locale} className={plusJakartaSans.className} suppressHydrationWarning>
+    <html
+      lang={locale === 'es' ? 'es-CO' : 'en'}
+      className={plusJakartaSans.className}
+      suppressHydrationWarning
+    >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <ColorSchemeScript />
