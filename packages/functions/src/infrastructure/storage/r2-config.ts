@@ -16,13 +16,22 @@ const R2EnvSchema = z.object({
 
 const parsed = R2EnvSchema.safeParse(process.env);
 
-export const r2Config = parsed.success ? {
+if (!parsed.success) {
+  console.error('❌ Configuración de R2 inválida:');
+  for (const issue of parsed.error.issues) {
+    const path = issue.path.length > 0 ? issue.path.join('.') : '(root)';
+    console.error(`  - ${path}: ${issue.message}`);
+  }
+  throw new Error('Fallo al validar variables de entorno de R2.');
+}
+
+export const r2Config = {
   endpoint: parsed.data.R2_ENDPOINT,
   region: parsed.data.R2_REGION,
   accessKeyId: parsed.data.R2_ACCESS_KEY_ID,
   secretAccessKey: parsed.data.R2_SECRET_ACCESS_KEY,
   bucket: parsed.data.R2_BUCKET,
   publicBaseUrl: parsed.data.R2_PUBLIC_BASE_URL,
-} as const : null;
+} as const;
 
 export type R2Config = NonNullable<typeof r2Config>;

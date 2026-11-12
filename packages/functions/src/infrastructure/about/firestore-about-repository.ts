@@ -2,7 +2,12 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 
-import type { AboutRepository, AboutDto, SeccionAbout, IntegranteEquipo } from '../../application/ports/about-repository';
+import type {
+  AboutRepository,
+  AboutDto,
+  SeccionAbout,
+  IntegranteEquipo,
+} from '../../application/ports/about-repository';
 
 const DOCUMENTO_NOSOTROS = 'pages/nosotros';
 

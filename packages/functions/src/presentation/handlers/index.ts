@@ -45,9 +45,7 @@ export function buildHandlers(useCases: UseCases): Handlers {
     hideProperty: makeHidePropertyHandler(useCases.ocultarProperty),
     listProperties: makeListPropertiesHandler(useCases.listarProperties),
     obtenerProperty: makeObtenerPropertyHandler(useCases.obtenerProperty),
-    listFeaturedProperties: makeListFeaturedPropertiesHandler(
-      useCases.listarFeaturedProperties,
-    ),
+    listFeaturedProperties: makeListFeaturedPropertiesHandler(useCases.listarFeaturedProperties),
     listServices: makeListServicesHandler(useCases.listarServices),
     getAbout: makeGetAboutHandler(useCases.obtenerAbout),
     presignMediaUpload: makePresignMediaUploadHandler(useCases.presignMediaUpload),
