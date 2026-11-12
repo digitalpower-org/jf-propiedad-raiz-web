@@ -65,10 +65,7 @@ export function buildUseCases(ports: ApplicationPorts): UseCases {
     activarProperty: new ActivarPropertyUseCase(ports.properties, revalidateContent, ports.logger),
     ocultarProperty: new OcultarPropertyUseCase(ports.properties, revalidateContent, ports.logger),
     listarProperties: new ListarPropertiesUseCase(ports.properties, ports.logger),
-    listarFeaturedProperties: new ListarFeaturedPropertiesUseCase(
-      ports.properties,
-      ports.logger,
-    ),
+    listarFeaturedProperties: new ListarFeaturedPropertiesUseCase(ports.properties, ports.logger),
     obtenerProperty: new ObtenerPropertyUseCase(ports.properties, ports.logger),
     listarServices: new ListarServicesUseCase(ports.services, ports.logger),
     obtenerAbout: new ObtenerAboutUseCase(ports.about, ports.logger),

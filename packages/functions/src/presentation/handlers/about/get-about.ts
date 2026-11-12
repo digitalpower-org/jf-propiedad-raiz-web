@@ -18,7 +18,11 @@ export const makeGetAboutHandler =
       querySchema.parse(req.query);
       const resultado = await obtenerAboutUseCase.execute();
       if (!resultado) {
-        res.status(404).json({ success: false, data: { code: 'NOT_FOUND', details: [], requestId: crypto.randomUUID() }, message: 'Recurso no encontrado' });
+        res.status(404).json({
+          success: false,
+          data: { code: 'NOT_FOUND', details: [], requestId: crypto.randomUUID() },
+          message: 'Recurso no encontrado',
+        });
         return;
       }
       writeSuccess(res, resultado, 'Documento Nosotros');
