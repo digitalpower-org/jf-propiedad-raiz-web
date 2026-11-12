@@ -1,14 +1,22 @@
 /**
- * Tests de sitemap.xml de propiedad (AC2.7.3, AC0.4.5).
+ * Tests de sitemap.xml de propiedad (AC2.7.3, AC0.4.5) - API real.
  * Valida: solo ACTIVE, omite EN sin traducción completa, priority/alternates correctos.
+ * Mocking fetch global (patrón consistente con sitemap.ts principal).
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-// Mock del módulo de mocks ANTES de importar
-vi.mock('@/mocks/property-mock', () => ({
-  getPropertiesByOperacion: vi.fn(),
-  getPropertyBySlug: vi.fn(),
+// Mocks de módulos server-only ANTES de importar Sitemap
+vi.mock('@/server/backend-url', () => ({
+  backendUrl: vi.fn(
+    (path: string) => `http://127.0.0.1:5001/jf-propiedad-raiz/us-central1/api${path}`,
+  ),
+}));
+
+vi.mock('@/server/config/server-config', () => ({
+  env: {
+    BFF_INTERNAL_KEY: 'test-internal-key-32-chars-minimum',
+  },
 }));
 
 vi.mock('@/i18n/routes', () => ({
@@ -26,26 +34,35 @@ vi.mock('@/i18n/routes', () => ({
   }),
 }));
 
+// Mock de fetch global
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
 const BASE = 'https://example.test';
 
 function setupEnv() {
   process.env.NEXT_PUBLIC_SITE_URL = BASE;
 }
 
-import { getPropertiesByOperacion, getPropertyBySlug } from '@/mocks/property-mock';
 import Sitemap from './sitemap';
 
-const mockGetPropertiesByOperacion = vi.mocked(getPropertiesByOperacion);
-const mockGetPropertyBySlug = vi.mocked(getPropertyBySlug);
+function mockPropertiesResponse(properties: any[]) {
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ success: true, data: { items: properties } }),
+  });
+}
 
-function makeCard(overrides: any = {}) {
+function makeProperty(overrides: any = {}) {
   return {
     id: 'prop-1',
     codigo: 'JF-0001',
     slug: 'casa-test',
+    status: 'ACTIVE',
     operacion: 'VENTA',
     tipo: 'CASA',
     titulo: { es: 'Casa Test', en: 'Test House' },
+    descripcion: { es: 'Desc ES', en: 'Desc EN' },
     precio: 500000000,
     departamento: 'Antioquia',
     municipio: 'Medellín',
@@ -54,79 +71,52 @@ function makeCard(overrides: any = {}) {
     banos: 2,
     areaConstruida: 120,
     destacada: false,
-    portada: { derivados: [] },
-    ...overrides,
-  };
-}
-
-function makeDetail(overrides: any = {}) {
-  return {
-    ...makeCard(),
-    status: 'ACTIVE',
+    createdAt: '2024-12-01T10:00:00Z',
     updatedAt: '2024-12-01T10:00:00Z',
-    descripcion: { es: 'Desc ES', en: 'Desc EN' },
-    predial: '2.500.000',
-    administracion: '450.000',
-    acabados: { es: '', en: '' },
-    antiguedad: '5',
-    areaLote: 1000,
-    parqueaderos: 2,
-    deposito: 1,
-    amenidades: [],
-    puntosInteres: [],
-    fotos: [],
-    videos: [],
-    panoramas: [],
-    fechaPublicacion: '2024-12-01',
     ...overrides,
   };
 }
 
-// Helper para mock que retorna según slug
-function setupPropertyMocks(properties: Array<{ slug: string; card?: any; detail?: any }>) {
-  mockGetPropertiesByOperacion.mockReturnValue(
-    properties.map((p) => makeCard({ slug: p.slug, ...p.card })),
-  );
-  mockGetPropertyBySlug.mockImplementation((slug: string) => {
-    const found = properties.find((p) => p.slug === slug);
-    return found ? makeDetail({ slug, ...found.detail }) : undefined;
-  });
-}
-
-describe('sitemap.xml de propiedad (AC2.7.3 / AC0.4.5)', () => {
+describe('sitemap.xml de propiedad (AC2.7.3 / AC0.4.5) - API real', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupEnv();
   });
 
   it('incluye solo propiedades ACTIVE', async () => {
-    setupPropertyMocks([
-      { slug: 'activa-1', detail: { status: 'ACTIVE' } },
-      { slug: 'oculta-1', detail: { status: 'HIDDEN' } },
+    mockPropertiesResponse([
+      makeProperty({ slug: 'activa-1', status: 'ACTIVE' }),
+      makeProperty({ slug: 'oculta-1', status: 'HIDDEN' }),
+      makeProperty({ slug: 'borrada-1', status: 'DELETED' }),
     ]);
 
     const urls = await Sitemap();
 
     const activa = urls.find((u) => u.url.includes('activa-1'));
     const oculta = urls.find((u) => u.url.includes('oculta-1'));
+    const borrada = urls.find((u) => u.url.includes('borrada-1'));
     expect(activa).toBeDefined();
     expect(oculta).toBeUndefined();
+    expect(borrada).toBeUndefined();
   });
 
   it('omite EN sin traducción completa (AC0.4.5)', async () => {
-    setupPropertyMocks([
-      {
+    mockPropertiesResponse([
+      makeProperty({
         slug: 'completa-1',
-        detail: { titulo: { es: 'C', en: 'C' }, descripcion: { es: 'd', en: 'd' } },
-      },
-      {
+        titulo: { es: 'C', en: 'C' },
+        descripcion: { es: 'd', en: 'd' },
+      }),
+      makeProperty({
         slug: 'solo-es-1',
-        detail: { titulo: { es: 'C', en: '' }, descripcion: { es: 'd', en: '' } },
-      },
-      {
+        titulo: { es: 'C', en: '' },
+        descripcion: { es: 'd', en: '' },
+      }),
+      makeProperty({
         slug: 'sin-desc-en-1',
-        detail: { titulo: { es: 'C', en: 'C' }, descripcion: { es: 'd', en: '' } },
-      },
+        titulo: { es: 'C', en: 'C' },
+        descripcion: { es: 'd', en: '' },
+      }),
     ]);
 
     const urls = await Sitemap();
@@ -145,9 +135,9 @@ describe('sitemap.xml de propiedad (AC2.7.3 / AC0.4.5)', () => {
   });
 
   it('priority 0.9 para destacadas, 0.7 para normales', async () => {
-    setupPropertyMocks([
-      { slug: 'destacada-1', card: { destacada: true }, detail: { destacada: true } },
-      { slug: 'normal-1', card: { destacada: false }, detail: { destacada: false } },
+    mockPropertiesResponse([
+      makeProperty({ slug: 'destacada-1', destacada: true }),
+      makeProperty({ slug: 'normal-1', destacada: false }),
     ]);
 
     const urls = await Sitemap();
@@ -159,7 +149,7 @@ describe('sitemap.xml de propiedad (AC2.7.3 / AC0.4.5)', () => {
   });
 
   it('changeFrequency weekly y alternates correctos', async () => {
-    setupPropertyMocks([{ slug: 'prop-1', detail: {} }]);
+    mockPropertiesResponse([makeProperty({ slug: 'prop-1' })]);
 
     const urls = await Sitemap();
     const prop = urls.find((u) => u.url.includes('prop-1'));
@@ -168,5 +158,29 @@ describe('sitemap.xml de propiedad (AC2.7.3 / AC0.4.5)', () => {
     expect(prop?.alternates?.languages?.['es-CO']).toBe(`${BASE}/es/propiedad/prop-1`);
     expect(prop?.alternates?.languages?.en).toBe(`${BASE}/en/property/prop-1`);
     expect(prop?.alternates?.languages?.['x-default']).toBe(`${BASE}/es/propiedad/prop-1`);
+  });
+
+  it('lastModified usa updatedAt/createdAt', async () => {
+    mockPropertiesResponse([
+      makeProperty({
+        slug: 'con-fecha',
+        updatedAt: '2024-12-15T10:00:00Z',
+        createdAt: '2024-12-01T10:00:00Z',
+      }),
+    ]);
+
+    const urls = await Sitemap();
+    const prop = urls.find((u) => u.url.includes('con-fecha'));
+
+    // lastModified debe ser new Date('2024-12-15T10:00:00Z')
+    expect(prop?.lastModified).toBeInstanceOf(Date);
+    expect(prop?.lastModified?.toISOString()).toBe('2024-12-15T10:00:00.000Z');
+  });
+
+  it('devuelve array vacío si fetch falla', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+
+    const urls = await Sitemap();
+    expect(urls).toEqual([]);
   });
 });
