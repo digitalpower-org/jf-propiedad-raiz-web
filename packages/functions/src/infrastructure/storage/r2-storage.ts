@@ -7,13 +7,28 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
+  S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { r2Client } from './r2-client';
-import { r2Config } from './r2-config';
+import { r2Config, type R2Config } from './r2-config';
 
 const DEFAULT_EXPIRES_IN = 900; // 15 minutos en segundos
+
+function requireR2Config(): R2Config {
+  if (!r2Config) {
+    throw new Error('R2 no configurado: faltan variables de entorno R2_*');
+  }
+  return r2Config;
+}
+
+function requireR2Client(): S3Client {
+  if (!r2Client) {
+    throw new Error('R2 no configurado: faltan variables de entorno R2_*');
+  }
+  return r2Client;
+}
 
 export interface PresignPutResult {
   readonly url: string;
@@ -42,13 +57,15 @@ export async function presignPut(
   contentType: string,
   expiresIn: number = DEFAULT_EXPIRES_IN,
 ): Promise<PresignPutResult> {
+  const cfg = requireR2Config();
+  const client = requireR2Client();
   const command = new PutObjectCommand({
-    Bucket: r2Config.bucket,
+    Bucket: cfg.bucket,
     Key: key,
     ContentType: contentType,
   });
 
-  const url = await getSignedUrl(r2Client, command, { expiresIn });
+  const url = await getSignedUrl(client, command, { expiresIn });
 
   return {
     url,
@@ -63,12 +80,14 @@ export async function presignPut(
  * Obtiene metadatos de un objeto (HEAD).
  */
 export async function head(key: string): Promise<HeadObjectResult> {
+  const cfg = requireR2Config();
+  const client = requireR2Client();
   const command = new HeadObjectCommand({
-    Bucket: r2Config.bucket,
+    Bucket: cfg.bucket,
     Key: key,
   });
 
-  const response = await r2Client.send(command);
+  const response = await client.send(command);
 
   return {
     contentType: response.ContentType,
@@ -81,13 +100,15 @@ export async function head(key: string): Promise<HeadObjectResult> {
  * Obtiene un rango de bytes de un objeto (GET con Range).
  */
 export async function getRange(key: string, start: number, end: number): Promise<GetRangeResult> {
+  const cfg = requireR2Config();
+  const client = requireR2Client();
   const command = new GetObjectCommand({
-    Bucket: r2Config.bucket,
+    Bucket: cfg.bucket,
     Key: key,
     Range: `bytes=${start}-${end}`,
   });
 
-  const response = await r2Client.send(command);
+  const response = await client.send(command);
 
   return {
     body: response.Body as ReadableStream<Uint8Array> | NodeJS.ReadableStream,
@@ -104,27 +125,31 @@ export async function put(
   body: Buffer | Uint8Array | string | NodeJS.ReadableStream | ReadableStream<Uint8Array>,
   contentType: string,
 ): Promise<void> {
+  const cfg = requireR2Config();
+  const client = requireR2Client();
   const input: PutObjectCommandInput = {
-    Bucket: r2Config.bucket,
+    Bucket: cfg.bucket,
     Key: key,
     Body: body as unknown as NonNullable<PutObjectCommandInput['Body']>,
     ContentType: contentType,
   };
 
   const command = new PutObjectCommand(input);
-  await r2Client.send(command);
+  await client.send(command);
 }
 
 /**
  * Elimina un objeto de R2 (DELETE).
  */
 export async function del(key: string): Promise<void> {
+  const cfg = requireR2Config();
+  const client = requireR2Client();
   const command = new DeleteObjectCommand({
-    Bucket: r2Config.bucket,
+    Bucket: cfg.bucket,
     Key: key,
   });
 
-  await r2Client.send(command);
+  await client.send(command);
 }
 
 export { del as delete };

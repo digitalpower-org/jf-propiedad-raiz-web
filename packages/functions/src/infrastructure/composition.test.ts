@@ -1,5 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: vi.fn().mockReturnValue({}),
+}));
+vi.mock('firebase-admin/app', () => ({
+  getApps: vi.fn().mockReturnValue([]),
+  getApp: vi.fn(),
+  initializeApp: vi.fn(),
+  cert: vi.fn(),
+}));
+vi.mock('./storage/r2-storage', () => ({
+  presignPut: vi.fn(),
+  head: vi.fn(),
+  put: vi.fn(),
+  del: vi.fn(),
+  getRange: vi.fn(),
+}));
+
 import type { AuthorizedUsersRepository } from '../application/ports/authorized-users-repository';
 import type { IdentityVerifier } from '../application/ports/identity-verifier';
 import type { Logger } from '../application/ports/logger';

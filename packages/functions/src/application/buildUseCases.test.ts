@@ -19,6 +19,30 @@ function makePorts(): ApplicationPorts {
     identityVerifier: { verify: vi.fn() },
     authorizedUsers: { findActiveByEmail: vi.fn() },
     secretComparator: { equals: vi.fn() },
+    properties: {
+      create: vi.fn(),
+      findByIdOrSlug: vi.fn(),
+      listPublico: vi.fn(),
+      getFeatured: vi.fn(),
+      update: vi.fn(),
+      activate: vi.fn(),
+      hide: vi.fn(),
+      softDelete: vi.fn(),
+    },
+    services: {
+      listar: vi.fn(),
+    },
+    about: {
+      obtener: vi.fn(),
+    },
+    mediaStorage: {
+      presignPut: vi.fn(),
+      confirmarSubida: vi.fn(),
+    },
+    imageProcessor: {
+      validarImagen: vi.fn(),
+      generarDerivados: vi.fn(),
+    },
   };
 }
 

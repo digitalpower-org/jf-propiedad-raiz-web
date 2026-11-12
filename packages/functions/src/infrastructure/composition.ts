@@ -13,6 +13,11 @@ import { createCloudLogger } from './logging/cloud-logger';
 import { createRevalidationClient } from './revalidation/revalidation-client';
 import { createFakeTranslator } from './translation/fake-translator';
 import { createGoogleCloudTranslator } from './translation/google-cloud-translator';
+import { createFirestorePropertiesRepository } from './properties/firestore-properties-repository';
+import { createFirestoreServicesRepository } from './services/firestore-services-repository';
+import { createFirestoreAboutRepository } from './about/firestore-about-repository';
+import { createR2MediaStorage } from './media/r2-media-storage';
+import { createSharpImageProcessor } from './media/sharp-image-processor';
 
 export interface Infrastructure extends ApplicationPorts {
   readonly config: AppConfig;
@@ -48,5 +53,16 @@ export function createInfrastructure(overrides: Partial<Infrastructure> = {}): I
       overrides.authorizedUsers ??
       createFirestoreAuthorizedUsersRepository(createFirestore(requireAdminApp())),
     secretComparator: overrides.secretComparator ?? createSecretComparator(),
+    properties:
+      overrides.properties ??
+      createFirestorePropertiesRepository(createFirestore(requireAdminApp())),
+    services:
+      overrides.services ??
+      createFirestoreServicesRepository(createFirestore(requireAdminApp())),
+    about:
+      overrides.about ??
+      createFirestoreAboutRepository(createFirestore(requireAdminApp())),
+    imageProcessor: overrides.imageProcessor ?? createSharpImageProcessor(),
+    mediaStorage: overrides.mediaStorage ?? createR2MediaStorage(createSharpImageProcessor()),
   };
 }

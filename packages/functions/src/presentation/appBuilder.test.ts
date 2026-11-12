@@ -32,19 +32,41 @@ function makePorts() {
     identityVerifier,
     authorizedUsers,
     secretComparator: createSecretComparator(),
+    properties: {
+      create: vi.fn(),
+      findByIdOrSlug: vi.fn(),
+      listPublico: vi.fn(),
+      getFeatured: vi.fn(),
+      update: vi.fn(),
+      activate: vi.fn(),
+      hide: vi.fn(),
+      softDelete: vi.fn(),
+    },
+    services: {
+      listar: vi.fn(),
+    },
+    about: {
+      obtener: vi.fn(),
+    },
+    mediaStorage: {
+      presignPut: vi.fn(),
+      confirmarSubida: vi.fn(),
+    },
+    imageProcessor: {
+      validarImagen: vi.fn(),
+      generarDerivados: vi.fn(),
+    },
   };
-
-  return { ports, logger, identityVerifier, authorizedUsers };
+  return { ...ports, logger };
 }
 
 function setup() {
   const deps = makePorts();
-  const app = appBuilder(buildUseCases(deps.ports), {
+  const app = appBuilder(buildUseCases(deps), {
     internalKey: INTERNAL_KEY,
     logger: deps.logger,
-    secretComparator: deps.ports.secretComparator,
+    secretComparator: deps.secretComparator,
   });
-
   return { app, ...deps };
 }
 
