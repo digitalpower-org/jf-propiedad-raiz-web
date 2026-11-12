@@ -2,7 +2,11 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 
-import type { ServiciosRepository, ServiceDto, ListarServicesResult } from '../../application/ports/services-repository';
+import type {
+  ServiciosRepository,
+  ServiceDto,
+  ListarServicesResult,
+} from '../../application/ports/services-repository';
 
 const COLECCION_SERVICIOS = 'services';
 
@@ -45,10 +49,7 @@ export function createFirestoreServicesRepository(db: Firestore): ServiciosRepos
   const servicios = db.collection(COLECCION_SERVICIOS);
 
   async function listar(): Promise<ListarServicesResult> {
-    const snap = await servicios
-      .where('status', '==', 'ACTIVE')
-      .orderBy('orden', 'asc')
-      .get();
+    const snap = await servicios.where('status', '==', 'ACTIVE').orderBy('orden', 'asc').get();
 
     return {
       items: snap.docs.map(documentoAServiceDto),
