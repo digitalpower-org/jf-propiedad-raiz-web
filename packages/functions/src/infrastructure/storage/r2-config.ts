@@ -16,13 +16,15 @@ const R2EnvSchema = z.object({
 
 const parsed = R2EnvSchema.safeParse(process.env);
 
-export const r2Config = parsed.success ? {
-  endpoint: parsed.data.R2_ENDPOINT,
-  region: parsed.data.R2_REGION,
-  accessKeyId: parsed.data.R2_ACCESS_KEY_ID,
-  secretAccessKey: parsed.data.R2_SECRET_ACCESS_KEY,
-  bucket: parsed.data.R2_BUCKET,
-  publicBaseUrl: parsed.data.R2_PUBLIC_BASE_URL,
-} as const : null;
+export const r2Config = parsed.success
+  ? ({
+      endpoint: parsed.data.R2_ENDPOINT,
+      region: parsed.data.R2_REGION,
+      accessKeyId: parsed.data.R2_ACCESS_KEY_ID,
+      secretAccessKey: parsed.data.R2_SECRET_ACCESS_KEY,
+      bucket: parsed.data.R2_BUCKET,
+      publicBaseUrl: parsed.data.R2_PUBLIC_BASE_URL,
+    } as const)
+  : null;
 
 export type R2Config = NonNullable<typeof r2Config>;
