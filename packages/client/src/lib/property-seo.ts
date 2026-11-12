@@ -118,7 +118,7 @@ export function buildPropertyMetadata(input: PropertySeoInput): Metadata {
       images: [imageUrl],
     },
     robots: {
-      index: !!(property.titulo.en && property.descripcion.en),
+      index: locale === 'es' || !!(property.titulo.en && property.descripcion.en),
       follow: true,
     },
   };

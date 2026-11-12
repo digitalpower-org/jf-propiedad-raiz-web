@@ -75,10 +75,14 @@ describe('buildPropertyMetadata (AC2.7.1 / 2.7.2)', () => {
     expect(sinFoto[0]?.url).toBe(`${BASE}/og-default.jpg`);
   });
 
-  it('no indexa si falta la traducción completa al inglés', () => {
-    expect(buildPropertyMetadata(input('es')).robots).toMatchObject({ index: true });
+  it('indexa en español aunque falte la traducción al inglés', () => {
     const sinEn = makeProperty({ titulo: { es: 'Casa', en: '' } });
-    expect(buildPropertyMetadata(input('es', sinEn)).robots).toMatchObject({ index: false });
+    expect(buildPropertyMetadata(input('es', sinEn)).robots).toMatchObject({ index: true });
+  });
+
+  it('no indexa en inglés si falta la traducción completa', () => {
+    const sinEn = makeProperty({ titulo: { es: 'Casa', en: '' } });
+    expect(buildPropertyMetadata(input('en', sinEn)).robots).toMatchObject({ index: false });
   });
 });
 
