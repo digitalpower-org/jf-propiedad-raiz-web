@@ -112,6 +112,15 @@ export async function delegateToBackend(
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('Content-Type', contentType);
 
+  // X-Client-IP: IP del solicitante, para que el backend limite abusos (p. ej. consignación).
+  // Sale de las cabeceras del proxy; un X-Client-IP enviado por el cliente nunca se reenvía.
+  // OJO: el primer valor de x-forwarded-for puede venir falsificado por el cliente; en
+  // producción conviene confirmar con el proxy cuál valor agrega la plataforma.
+  const clientIp =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip')?.trim();
+  if (clientIp) headers.set('X-Client-IP', clientIp);
+
   if (ctx.claims) {
     headers.set('X-User-Id', ctx.claims.sub);
     headers.set('X-User-Email', ctx.claims.email);

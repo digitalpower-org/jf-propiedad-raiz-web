@@ -164,3 +164,48 @@ describe('MT1.1 — Política internal (AC1.3.6)', () => {
     }
   });
 });
+
+describe('X-Client-IP — IP del solicitante hacia el backend', () => {
+  async function delegate(headers: Record<string, string>): Promise<Headers> {
+    const { bffRoute, delegateToBackend } = await load();
+    const fetchMock = vi.fn().mockImplementation(upstreamFactory());
+    vi.stubGlobal('fetch', fetchMock);
+    const route = delegableRoutes.find((r) => r.auth === 'public' && r.method === 'GET');
+    expect(route).toBeDefined();
+
+    const handler = bffRoute((req, ctx) => delegateToBackend(req, ctx));
+    await handler(request(route?.path ?? '', { method: 'GET', headers }), {});
+
+    return new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+  }
+
+  it('toma el primer valor de x-forwarded-for', async () => {
+    const h = await delegate({ 'x-forwarded-for': '203.0.113.7, 10.0.0.1, 10.0.0.2' });
+    expect(h.get('x-client-ip')).toBe('203.0.113.7');
+  });
+
+  it('usa x-real-ip cuando no hay x-forwarded-for', async () => {
+    const h = await delegate({ 'x-real-ip': '198.51.100.4' });
+    expect(h.get('x-client-ip')).toBe('198.51.100.4');
+  });
+
+  it('x-forwarded-for tiene prioridad sobre x-real-ip', async () => {
+    const h = await delegate({ 'x-forwarded-for': '203.0.113.7', 'x-real-ip': '198.51.100.4' });
+    expect(h.get('x-client-ip')).toBe('203.0.113.7');
+  });
+
+  it('un x-forwarded-for vacío cae a x-real-ip', async () => {
+    const h = await delegate({ 'x-forwarded-for': '  ', 'x-real-ip': '198.51.100.4' });
+    expect(h.get('x-client-ip')).toBe('198.51.100.4');
+  });
+
+  it('sin cabeceras de proxy no envía X-Client-IP', async () => {
+    const h = await delegate({});
+    expect(h.get('x-client-ip')).toBeNull();
+  });
+
+  it('no reenvía un X-Client-IP falsificado por el cliente', async () => {
+    const h = await delegate({ 'x-client-ip': '6.6.6.6' });
+    expect(h.get('x-client-ip')).toBeNull();
+  });
+});
