@@ -10,10 +10,12 @@ import { ListarFeaturedPropertiesUseCase } from './use-cases/properties/listar-f
 import { ListarPropertiesUseCase } from './use-cases/properties/listar-properties';
 import { ObtenerPropertyUseCase } from './use-cases/properties/obtener-property';
 import { OcultarPropertyUseCase } from './use-cases/properties/ocultar-property';
+import { CrearConsignmentUseCase } from './use-cases/consignments/crear-consignment';
 import { ListarServicesUseCase } from './use-cases/services/listar-services';
 import { ObtenerAboutUseCase } from './use-cases/about/obtener-about';
 import { ConfirmarMediaUploadUseCase } from './use-cases/media/confirmar-media-upload';
 import { PresignMediaUploadUseCase } from './use-cases/media/presign-media-upload';
+import type { RateLimiter } from './ports/rate-limiter';
 
 export interface UseCases {
   readonly verifyInternalSession: VerifyInternalSessionUseCase;
@@ -31,10 +33,12 @@ export interface UseCases {
   readonly obtenerAbout: ObtenerAboutUseCase;
   readonly presignMediaUpload: PresignMediaUploadUseCase;
   readonly confirmarMediaUpload: ConfirmarMediaUploadUseCase;
+  readonly crearConsignment: CrearConsignmentUseCase;
+  readonly rateLimiter: RateLimiter;
 }
 
 /** Único lugar donde se construyen los casos de uso. */
-export function buildUseCases(ports: ApplicationPorts): UseCases {
+export function buildUseCases(ports: ApplicationPorts, config: { juanEmail: string }): UseCases {
   const revalidateContent = new RevalidateContent({
     gateway: ports.revalidationGateway,
     logger: ports.logger,
@@ -71,5 +75,11 @@ export function buildUseCases(ports: ApplicationPorts): UseCases {
     obtenerAbout: new ObtenerAboutUseCase(ports.about, ports.logger),
     presignMediaUpload: new PresignMediaUploadUseCase(ports.mediaStorage, ports.logger),
     confirmarMediaUpload: new ConfirmarMediaUploadUseCase(ports.mediaStorage, ports.logger),
+    crearConsignment: new CrearConsignmentUseCase(
+      ports.emailSender,
+      ports.logger,
+      config.juanEmail,
+    ),
+    rateLimiter: ports.rateLimiter,
   };
 }

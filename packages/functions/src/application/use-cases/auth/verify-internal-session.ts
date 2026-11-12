@@ -1,4 +1,5 @@
 import { ApiError } from '../../../domain/errors/api-error';
+import { errorCode } from '../../../domain/errors/errorCatalog';
 import type { Role } from '../../../domain/value-objects/role';
 import type { AuthorizedUsersRepository } from '../../ports/authorized-users-repository';
 import type { IdentityVerifier } from '../../ports/identity-verifier';
@@ -30,13 +31,13 @@ export class VerifyInternalSessionUseCase implements UseCase<
     const email = identity.email;
 
     if (email === null || !identity.emailVerified) {
-      throw new ApiError('UNAUTHORIZED', 'Correo no verificado');
+      throw new ApiError(errorCode.unauthorized, 'Correo no verificado');
     }
 
     const user = await this.authorizedUsers.findActiveByEmail(email);
 
     if (user === null) {
-      throw new ApiError('PERMISSION_DENIED', 'Usuario no autorizado');
+      throw new ApiError(errorCode.permissionDenied, 'Usuario no autorizado');
     }
 
     this.logger.info('internal_session_verified', { uid: identity.uid });
@@ -48,7 +49,7 @@ export class VerifyInternalSessionUseCase implements UseCase<
     try {
       return await this.identityVerifier.verify(idToken);
     } catch {
-      throw new ApiError('UNAUTHORIZED', 'Token inválido o expirado');
+      throw new ApiError(errorCode.unauthorized, 'Token inválido o expirado');
     }
   }
 }

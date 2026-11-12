@@ -15,6 +15,7 @@ import { makeListServicesHandler } from './services/list-services';
 import { makeGetAboutHandler } from './about/get-about';
 import { makePresignMediaUploadHandler } from './media/presign-media-upload';
 import { makeConfirmarMediaUploadHandler } from './media/confirm-media-upload';
+import { makeCreateConsignmentHandler } from './consignments/create-consignment';
 import type { AsyncHandler } from './types';
 
 export interface Handlers {
@@ -32,6 +33,7 @@ export interface Handlers {
   readonly getAbout: AsyncHandler;
   readonly presignMediaUpload: AsyncHandler;
   readonly confirmarMediaUpload: AsyncHandler;
+  readonly createConsignment: AsyncHandler;
 }
 
 export function buildHandlers(useCases: UseCases): Handlers {
@@ -50,5 +52,9 @@ export function buildHandlers(useCases: UseCases): Handlers {
     getAbout: makeGetAboutHandler(useCases.obtenerAbout),
     presignMediaUpload: makePresignMediaUploadHandler(useCases.presignMediaUpload),
     confirmarMediaUpload: makeConfirmarMediaUploadHandler(useCases.confirmarMediaUpload),
+    createConsignment: makeCreateConsignmentHandler(
+      useCases.crearConsignment,
+      useCases.rateLimiter,
+    ),
   };
 }

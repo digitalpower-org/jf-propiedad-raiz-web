@@ -3,6 +3,7 @@ import type { Logger } from '../../ports/logger';
 import type { PropertiesRepository } from '../../ports/properties-repository';
 import type { ObtenerPropertyResult } from '../../ports/properties-repository';
 import { ApiError } from '../../../domain/errors/api-error';
+import { errorCode } from '../../../domain/errors/errorCatalog';
 
 export interface ObtenerPropertyCommand {
   readonly idOrSlug: string;
@@ -26,7 +27,7 @@ export class ObtenerPropertyUseCase implements UseCase<
     const resultado = await this.properties.findByIdOrSlug(command.idOrSlug, command.esPublico);
 
     if (resultado === null) {
-      throw new ApiError('PROPERTY_NOT_FOUND', `Inmueble no encontrado: ${command.idOrSlug}`);
+      throw new ApiError(errorCode.propertyNotFound, `Inmueble no encontrado: ${command.idOrSlug}`);
     }
 
     this.logger.debug('property_obtained', { idOrSlug: command.idOrSlug });

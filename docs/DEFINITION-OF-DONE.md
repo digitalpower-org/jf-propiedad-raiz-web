@@ -150,9 +150,10 @@ Una MT está **Done** cuando:
 ## 6. RESUMEN DE GATES
 
 | Gate | Herramienta | Umbral |
-| :---- | :---- | :---- |
+| :-- | :-- | :-- |
 | Build | `tsc` / Next build / Functions build | 0 errores |
 | Lint / format | ESLint + Prettier | 0 errores |
+| Formato | Prettier (`npm run format:check`) | todos los archivos con estilo Prettier |
 | Tipos | TS `strict` | sin `any` / ignores |
 | Tests unit / integración | Vitest (según `./QA.md`) | cobertura **`packages/functions` ≥ 80 %**; `shared-types`: `tsc --noEmit` 0 errores |
 | E2E | Playwright (según `./QA.md`) | flujos críticos por MT y por ola |
@@ -163,3 +164,5 @@ Una MT está **Done** cuando:
 | Rendimiento móvil | Lighthouse (perfil de `./PERFORMANCE.md`) | ≥ 85 · LCP ≤ 2,5 s · CLS ≤ 0,1 · TBT ≤ 300 ms (AC7.2.1) |
 | Presupuesto de bundles | análisis de bundles (script de MT0.4) | JS inicial ≤ 200 KB · página ≤ 1 MB · ficha ≤ 1,5 MB (AC7.2.2/AC7.2.3) |
 | Mobile First | Playwright proyecto táctil por defecto (375 × 667) | toda la suite e2e corre en móvil (AC7.6.1) |
+
+> **Nota:** `npm run format:check` (Prettier) se ejecuta junto con `typecheck`, `lint` y `test` como parte de las verificaciones de calidad antes de considerar una US, MT o PR como completa. Un cambio que altere el formato sin pasar `format:check` no se considera listo para merge.
