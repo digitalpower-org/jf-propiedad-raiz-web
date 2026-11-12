@@ -16,14 +16,16 @@ const { sendMock, getSignedUrlMock, r2ClientMock } = vi.hoisted(() => {
 });
 
 vi.mock('./r2-client', () => ({ r2Client: r2ClientMock }));
-vi.mock('./r2-config', () => ({
-  r2Config: {
-    endpoint: 'https://account-id.r2.cloudflarestorage.com',
-    region: 'auto',
-    accessKeyId: 'access-key-id',
-    secretAccessKey: 'secret-access-key',
-    bucket: 'jf-media',
-    publicBaseUrl: 'https://media.example.com',
+vi.mock('../config/server-config', () => ({
+  config: {
+    r2: {
+      endpoint: 'https://account-id.r2.cloudflarestorage.com',
+      region: 'auto',
+      accessKeyId: 'access-key-id',
+      secretAccessKey: 'secret-access-key',
+      bucket: 'jf-media',
+      publicBaseUrl: 'https://media.example.com',
+    },
   },
 }));
 vi.mock('@aws-sdk/s3-request-presigner', () => ({

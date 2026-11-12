@@ -22,9 +22,8 @@ async function main(): Promise<void> {
 
   const { createFirestore } = await import('../infrastructure/firebase/firestore.js');
   const { getAdminApp } = await import('../infrastructure/firebase/admin-app.js');
-  const { loadEnv } = await import('../infrastructure/config/env.js');
+  const { config } = await import('../infrastructure/config/server-config.js');
 
-  const config = loadEnv();
   const app = getAdminApp(config);
   const db = createFirestore(app);
 

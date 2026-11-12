@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { App } from 'firebase-admin/app';
 
-import type { AppConfig } from '../config/env';
+import type { ServerConfig } from '../config/server-config';
 import { getAdminApp } from './admin-app';
 
 const mocks = vi.hoisted(() => ({
@@ -16,11 +16,9 @@ vi.mock('firebase-admin', () => ({
   app: mocks.app,
 }));
 
-const config: AppConfig = {
-  internalKey: 'x'.repeat(32),
-  bffUrl: 'https://bff.example.com',
+const config: Pick<ServerConfig, 'firebaseProjectId' | 'firebaseAuthEmulatorHost'> = {
   firebaseProjectId: 'project-1',
-  useFakeTranslator: true,
+  firebaseAuthEmulatorHost: '127.0.0.1:9099',
 };
 
 describe('getAdminApp', () => {

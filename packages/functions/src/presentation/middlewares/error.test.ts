@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ZodError } from 'zod';
-import { ApiError } from '../../domain/errors/api-error';
+import { ApiError, errorCode } from '../../domain/errors/api-error';
 import type { Logger } from '../../application/ports/logger';
 import { makeErrorMiddleware } from './error';
 import type { NextFunction, Request, Response } from 'express';
@@ -23,7 +23,7 @@ describe('makeErrorMiddleware', () => {
     const res = makeRes();
 
     middleware(
-      new ApiError('NOT_FOUND', 'Recurso no encontrado'),
+      new ApiError(errorCode.notFound, 'Recurso no encontrado'),
       {} as unknown as Request,
       res,
       next,
@@ -32,7 +32,7 @@ describe('makeErrorMiddleware', () => {
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
-      data: { code: 'NOT_FOUND', details: undefined, requestId: 'req-123' },
+      data: { code: errorCode.notFound, details: undefined, requestId: 'req-123' },
       message: 'Recurso no encontrado',
     });
     expect(next).not.toHaveBeenCalled();
@@ -64,7 +64,7 @@ describe('makeErrorMiddleware', () => {
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       data: {
-        code: 'VALIDATION_ERROR',
+        code: errorCode.validationError,
         details: [{ field: 'titulo.es', issue: 'Requerido' }],
         requestId: 'req-123',
       },
@@ -82,7 +82,7 @@ describe('makeErrorMiddleware', () => {
     expect(res.status).toHaveBeenCalledWith(422);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
-      data: { code: 'VALIDATION_ERROR', requestId: 'req-123' },
+      data: { code: errorCode.validationError, requestId: 'req-123' },
       message: 'Datos inválidos',
     });
   });
@@ -100,7 +100,7 @@ describe('makeErrorMiddleware', () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
-      data: { code: 'INTERNAL', requestId: 'req-123' },
+      data: { code: errorCode.internal, requestId: 'req-123' },
       message: 'Error interno',
     });
   });

@@ -1,6 +1,7 @@
 import type { EstadoPropiedad, Translatable } from '@jf/shared-types';
 
 import { ApiError } from '../errors/api-error';
+import { errorCode } from '../errors/errorCatalog';
 import {
   ERR_TITLE_REQUIRED,
   ERR_ALREADY_ACTIVE,
@@ -155,7 +156,7 @@ export class Property {
     now: Date = new Date(),
   ): Property {
     if (!input.titulo.es || input.titulo.es.trim() === '') {
-      throw new ApiError('VALIDATION_ERROR', ERR_TITLE_REQUIRED);
+      throw new ApiError(errorCode.validationError, ERR_TITLE_REQUIRED);
     }
 
     const slug = slugify(`${input.titulo.es}-${codigo}`);
@@ -245,7 +246,7 @@ export class Property {
    */
   activate(now: Date = new Date()): ActivationResult {
     if (this.status === 'ACTIVE') {
-      throw new ApiError('VALIDATION_ERROR', ERR_ALREADY_ACTIVE);
+      throw new ApiError(errorCode.validationError, ERR_ALREADY_ACTIVE);
     }
 
     const missing: string[] = [];
@@ -259,7 +260,7 @@ export class Property {
     if (!this.fotos || this.fotos.length === 0) missing.push('al menos una foto');
 
     if (missing.length > 0) {
-      throw new ApiError('VALIDATION_ERROR', ERR_MISSING_FIELDS_TO_ACTIVATE, missing);
+      throw new ApiError(errorCode.validationError, ERR_MISSING_FIELDS_TO_ACTIVATE, missing);
     }
 
     const timestamp = now.toISOString();
@@ -311,7 +312,7 @@ export class Property {
    */
   hide(now: Date = new Date()): Property {
     if (this.status === 'HIDDEN') {
-      throw new ApiError('VALIDATION_ERROR', ERR_ALREADY_HIDDEN);
+      throw new ApiError(errorCode.validationError, ERR_ALREADY_HIDDEN);
     }
 
     return new Property(
@@ -355,7 +356,7 @@ export class Property {
    */
   softDelete(now: Date = new Date()): Property {
     if (this.status === 'DELETED') {
-      throw new ApiError('VALIDATION_ERROR', ERR_ALREADY_DELETED);
+      throw new ApiError(errorCode.validationError, ERR_ALREADY_DELETED);
     }
 
     return new Property(
@@ -409,6 +410,6 @@ function slugify(text: string): string {
 /** Valida que un código siga el patrón `JF-XXXX` (D6, AC1.7.1). */
 export function validarCodigoSecuencial(codigo: string): void {
   if (!/^JF-\d{4}$/.test(codigo)) {
-    throw new ApiError('VALIDATION_ERROR', 'El código debe seguir el patrón JF-XXXX');
+    throw new ApiError(errorCode.validationError, 'El código debe seguir el patrón JF-XXXX');
   }
 }

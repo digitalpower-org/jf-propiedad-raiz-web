@@ -27,3 +27,29 @@ export const ERROR_CODES = [
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
+
+/**
+ * Acceso tipado a los códigos de error para evitar strings hardcodeados.
+ *
+ * Uso: `errorCode.validationError` en lugar de `'VALIDATION_ERROR'`.
+ * Cada valor es de tipo `ErrorCode`, válido para `ApiError(code, message, details?)`.
+ *
+ * Mantener sincronizado con `ERROR_CODES` arriba.
+ */
+export const errorCode = {
+  validationError: 'VALIDATION_ERROR',
+  consentRequired: 'CONSENT_REQUIRED',
+  unsupportedMedia: 'UNSUPPORTED_MEDIA',
+  imageTooLarge: 'IMAGE_TOO_LARGE',
+  imageTooSmall: 'IMAGE_TOO_SMALL',
+  unauthorized: 'UNAUTHORIZED',
+  permissionDenied: 'PERMISSION_DENIED',
+  notFound: 'NOT_FOUND',
+  propertyNotFound: 'PROPERTY_NOT_FOUND',
+  serviceNotFound: 'SERVICE_NOT_FOUND',
+  methodNotAllowed: 'METHOD_NOT_ALLOWED',
+  conflict: 'CONFLICT',
+  rateLimited: 'RATE_LIMITED',
+  emailDeliveryFailed: 'EMAIL_DELIVERY_FAILED',
+  internal: 'INTERNAL',
+} as const;

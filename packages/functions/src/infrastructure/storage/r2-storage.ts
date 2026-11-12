@@ -12,21 +12,16 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { r2Client } from './r2-client';
-import { r2Config, type R2Config } from './r2-config';
+import { config } from '../config/server-config';
+import type { ServerConfig } from '../config/server-config';
 
 const DEFAULT_EXPIRES_IN = 900; // 15 minutos en segundos
 
-function requireR2Config(): R2Config {
-  if (!r2Config) {
-    throw new Error('R2 no configurado: faltan variables de entorno R2_*');
-  }
-  return r2Config;
+function requireR2Config(): ServerConfig['r2'] {
+  return config.r2;
 }
 
 function requireR2Client(): S3Client {
-  if (!r2Client) {
-    throw new Error('R2 no configurado: faltan variables de entorno R2_*');
-  }
   return r2Client;
 }
 

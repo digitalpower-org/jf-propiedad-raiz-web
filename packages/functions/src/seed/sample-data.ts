@@ -146,14 +146,13 @@ export const sampleData = {
 import { seedCatalog } from './catalog-seed';
 import { getAdminApp } from '../infrastructure/firebase/admin-app';
 import { createFirestore } from '../infrastructure/firebase/firestore';
-import { loadEnv } from '../infrastructure/config/env';
+import { config } from '../infrastructure/config/server-config';
 
 // Seed function for Firestore (dry-run: no side effects by default)
 export async function seedFirestore(dryRun: boolean = true): Promise<void> {
   if (!dryRun) {
     // MT2.4: persistencia real en Firestore (seed de catálogo)
     try {
-      const config = loadEnv();
       const app = getAdminApp(config);
       const db = createFirestore(app);
       await seedCatalog(db, false);

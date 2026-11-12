@@ -4,13 +4,24 @@ vi.mock('./catalog-seed', () => ({
   seedCatalog: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('../infrastructure/config/env', () => ({
-  loadEnv: vi.fn().mockReturnValue({
+vi.mock('../infrastructure/config/server-config', () => ({
+  config: {
     internalKey: 'test-key-01234567890123456789012345678901',
     bffUrl: 'http://localhost:3000',
     firebaseProjectId: 'test-project',
     useFakeTranslator: true,
-  }),
+    resendApiKey: 're_test',
+    juanEmail: 'juanfer@jfpropiedadraiz.com',
+    firebaseAuthEmulatorHost: undefined,
+    r2: {
+      endpoint: 'https://account-id.r2.cloudflarestorage.com',
+      region: 'auto',
+      accessKeyId: 'access-key-id',
+      secretAccessKey: 'secret-access-key',
+      bucket: 'jf-media',
+      publicBaseUrl: 'https://media.example.com',
+    },
+  },
 }));
 
 vi.mock('../infrastructure/firebase/admin-app', () => ({

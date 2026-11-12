@@ -8,7 +8,9 @@ import { appBuilder } from './presentation/appBuilder';
 setGlobalOptions({ region: 'us-central1', maxInstances: 10 });
 
 const infrastructure = createInfrastructure();
-const useCases = buildUseCases(infrastructure);
+const useCases = buildUseCases(infrastructure, {
+  juanEmail: infrastructure.config.juanEmail,
+});
 const app = appBuilder(useCases, {
   internalKey: infrastructure.config.internalKey,
   logger: infrastructure.logger,
