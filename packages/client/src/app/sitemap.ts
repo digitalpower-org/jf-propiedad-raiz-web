@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { getRoute, type RouteKey } from '@/i18n/routes';
 import { backendUrl } from '@/server/backend-url';
+import { fetchAllPublicProperties } from '@/server/public-properties';
 import { env } from '@/server/config/server-config';
 
 export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -82,52 +83,34 @@ export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
     // Silencioso: si falla, seguimos con rutas estáticas
   }
 
-  // 3. Propiedades ACTIVE
+  // 3. Propiedades públicas (el backend solo expone ACTIVE; ver server/public-properties.ts)
   try {
-    const propertiesRes = await fetch(backendUrl('/api/v1/properties?limit=1000'), {
-      headers: { 'X-Internal-Key': env.BFF_INTERNAL_KEY, Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    if (propertiesRes.ok) {
-      const propertiesData = await propertiesRes.json();
-      if (propertiesData.success && Array.isArray(propertiesData.data?.items)) {
-        for (const property of propertiesData.data.items) {
-          if (property.status !== 'ACTIVE') continue;
+    const properties = await fetchAllPublicProperties();
+    for (const property of properties) {
+      // AC0.4.5: omitir EN sin traducción. La tarjeta pública solo trae el título,
+      // así que aquí solo se puede verificar titulo.en (limitación del contrato).
+      const hasEnglish = !!property.titulo?.en?.trim();
 
-          const hasFullTranslation = !!(
-            property.titulo?.en &&
-            property.titulo.en.trim() !== '' &&
-            property.descripcion?.en &&
-            property.descripcion.en.trim() !== ''
-          );
+      for (const locale of locales) {
+        if (locale === 'en' && !hasEnglish) continue;
 
-          for (const locale of locales) {
-            // AC0.4.5: omitir EN sin traducción completa
-            if (locale === 'en' && !hasFullTranslation) continue;
+        const alternateEs = `${baseUrl}${getRoute('property', 'es', { slug: property.slug })}`;
+        const alternateEn = `${baseUrl}${getRoute('property', 'en', { slug: property.slug })}`;
 
-            const alternateEs = `${baseUrl}${getRoute('property', 'es', { slug: property.slug })}`;
-            const alternateEn = `${baseUrl}${getRoute('property', 'en', { slug: property.slug })}`;
-            const canonicalUrl = locale === 'es' ? alternateEs : alternateEn;
-
-            urls.push({
-              url: canonicalUrl,
-              lastModified: new Date(property.updatedAt ?? property.createdAt ?? Date.now()),
-              changeFrequency: 'weekly',
-              priority: property.destacada ? 0.9 : 0.7,
-              alternates: {
-                languages: {
-                  'es-CO': alternateEs,
-                  en: alternateEn,
-                  'x-default': alternateEs,
-                },
-              },
-            });
-          }
-        }
+        urls.push({
+          url: locale === 'es' ? alternateEs : alternateEn,
+          lastModified: new Date(property.createdAt),
+          changeFrequency: 'weekly',
+          priority: property.destacada ? 0.9 : 0.7,
+          alternates: {
+            languages: { 'es-CO': alternateEs, en: alternateEn, 'x-default': alternateEs },
+          },
+        });
       }
     }
-  } catch {
-    // Silencioso: si falla, seguimos con lo que tenemos
+  } catch (error) {
+    // Las rutas estáticas y de servicios se siguen sirviendo, pero el fallo no pasa en silencio.
+    console.error('Sitemap: no se pudieron leer las propiedades públicas', error);
   }
 
   return urls;
