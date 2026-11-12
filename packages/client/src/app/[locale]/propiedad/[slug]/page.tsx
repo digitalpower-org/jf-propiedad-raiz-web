@@ -3,10 +3,10 @@ import { Metadata } from 'next';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { getRoute } from '@/i18n/routes';
 import { isLocale } from '@/i18n/config';
-import { fetchPropertyBySlug } from '@/lib/api-catalog';
+import { fetchPropertyDetailServer } from '@/server/property-detail';
 import { getOperacionLabel } from '@/components/catalog/property-card-utils';
 
-import React, { ReactElement } from 'react';
+import React, { cache, ReactElement } from 'react';
 import { PropertyGallery } from '@/components/catalog/PropertyGallery';
 import { PropertyStickySidebar } from '@/components/catalog/PropertyStickySidebar';
 import { PropertySpecs } from '@/components/catalog/PropertySpecs';
@@ -20,19 +20,20 @@ type PropiedadDetailPageProps = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-async function fetchPropertyOrNotFound(slug: string, locale: string) {
-  const response = await fetchPropertyBySlug(slug, locale as 'es' | 'en');
-  if (!response.success || !response.data) {
-    notFound();
-  }
-  return response.data;
+// cache(): metadatos y página comparten una sola consulta por petición.
+const fetchProperty = cache(fetchPropertyDetailServer);
+
+async function fetchPropertyOrNotFound(slug: string) {
+  const property = await fetchProperty(slug);
+  if (!property) notFound();
+  return property;
 }
 
 async function generateMetadata({ params }: PropiedadDetailPageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) return {};
 
-  const property = await fetchPropertyOrNotFound(slug, locale);
+  const property = await fetchPropertyOrNotFound(slug);
   if (property.status !== 'ACTIVE') return {};
 
   const t = await getTranslations('property');
@@ -143,7 +144,7 @@ export default async function PropiedadDetailPage({ params }: PropiedadDetailPag
 
   const tProperty = await getTranslations('property');
 
-  const property = await fetchPropertyOrNotFound(slug, locale);
+  const property = await fetchPropertyOrNotFound(slug);
 
   const hasFullTranslation = !!(property.titulo.en && property.descripcion.en);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jfpropiedadraiz.com';
