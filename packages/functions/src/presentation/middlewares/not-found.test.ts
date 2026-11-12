@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { notFoundMiddleware } from './not-found';
-import { ApiError } from '../../domain/errors/api-error';
+import { ApiError, errorCode } from '../../domain/errors/api-error';
 import type { Request, Response, NextFunction } from 'express';
 
 describe('notFoundMiddleware', () => {
@@ -12,6 +12,6 @@ describe('notFoundMiddleware', () => {
 
     notFoundMiddleware(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(new ApiError('NOT_FOUND', 'Recurso no encontrado'));
+    expect(next).toHaveBeenCalledWith(new ApiError(errorCode.notFound, 'Recurso no encontrado'));
   });
 });

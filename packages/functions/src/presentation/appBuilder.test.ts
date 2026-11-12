@@ -56,13 +56,15 @@ function makePorts() {
       validarImagen: vi.fn(),
       generarDerivados: vi.fn(),
     },
+    emailSender: { send: vi.fn() },
+    rateLimiter: { check: vi.fn() },
   };
   return { ...ports, logger };
 }
 
 function setup() {
   const deps = makePorts();
-  const app = appBuilder(buildUseCases(deps), {
+  const app = appBuilder(buildUseCases(deps, { juanEmail: 'test@example.com' }), {
     internalKey: INTERNAL_KEY,
     logger: deps.logger,
     secretComparator: deps.secretComparator,

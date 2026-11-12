@@ -43,12 +43,14 @@ function makePorts(): ApplicationPorts {
       validarImagen: vi.fn(),
       generarDerivados: vi.fn(),
     },
+    emailSender: { send: vi.fn() },
+    rateLimiter: { check: vi.fn() },
   };
 }
 
 describe('buildUseCases', () => {
   it('construye los casos de uso con los puertos inyectados', () => {
-    const useCases = buildUseCases(makePorts());
+    const useCases = buildUseCases(makePorts(), { juanEmail: 'test@example.com' });
 
     expect(useCases.verifyInternalSession).toBeInstanceOf(VerifyInternalSessionUseCase);
     expect(useCases.translationService).toBeInstanceOf(TranslationService);

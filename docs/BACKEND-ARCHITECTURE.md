@@ -500,7 +500,34 @@ Reglas:
 - **Sin `res.status(...).json(...)`** repetido: se usa `writeSuccess`/`writeError`.
 - Los handlers declaran el tipo del `data` que devuelven.
 
-### 6.5. Validación en la frontera
+### 6.4.1. Rate limiting y defensas de transporte vs lógica de negocio
+
+El handler puede ejecutar **defensas de transporte** (metadata HTTP, headers, IP, rate limiting) antes de invocar el caso de uso. El caso de uso ejecuta **reglas de negocio** (campos del DTO de entrada, invariantes de dominio).
+
+| Defensa | Dato de entrada | Capa | Ejemplo (consignación) |
+| :--- | :--- | :--- | :--- |
+| Rate limiting | `X-Client-IP` (header) | **Presentation (handler)** | Máximo 5 envíos/min por IP → 429 `RATE_LIMITED` |
+| Honeypot | `sitio` (campo del body `ConsignmentInput`) | **Application (caso de uso)** | Si tiene valor → éxito sin enviar correos |
+| Consentimiento | `consent` (campo del body) | **Application (caso de uso)** | Faltante → 422 `CONSENT_REQUIRED` |
+
+Regla general:
+
+- **Handler (Presentation):** valida headers (`X-Client-IP`, `Authorization`, etc.), ejecuta `RateLimiter.check()`, valida el cuerpo con Zod. Cualquier error derivado de metadata de transporte se lanza como `ApiError` y el middleware lo traduce al estado HTTP.
+- **Caso de uso (Application):** recibe el DTO ya parseado, aplica reglas de negocio (honeypot, consentimiento, validaciones de dominio), envía correos, escribe. No conoce IPs, headers ni SDKs HTTP.
+
+Por qué no al revés: si el rate limiting vive en el caso de uso, el dominio acopla metadata de transporte (IP) y el caso de uso deja de ser portable y testeable sin mockear el rate limiter. Si el honeypot vive en el handler, el handler conoce campos del DTO de negocio y duplica reglas que ya aplican al caso de uso.
+
+```ts
+// Handler: defensa de transporte (rate limit por IP).
+await rateLimiter.check(clientIp, 5, 60);
+bodySchema.parse(req.body);
+await useCase.execute({ input: req.body });
+
+// Caso de uso: regla de negocio (honeypot y consentimiento).
+if (input.sitio && input.sitio.trim().length > 0) return { enviado: false };
+if (!input.consent) throw new ApiError(errorCode.consentRequired, '…');
+```
+
 
 - `body`, `query`, `params` y `headers` se validan con Zod en Presentation.
 - Se usa `.parse(...)` (lanza `ZodError` → 422 `VALIDATION_ERROR`) salvo que exista una **decisión de negocio real** que justifique `safeParse` (p. ej. intentar dos formatos y elegir). Esa decisión se documenta en el caso de uso.
@@ -973,6 +1000,7 @@ export type StatusTableMatchesSharedTypes = Assert<
 - **≥ 80 % de cobertura** en `packages/functions` (`npm run test:coverage`, `@vitest/coverage-v8`).
 - `npm run typecheck` limpio.
 - `npm run lint` limpio.
+- `npm run format:check` (Prettier) limpio: todos los archivos del backend con estilo Prettier. Se ejecuta junto con typecheck, lint y test como parte de las verificaciones de calidad.
 
 Dependencias de test pendientes de añadir: `supertest` y `@types/supertest` (dev).
 

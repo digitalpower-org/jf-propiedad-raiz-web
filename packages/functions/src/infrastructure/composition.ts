@@ -3,8 +3,8 @@ import type { App } from 'firebase-admin/app';
 
 import type { ApplicationPorts } from '../application/ports';
 import { createFirestoreAuthorizedUsersRepository } from './auth/authorized-users-repository';
-import type { AppConfig } from './config/env';
-import { loadEnv } from './config/env';
+import type { ServerConfig } from './config/server-config';
+import { config } from './config/server-config';
 import { createSecretComparator } from './crypto/secret-comparator';
 import { getAdminApp } from './firebase/admin-app';
 import { createFirestore } from './firebase/firestore';
@@ -18,33 +18,35 @@ import { createFirestoreServicesRepository } from './services/firestore-services
 import { createFirestoreAboutRepository } from './about/firestore-about-repository';
 import { createR2MediaStorage } from './media/r2-media-storage';
 import { createSharpImageProcessor } from './media/sharp-image-processor';
+import { ResendEmailSender } from './email/resend-email-sender';
+import { MemoryRateLimiter } from './rate-limiter/memory-rate-limiter';
 
 export interface Infrastructure extends ApplicationPorts {
-  readonly config: AppConfig;
+  readonly config: ServerConfig;
 }
 
 /** Composition root: conoce todas las implementaciones y construye la infraestructura. */
 export function createInfrastructure(overrides: Partial<Infrastructure> = {}): Infrastructure {
-  const config = overrides.config ?? loadEnv();
+  const configValue = overrides.config ?? config;
   const logger = overrides.logger ?? createCloudLogger();
 
   let adminApp: App | undefined;
   const requireAdminApp = (): App => {
-    if (adminApp === undefined) adminApp = getAdminApp(config);
+    if (adminApp === undefined) adminApp = getAdminApp(configValue);
     return adminApp;
   };
 
   return {
-    config,
+    config: configValue,
     logger,
     translator:
       overrides.translator ??
-      (config.useFakeTranslator ? createFakeTranslator() : createGoogleCloudTranslator()),
+      (configValue.useFakeTranslator ? createFakeTranslator() : createGoogleCloudTranslator()),
     revalidationGateway:
       overrides.revalidationGateway ??
       createRevalidationClient({
-        bffUrl: config.bffUrl,
-        internalKey: config.internalKey,
+        bffUrl: configValue.bffUrl,
+        internalKey: configValue.internalKey,
         logger,
       }),
     identityVerifier:
@@ -61,5 +63,9 @@ export function createInfrastructure(overrides: Partial<Infrastructure> = {}): I
     about: overrides.about ?? createFirestoreAboutRepository(createFirestore(requireAdminApp())),
     imageProcessor: overrides.imageProcessor ?? createSharpImageProcessor(),
     mediaStorage: overrides.mediaStorage ?? createR2MediaStorage(createSharpImageProcessor()),
+    emailSender:
+      overrides.emailSender ??
+      new ResendEmailSender(configValue.resendApiKey, configValue.resendFromEmail),
+    rateLimiter: overrides.rateLimiter ?? new MemoryRateLimiter(),
   };
 }

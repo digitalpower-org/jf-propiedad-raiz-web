@@ -1,4 +1,5 @@
 import type { ErrorCode } from './errorCatalog';
+export { errorCode } from './errorCatalog';
 
 /**
  * Error de negocio del backend.

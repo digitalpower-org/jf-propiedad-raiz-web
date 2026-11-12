@@ -54,6 +54,12 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
       guards: [],
       handler: handlers.health,
     },
+    {
+      method: 'post',
+      path: API_PATHS.consignments,
+      guards: [guardInternal],
+      handler: handlers.createConsignment,
+    },
     // Propiedades — escritura (requieren sesión de admin vía X-Internal-Key + X-User-*)
     {
       method: 'post',
