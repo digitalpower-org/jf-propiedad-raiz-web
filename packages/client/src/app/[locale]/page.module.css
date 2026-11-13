@@ -413,8 +413,7 @@
 
 @media (min-width: 768px) {
   .aboutBlock {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-54);
+    max-width: 720px;
     text-align: left;
   }
 }

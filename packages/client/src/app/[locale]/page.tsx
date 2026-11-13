@@ -10,6 +10,7 @@ import { HeroSearchForm } from '@/components/catalog/HeroSearchForm';
 import { PropertyCardComponent } from '@/components/catalog/PropertyCard';
 import { fetchFeaturedPropertiesServer } from '@/server/featured-properties';
 import { fetchServicesPreviewServer, type ServicePreview } from '@/server/services-preview';
+import { fetchAboutExtractServer } from '@/server/about-extract';
 
 import styles from './page.module.css';
 
@@ -26,7 +27,6 @@ export default async function HomePage({ params }: HomePageProps) {
   const tHome = await getTranslations('home');
   const messages = await loadMessages(locale);
 
-  const aboutExtract = tHome('aboutExtract');
   const aboutUrl = getRoute('about', locale);
 
   let featured: PropertyCard[] = [];
@@ -41,6 +41,13 @@ export default async function HomePage({ params }: HomePageProps) {
     services = await fetchServicesPreviewServer();
   } catch (error) {
     console.error('[home] No se pudieron cargar los servicios:', error);
+  }
+
+  let aboutExtract: string | null = null;
+  try {
+    aboutExtract = await fetchAboutExtractServer(locale);
+  } catch (error) {
+    console.error('[home] No se pudo cargar el extracto de Nosotros:', error);
   }
 
   return (
@@ -149,22 +156,20 @@ export default async function HomePage({ params }: HomePageProps) {
         )}
 
         {/* NOSOTROS */}
-        <section className={styles.aboutBlock} aria-labelledby="about-title">
-          <div className={styles.aboutContent}>
-            <h2 id="about-title" className={styles.aboutTitle}>
-              {t('nav.about')}
-            </h2>
-            <p className={styles.aboutExtract}>{aboutExtract}</p>
-            <a href={aboutUrl} className={styles.aboutLink}>
-              {tHome('learnMore')}
-              <span className={styles.arrow}>→</span>
-            </a>
-          </div>
-          <div className={styles.aboutImage} aria-hidden="true">
-            <div className={styles.aboutImagePlaceholder} />
-            <span className={styles.aboutImageAlt}>{tHome('aboutImageAlt')}</span>
-          </div>
-        </section>
+        {aboutExtract && (
+          <section className={styles.aboutBlock} aria-labelledby="about-title">
+            <div className={styles.aboutContent}>
+              <h2 id="about-title" className={styles.aboutTitle}>
+                {t('nav.about')}
+              </h2>
+              <p className={styles.aboutExtract}>{aboutExtract}</p>
+              <a href={aboutUrl} className={styles.aboutLink}>
+                {tHome('learnMore')}
+                <span className={styles.arrow}>→</span>
+              </a>
+            </div>
+          </section>
+        )}
 
         {/* ALIADOS */}
         <section className={styles.partnersSection} aria-labelledby="partners-title">
