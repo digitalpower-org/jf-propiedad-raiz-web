@@ -4,6 +4,10 @@ import { backendUrl } from '@/server/backend-url';
 import { fetchAllPublicProperties } from '@/server/public-properties';
 import { env } from '@/server/config/server-config';
 
+// Consulta el backend en cada petición: durante el build el fetch con no-store aborta la
+// generación estática y el sitemap quedaba sin servicios ni propiedades.
+export const dynamic = 'force-dynamic';
+
 export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jfpropiedadraiz.com';
   const locales = ['es', 'en'] as const;
