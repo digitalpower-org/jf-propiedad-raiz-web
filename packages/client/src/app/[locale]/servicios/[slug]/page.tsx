@@ -1,7 +1,12 @@
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import type { Translatable } from '@jf/shared-types';
 
 import { isLocale } from '@/i18n/config';
+import { getRoute } from '@/i18n/routes';
+import { fetchServiceBySlugServer } from '@/server/services';
+
+import styles from './page.module.css';
 
 type ServicioDetailPageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -12,19 +17,39 @@ export default async function ServicioDetailPage({ params }: ServicioDetailPageP
   if (!isLocale(locale)) notFound();
 
   setRequestLocale(locale);
+  const t = await getTranslations();
+
+  const service = await fetchServiceBySlugServer(slug);
+  if (!service) notFound();
+
+  const pick = (value?: Translatable) => value?.[locale]?.trim() || value?.es?.trim() || '';
+  const resumen = pick(service.resumen);
+  const paragraphs = pick(service.cuerpo)
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">{locale === 'es' ? 'Servicio' : 'Service'}</h1>
-      <p className="mt-2">
-        {locale === 'es' ? `Detalle del servicio: ${slug}` : `Service detail: ${slug}`}
-      </p>
-      <a
-        href={locale === 'es' ? `/en/services/${slug}` : `/es/servicios/${slug}`}
-        className="mt-4 inline-block text-blue-600 underline"
-      >
-        {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
-      </a>
+    <div className={styles.page}>
+      <div className={styles.content}>
+        <a href={getRoute('services', locale)} className={styles.backLink}>
+          {t('common.back')} · {t('nav.services')}
+        </a>
+        <div className={styles.header}>
+          <h1 className={styles.title}>{pick(service.titulo)}</h1>
+          {resumen && <p className={styles.subtitle}>{resumen}</p>}
+        </div>
+
+        {paragraphs.length > 0 && (
+          <div className={styles.detail}>
+            {paragraphs.map((paragraph, index) => (
+              <p key={index} className={styles.detailText}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
