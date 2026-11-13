@@ -458,33 +458,6 @@
   background: var(--color-verde-profundo);
 }
 
-.aboutImage {
-  border-radius: var(--radius-specialtycards);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  aspect-ratio: 4 / 3;
-  background: var(--color-arena-suave);
-}
-
-.aboutImagePlaceholder {
-  width: 100%;
-  height: 100%;
-  background: var(--color-piedra-clara);
-}
-
-.aboutImageAlt {
-  position: absolute;
-  bottom: var(--spacing-16);
-  left: var(--spacing-16);
-  right: var(--spacing-16);
-  font-family: system-ui;
-  font-size: 14px;
-  fill: var(--color-grafito);
-  opacity: 0.5;
-  text-align: center;
-  color: var(--color-grafito);
-}
-
 /* ALIADOS */
 .partnersSection {
   text-align: center;

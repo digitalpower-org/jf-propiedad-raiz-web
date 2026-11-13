@@ -25,24 +25,6 @@ export interface PropertyListData {
   readonly nextCursor: string | null;
 }
 
-export interface AboutDocument {
-  readonly titulo: import('@jf/shared-types').Translatable;
-  readonly extracto: import('@jf/shared-types').Translatable;
-  readonly secciones: readonly {
-    readonly id: string;
-    readonly titulo: import('@jf/shared-types').Translatable;
-    readonly cuerpo: import('@jf/shared-types').Translatable;
-  }[];
-  readonly equipo: readonly {
-    readonly id: string;
-    readonly nombre: string;
-    readonly cargo: import('@jf/shared-types').Translatable;
-    readonly descripcion?: import('@jf/shared-types').Translatable;
-    readonly foto?: string;
-  }[];
-  readonly updatedAt: string;
-}
-
 function buildPropertiesUrl(params: PropertyListParams): string {
   const searchParams = new URLSearchParams();
   searchParams.set('operacion', params.operacion);
@@ -71,8 +53,4 @@ export async function fetchPropertyBySlug(
   locale: 'es' | 'en',
 ): Promise<ApiResponse<PropertyDetail>> {
   return httpClient<PropertyDetail>(`/api/properties/${slug}`);
-}
-
-export async function fetchAbout(): Promise<ApiResponse<AboutDocument>> {
-  return httpClient<AboutDocument>(`/api/about`);
 }
