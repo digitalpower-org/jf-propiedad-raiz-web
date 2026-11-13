@@ -5,7 +5,10 @@ import { getRoute } from '@/i18n/routes';
 import { loadMessages } from '@/i18n/messages';
 import { isLocale } from '@/i18n/config';
 
+import type { PropertyCard } from '@jf/shared-types';
 import { HeroSearchForm } from '@/components/catalog/HeroSearchForm';
+import { PropertyCardComponent } from '@/components/catalog/PropertyCard';
+import { fetchFeaturedPropertiesServer } from '@/server/featured-properties';
 
 import styles from './page.module.css';
 
@@ -25,6 +28,13 @@ export default async function HomePage({ params }: HomePageProps) {
 
   const aboutExtract = tHome('aboutExtract');
   const aboutUrl = getRoute('about', locale);
+
+  let featured: PropertyCard[] = [];
+  try {
+    featured = await fetchFeaturedPropertiesServer();
+  } catch (error) {
+    console.error('[home] No se pudieron cargar las destacadas:', error);
+  }
 
   return (
     <div className={styles.page}>
@@ -68,41 +78,27 @@ export default async function HomePage({ params }: HomePageProps) {
         </section>
 
         {/* DESTACADAS */}
-        <section className={styles.featuredSection} aria-labelledby="featured-title">
-          <header className={styles.sectionHeader}>
-            <h2 id="featured-title" className={styles.sectionTitle}>
-              {t('home.featured')}
-            </h2>
-            <p className={styles.sectionSubtitle}>{tHome('featuredSubtitle')}</p>
-          </header>
-          <div className={styles.featuredGrid} role="list">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <article key={i} className={styles.featuredCard} role="listitem">
-                <div className={styles.featuredImage} aria-hidden="true" />
-                <div className={styles.featuredBadge}>{tHome('operation')}</div>
-                <h3 className={styles.featuredTitle}>
-                  {tHome('featuredCardTitle', { index: i + 1 })}
-                </h3>
-                <p className={styles.featuredPrice}>$ 450.000.000</p>
-                <div className={styles.featuredSpecs}>
-                  <span>{tHome('featuredCardLocation')}</span>
-                  <span>{tHome('featuredCardBedrooms', { count: 3 })}</span>
-                  <span>{tHome('featuredCardBathrooms', { count: 2 })}</span>
-                  <span>{tHome('featuredCardArea', { area: '120' })}</span>
-                </div>
-                <a href="#" className={styles.featuredLink}>
-                  {t('property.details')}
-                </a>
-              </article>
-            ))}
-          </div>
-          <footer className={styles.sectionFooter}>
-            <a href={getRoute('sale', locale)} className={styles.sectionLink}>
-              {tHome('viewAllSale')}
-              <span className={styles.arrow}>→</span>
-            </a>
-          </footer>
-        </section>
+        {featured.length > 0 && (
+          <section className={styles.featuredSection} aria-labelledby="featured-title">
+            <header className={styles.sectionHeader}>
+              <h2 id="featured-title" className={styles.sectionTitle}>
+                {t('home.featured')}
+              </h2>
+              <p className={styles.sectionSubtitle}>{tHome('featuredSubtitle')}</p>
+            </header>
+            <div className={styles.featuredGrid}>
+              {featured.map((property) => (
+                <PropertyCardComponent key={property.id} property={property} locale={locale} />
+              ))}
+            </div>
+            <footer className={styles.sectionFooter}>
+              <a href={getRoute('sale', locale)} className={styles.sectionLink}>
+                {tHome('viewAllSale')}
+                <span className={styles.arrow}>→</span>
+              </a>
+            </footer>
+          </section>
+        )}
 
         {/* SERVICIOS PREVIEW */}
         <section
