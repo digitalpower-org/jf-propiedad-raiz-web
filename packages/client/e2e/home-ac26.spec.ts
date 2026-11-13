@@ -78,89 +78,103 @@ test.describe.configure({ retries: 0 });
 // ===== AC2.6.1: Bloque A - Destacadas reales =====
 for (const locale of HOME_URLS) {
   test.describe(`AC2.6.1 | Portada ${locale} - Destacadas reales`, () => {
-    test(`carga PropertyCard desde /api/v1/properties/featured`, async ({ page }) => {
-      await page.goto(locale, { waitUntil: 'networkidle' });
+    test(
+      `carga PropertyCard desde /api/v1/properties/featured`,
+      { tag: '@backend' },
+      async ({ page }) => {
+        await page.goto(locale, { waitUntil: 'networkidle' });
 
-      // Verificar que existe la sección de destacadas
-      const featuredSection = page.locator('[class*="featuredSection"]').first();
-      await expect(featuredSection).toBeVisible({ timeout: 10000 });
+        // Verificar que existe la sección de destacadas
+        const featuredSection = page.locator('[class*="featuredSection"]').first();
+        await expect(featuredSection).toBeVisible({ timeout: 10000 });
 
-      // Verificar PropertyCard(s) - al menos una si hay datos
-      const propertyCards = page.locator('[class*="_card"]').first();
-      await expect(propertyCards).toBeVisible({ timeout: 10000 });
+        // Verificar PropertyCard(s) - al menos una si hay datos
+        const propertyCards = page.locator('[class*="_card"]').first();
+        await expect(propertyCards).toBeVisible({ timeout: 10000 });
 
-      // Verificar estructura básica de PropertyCard
-      const firstCard = propertyCards;
-      await expect(firstCard.locator('img, [class*="image"]').first()).toBeVisible();
-      // Precio: puede ser "$ 150.000.000" (es) o "COP 150,000,000" (en)
-      await expect(
-        firstCard.locator('text=/\\$\\s*[\\d.,]+|COP\\s*[\\d.,]+/').first(),
-      ).toBeVisible();
-      // Ubicación
-      await expect(
-        firstCard.locator('[class*="specItem"], [class*="location"]').first(),
-      ).toBeVisible();
-    });
+        // Verificar estructura básica de PropertyCard
+        const firstCard = propertyCards;
+        await expect(firstCard.locator('img, [class*="image"]').first()).toBeVisible();
+        // Precio: puede ser "$ 150.000.000" (es) o "COP 150,000,000" (en)
+        await expect(
+          firstCard.locator('text=/\\$\\s*[\\d.,]+|COP\\s*[\\d.,]+/').first(),
+        ).toBeVisible();
+        // Ubicación
+        await expect(
+          firstCard.locator('[class*="specItem"], [class*="location"]').first(),
+        ).toBeVisible();
+      },
+    );
   });
 }
 
 // ===== AC2.6.2: Bloque B - Servicios =====
 for (const locale of HOME_URLS) {
   test.describe(`AC2.6.2 | Portada ${locale} - Servicios`, () => {
-    test('muestra servicios ACTIVE desde /api/v1/services', async ({ page }) => {
-      await page.goto(locale, { waitUntil: 'networkidle' });
+    test(
+      'muestra servicios ACTIVE desde /api/v1/services',
+      { tag: '@backend' },
+      async ({ page }) => {
+        await page.goto(locale, { waitUntil: 'networkidle' });
 
-      const servicesSection = page
-        .locator('[class*="servicesPreview"], [class*="servicesSection"]')
-        .first();
-      await expect(servicesSection).toBeVisible({ timeout: 10000 });
+        const servicesSection = page
+          .locator('[class*="servicesPreview"], [class*="servicesSection"]')
+          .first();
+        await expect(servicesSection).toBeVisible({ timeout: 10000 });
 
-      // Verificar al menos 2 servicios (asesoria-legal orden 1, administracion orden 2)
-      const serviceCards = page.locator('[class*="serviceCard"], [class*="ServiceCard"]');
-      const count = await serviceCards.count();
-      expect(count).toBeGreaterThanOrEqual(2);
+        // Verificar al menos 2 servicios (asesoria-legal orden 1, administracion orden 2)
+        const serviceCards = page.locator('[class*="serviceCard"], [class*="ServiceCard"]');
+        const count = await serviceCards.count();
+        expect(count).toBeGreaterThanOrEqual(2);
 
-      // Verificar contenido esperado
-      const serviceText = await servicesSection.textContent();
-      expect(serviceText).toMatch(/asesor|legal|administrac|gestion/i);
-    });
+        // Verificar contenido esperado
+        const serviceText = await servicesSection.textContent();
+        expect(serviceText).toMatch(/asesor|legal|administrac|gestion/i);
+      },
+    );
   });
 }
 
 // ===== AC2.6.3: Bloque C - Nosotros (extracto real) =====
 for (const locale of HOME_URLS) {
   test.describe(`AC2.6.3 | Portada ${locale} - Nosotros extracto real`, () => {
-    test('muestra extracto de /api/v1/about con fallback a español', async ({ page }) => {
-      await page.goto(locale, { waitUntil: 'networkidle' });
+    test(
+      'muestra extracto de /api/v1/about con fallback a español',
+      { tag: '@backend' },
+      async ({ page }) => {
+        await page.goto(locale, { waitUntil: 'networkidle' });
 
-      const aboutBlock = page.locator('[class*="aboutBlock"]').first();
-      await expect(aboutBlock).toBeVisible({ timeout: 10000 });
+        const aboutBlock = page.locator('[class*="aboutBlock"]').first();
+        await expect(aboutBlock).toBeVisible({ timeout: 10000 });
 
-      // Verificar extracto (texto real del backend)
-      const aboutContent = page.locator('[class*="aboutContent"], [class*="aboutExtract"]').first();
-      await expect(aboutContent).toBeVisible();
+        // Verificar extracto (texto real del backend)
+        const aboutContent = page
+          .locator('[class*="aboutContent"], [class*="aboutExtract"]')
+          .first();
+        await expect(aboutContent).toBeVisible();
 
-      const text = await aboutContent.textContent();
-      expect(text).toBeTruthy();
-      expect(text!.length).toBeGreaterThan(20);
+        const text = await aboutContent.textContent();
+        expect(text).toBeTruthy();
+        expect(text!.length).toBeGreaterThan(20);
 
-      // En español: "Tu socio de confianza en transacciones inmobiliarias"
-      // En inglés: "Your trusted partner in real estate transactions"
-      if (locale === '/es') {
-        expect(text).toMatch(/socio de confianza|transacciones inmobiliarias/i);
-      } else {
-        expect(text).toMatch(/trusted partner|real estate transactions/i);
-      }
+        // En español: "Tu socio de confianza en transacciones inmobiliarias"
+        // En inglés: "Your trusted partner in real estate transactions"
+        if (locale === '/es') {
+          expect(text).toMatch(/socio de confianza|transacciones inmobiliarias/i);
+        } else {
+          expect(text).toMatch(/trusted partner|real estate transactions/i);
+        }
 
-      // Verificar botón CTA a /nosotros o /about-us
-      const ctaHref = locale === '/es' ? '/es/nosotros' : '/en/about-us';
-      const ctaButton = aboutBlock.locator(`a[href="${ctaHref}"]`).first();
-      await expect(ctaButton).toBeVisible();
-      await expect(ctaButton).toHaveAttribute('href', ctaHref);
+        // Verificar botón CTA a /nosotros o /about-us
+        const ctaHref = locale === '/es' ? '/es/nosotros' : '/en/about-us';
+        const ctaButton = aboutBlock.locator(`a[href="${ctaHref}"]`).first();
+        await expect(ctaButton).toBeVisible();
+        await expect(ctaButton).toHaveAttribute('href', ctaHref);
 
-      // Verificar enlaces en nav, main, footer
-      await verifyNosotrosLinks(page, locale.slice(1));
-    });
+        // Verificar enlaces en nav, main, footer
+        await verifyNosotrosLinks(page, locale.slice(1));
+      },
+    );
   });
 }
 
@@ -188,12 +202,16 @@ for (const viewport of VIEWPORTS) {
     test.describe(`AC2.6.6 | Responsive ${viewport.name} ${viewport.width}px - ${locale}`, () => {
       test.use({ viewport: { width: viewport.width, height: viewport.height } });
 
-      test('dimensiones correctas, sin desborde, 1 columna', async ({ page }) => {
-        await page.goto(locale, { waitUntil: 'networkidle' });
+      test(
+        'dimensiones correctas, sin desborde, 1 columna',
+        { tag: '@backend' },
+        async ({ page }) => {
+          await page.goto(locale, { waitUntil: 'networkidle' });
 
-        const expectedWidth = viewport.width === 1280 ? 720 : 343;
-        await verifyAboutBlockDimensions(page, expectedWidth);
-      });
+          const expectedWidth = viewport.width === 1280 ? 720 : 343;
+          await verifyAboutBlockDimensions(page, expectedWidth);
+        },
+      );
     });
   }
 }

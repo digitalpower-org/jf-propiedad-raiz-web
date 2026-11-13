@@ -17,6 +17,7 @@
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "test:e2e:backend": "npm run test:e2e:backend --workspaces --if-present",
     "lhci": "lhci autorun",
     "analyze:bundle": "node scripts/analyze-bundle.mjs",
     "measure:bytes": "node scripts/measure-bytes.mjs",

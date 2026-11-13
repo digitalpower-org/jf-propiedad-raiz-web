@@ -114,29 +114,33 @@ for (const route of CATALOG_ROUTES) {
         test.use({ viewport: { width: viewport.width, height: viewport.height } });
 
         // Test 1: Carga y PropertyCard reales
-        test('renderiza PropertyCard con datos reales del backend', async ({ page }) => {
-          await page.goto(url, { waitUntil: 'networkidle' });
+        test(
+          'renderiza PropertyCard con datos reales del backend',
+          { tag: '@backend' },
+          async ({ page }) => {
+            await page.goto(url, { waitUntil: 'networkidle' });
 
-          // h1 visible
-          await expect(page.locator('h1')).toBeVisible();
+            // h1 visible
+            await expect(page.locator('h1')).toBeVisible();
 
-          // Esperar tarjetas
-          const count = await waitForPropertyCards(page, 1);
+            // Esperar tarjetas
+            const count = await waitForPropertyCards(page, 1);
 
-          if (count > 0) {
-            const cards = page.locator('article:has(a[href*="/propiedad/"])');
-            // Verificar primera tarjeta
-            await verifyPropertyCard(cards.first(), route.operation, locale, opLabel);
+            if (count > 0) {
+              const cards = page.locator('article:has(a[href*="/propiedad/"])');
+              // Verificar primera tarjeta
+              await verifyPropertyCard(cards.first(), route.operation, locale, opLabel);
 
-            // Verificar que todas las tarjetas tienen operación correcta
-            for (let i = 0; i < Math.min(count, 5); i++) {
-              const card = cards.nth(i);
-              await expect(
-                card.locator('[class*="operationTag"], [class*="OperationTag"]').first(),
-              ).toContainText(opLabel, { ignoreCase: true });
+              // Verificar que todas las tarjetas tienen operación correcta
+              for (let i = 0; i < Math.min(count, 5); i++) {
+                const card = cards.nth(i);
+                await expect(
+                  card.locator('[class*="operationTag"], [class*="OperationTag"]').first(),
+                ).toContainText(opLabel, { ignoreCase: true });
+              }
             }
-          }
-        });
+          },
+        );
 
         // Test 2: SEO técnico (skip: catálogo es client-side rendered, meta tags se inyectan tras hidratación)
         test.skip('SEO: meta tags, canonical, hreflang, JSON-LD (client-side rendered)', async ({
@@ -182,7 +186,7 @@ for (const route of CATALOG_ROUTES) {
 // ===== Scroll infinito / paginación =====
 test.describe('Scroll infinito / paginación con cursor', () => {
   test.use({ viewport: { width: 1280, height: 900 } });
-  test('carga más items al hacer scroll (desktop)', async ({ page }) => {
+  test('carga más items al hacer scroll (desktop)', { tag: '@backend' }, async ({ page }) => {
     await page.goto('/es/venta', { waitUntil: 'networkidle' });
 
     const initialCount = await waitForPropertyCards(page, 1);
@@ -214,19 +218,23 @@ test.describe('Scroll infinito / paginación con cursor', () => {
 // ===== Verificación de que NO hay datos mock/hardcoded =====
 test.describe('Catálogo usa datos reales (no mock)', () => {
   for (const route of CATALOG_ROUTES) {
-    test(`${route.key}: PropertyCard tienen slugs reales (JF-XXXX)`, async ({ page }) => {
-      await page.goto(route.es, { waitUntil: 'networkidle' });
-      const count = await waitForPropertyCards(page, 1);
+    test(
+      `${route.key}: PropertyCard tienen slugs reales (JF-XXXX)`,
+      { tag: '@backend' },
+      async ({ page }) => {
+        await page.goto(route.es, { waitUntil: 'networkidle' });
+        const count = await waitForPropertyCards(page, 1);
 
-      if (count > 0) {
-        const cards = page.locator('article:has(a[href*="/propiedad/"])');
-        for (let i = 0; i < Math.min(count, 3); i++) {
-          const link = cards.nth(i).locator('a[href*="/propiedad/"]').first();
-          const href = await link.getAttribute('href');
-          expect(href).toMatch(/\/es\/propiedad\/.*JF-\d{4}/);
+        if (count > 0) {
+          const cards = page.locator('article:has(a[href*="/propiedad/"])');
+          for (let i = 0; i < Math.min(count, 3); i++) {
+            const link = cards.nth(i).locator('a[href*="/propiedad/"]').first();
+            const href = await link.getAttribute('href');
+            expect(href).toMatch(/\/es\/propiedad\/.*JF-\d{4}/);
+          }
         }
-      }
-    });
+      },
+    );
   }
 });
 

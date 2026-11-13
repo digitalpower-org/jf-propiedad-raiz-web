@@ -82,7 +82,7 @@ Esperado: `403`, `403`, `403`.
 | `@lhci/cli` | ✅ instalado en la raíz; `lighthouserc.json` creado (perfil móvil, umbrales de §5.2; **cobertura incremental**: hoy `/es` y `/en`; cada MT añade sus rutas y el set completo de AC7.2.1 se cierra antes del gate de MT6.2). Assertions en `warn` hasta MT6.2; `npm run lhci` es **manual e informativo** | hoy el comando / MT6.2 el gate |
 | Análisis de bundles | ✅ `npm run analyze:bundle` (JS/CSS gzip de las rutas construidas, presupuesto de `PERFORMANCE.md` §3); informativo hasta MT6.2 (`--enforce` lo vuelve bloqueante) | hoy el comando / MT6.2 el gate |
 | CI (GitHub Actions) | ✅ `.github/workflows/ci.yml` ejecuta los 7 gates de §5.1 en orden, en un único job (gate 4 ejecuta i18n + matcher del Proxy; 5 sigue sin umbral y 7 en vacío: ver nota en §5.1) | hoy |
-| Emuladores (config) | ✅ `firebase.json` | script `npm run emulators` pendiente |
+| Emuladores (config) | ✅ `firebase.json`; usados en CI por el job Gate 8 (`emulators:exec`) | hoy |
 | Tipos de contrato (`*.gen.d.ts`) | ✅ `npm run build:types -w @jf/shared-types` idempotente | hoy |
 
 ---
@@ -243,6 +243,9 @@ npm run test:coverage -w @jf/functions
 npm run build
 # 7. E2E móvil (Playwright + axe)        [desde MT0.4]
 npm run test:e2e
+# 8. E2E con backend real (emuladores + seed) — condicional
+# Solo se ejecuta si el PR lleva la etiqueta `e2e-backend` (o en workflow_dispatch).
+npm run test:e2e:backend
 ```
 
 Los gates de **rendimiento** (Lighthouse móvil `npm run lhci` y presupuesto de bundles `npm run analyze:bundle`) se activan en **MT6.2** con los valores de `PERFORMANCE.md` §2/§3 y fallan la build si se incumplen (AC7.2.8, AC7.6.3). La cobertura de Lighthouse es **incremental**: cada MT añade sus rutas y el set completo de AC7.2.1 se cierra antes de activar el gate; hasta MT6.2 las assertions están en `warn`. Mientras tanto son informativos y **no forman parte** de los 7 gates de §5.1.
@@ -262,7 +265,9 @@ npm run lhci
 
 `npm run lhci` con una sola pasada tiene varianza: sus números son una **referencia**, no un veredicto, hasta que el gate sea bloqueante en MT6.2 (ahí se sube `numberOfRuns`).
 
-> **Réplica en CI:** `.github/workflows/ci.yml` ejecuta **exactamente estos 7 gates, en este orden y en un único job** (jobs paralelos romperían la regla «falla en el primer gate rojo»). Usa `npm ci` y Node según `.nvmrc`.
+> **Réplica en CI:** `.github/workflows/ci.yml` ejecuta **los 7 gates en este orden y en un único job** (jobs paralelos romperían la regla «falla en el primer gate rojo»). Usa `npm ci` y Node según `.nvmrc`.
+>
+> **Gate 8 (E2E con backend):** se ejecuta como job separado solo si el PR lleva la etiqueta `e2e-backend` (o en `workflow_dispatch`). Nunca bloquea un PR por defecto; gate 7 sigue siendo el gate bloqueante.
 >
 > **Estado real de los gates 4–7 hoy:** el gate 4 ejecuta **26 tests** en `@jf/client` (i18n + matcher del Proxy) y **2** en `@jf/functions` (health); el gate 5 ejecuta cobertura pero sigue en vacío porque `@jf/functions` no tiene `coverage.thresholds` (el ≥ 80 % no puede fallar) y el único spec E2E (`packages/client/e2e/placeholder.spec.ts`) sigue en `test.skip`. Verde en CI significa «compila, formatea, tipa, los tests existentes pasan y no rompe nada», **no** «probado»; la suite completa y los umbrales entran en **MT6.2**.
 
