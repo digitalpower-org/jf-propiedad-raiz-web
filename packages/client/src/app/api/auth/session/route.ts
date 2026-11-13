@@ -9,24 +9,21 @@
 // 5. Responde 200 con { success: true, data: { uid, email, role } }
 
 import { NextResponse } from 'next/server';
+import type { ApiFailure, ApiSuccess } from '@jf/shared-types';
 
 import { backendUrl } from '@/server/backend-url';
 import { bffRoute, errorEnvelope } from '@/server/bff-helper';
 import { signSession } from '@/server/session/jwt';
 import { env } from '@/server/config/server-config';
 
-interface VerifyResponse {
-  success: boolean;
-  data?: {
-    uid: string;
-    email: string;
-    role: string;
-  };
-  error?: {
-    code: string;
-    message: string;
-  };
+interface VerifiedIdentity {
+  uid: string;
+  email: string;
+  role: string;
 }
+
+// Sobre real del backend (AC0.1.2): el código de error viaja en `data.code`; `success` discrimina.
+type VerifyResponse = ApiSuccess<VerifiedIdentity> | ApiFailure;
 
 export const POST = bffRoute(async (request): Promise<NextResponse> => {
   // 1. Validar Authorization header
@@ -71,14 +68,10 @@ export const POST = bffRoute(async (request): Promise<NextResponse> => {
   }
 
   // 5. Backend denegó (idToken inválido o fuera de lista blanca)
-  if (!verifyData.success || !verifyData.data) {
+  if (!verifyData.success) {
     const code =
-      verifyData.error?.code === 'PERMISSION_DENIED' ? 'PERMISSION_DENIED' : 'UNAUTHORIZED';
-    return errorEnvelope(
-      code,
-      verifyData.error?.message ?? 'No autorizado',
-      backendResponse.status,
-    );
+      verifyData.data?.code === 'PERMISSION_DENIED' ? 'PERMISSION_DENIED' : 'UNAUTHORIZED';
+    return errorEnvelope(code, verifyData.message ?? 'No autorizado', backendResponse.status);
   }
 
   // 6. Backend autorizó: firmar JWT propio del BFF y establecer cookie
