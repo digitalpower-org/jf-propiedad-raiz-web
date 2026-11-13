@@ -32,11 +32,11 @@ export function PropertyStickySidebar({ property, locale }: PropertyStickySideba
       document.body.style.paddingBottom = fixed ? `${bar.offsetHeight}px` : '';
     };
     reserve();
-    const observer = new ResizeObserver(reserve);
-    observer.observe(bar);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reserve);
+    observer?.observe(bar);
     window.addEventListener('resize', reserve);
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       window.removeEventListener('resize', reserve);
       document.body.style.paddingBottom = '';
     };
