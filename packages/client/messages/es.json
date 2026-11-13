@@ -23,39 +23,12 @@
     "title": "Inmuebles en el Valle de Aburrá",
     "intro": "Compra, venta y alquiler de propiedades.",
     "featured": "Destacados",
-    "aboutExtract": "Extracto de nosotros",
-    "servicesPreview": [
-      {
-        "id": "asesoria",
-        "title": "Asesoría Inmobiliaria",
-        "description": "Acompañamiento experto en compra, venta y alquiler de propiedades.",
-        "icon": "home"
-      },
-      {
-        "id": "gestion",
-        "title": "Gestión de Proyectos",
-        "description": "Supervisión y ejecución de proyectos de construcción y desarrollo.",
-        "icon": "building"
-      },
-      {
-        "id": "avalúos",
-        "title": "Avalúos y Peritajes",
-        "description": "Valoración técnica profesional de inmuebles para decisiones informadas.",
-        "icon": "calculator"
-      }
-    ],
     "quickAccessAriaLabel": "Accesos rápidos",
     "featuredSubtitle": "Las mejores oportunidades seleccionadas por nuestro equipo",
-    "featuredCardTitle": "Propiedad Destacada {index}",
-    "featuredCardLocation": "Medellín, Antioquia",
-    "featuredCardBedrooms": "{count} hab.",
-    "featuredCardBathrooms": "{count} baños",
-    "featuredCardArea": "{area} m²",
     "viewAllSale": "Ver todas las propiedades en venta",
     "servicesPreviewSubtitle": "Soluciones integrales para tus proyectos inmobiliarios y de ingeniería",
     "learnMore": "Conocer más",
     "viewAllServicesContact": "Ver todos los servicios y contactarnos",
-    "aboutImageAlt": "Imagen de nuestras oficinas en Rionegro",
     "partnersTitle": "Empresas Aliadas",
     "partnersSubtitle": "Trabajamos con las mejores marcas para garantizar calidad en cada proyecto",
     "partnersAriaLabel": "Logos de empresas aliadas",
@@ -113,7 +86,7 @@
     "projectStage": "Etapa",
     "projectDelivery": "Entrega estimada",
     "projectUnits": "Unidades disponibles",
-    "langSwitcher": "Ver en español"
+    "langSwitcher": "Ver en inglés"
   },
   "search": {
     "placeholder": "Buscar por tipo, ubicación, precio...",
@@ -394,5 +367,10 @@
       "dataPolicy": "Política de Tratamiento",
       "terms": "Términos y Condiciones"
     }
+  },
+  "legal": {
+    "draftNotice": "Aviso: Este documento es un borrador preliminar sujeto a revisión jurídica definitiva.",
+    "courtesyTranslation": "Nota: Esta versión en inglés se proporciona como traducción de cortesía. La versión en español prevalecerá en caso de discrepancia.",
+    "formStorageNotice": "Los datos enviados a través de formularios de contacto y consignación no se almacenan en bases de datos de la plataforma; se transmiten directamente por correo electrónico mediante el proveedor Resend."
   }
 }

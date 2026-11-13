@@ -175,3 +175,6 @@ playwright-report/
 
 # MT informes
 .informe_mt/
+
+# Arnés local de auditoría de modelos (herramienta de desarrollo, no se versiona)
+scripts/model-audit/

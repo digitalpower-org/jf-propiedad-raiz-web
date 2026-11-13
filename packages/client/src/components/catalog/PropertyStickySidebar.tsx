@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import type { PropertyDetail } from '@jf/shared-types';
@@ -20,6 +21,26 @@ const priceFormatter = (locale: 'es' | 'en', precio: number) =>
 
 export function PropertyStickySidebar({ property, locale }: PropertyStickySidebarProps) {
   const t = useTranslations('property');
+  const barRef = useRef<HTMLElement>(null);
+
+  // En móvil la barra es fija y tapa el final de la página: se reserva su altura.
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    const reserve = () => {
+      const fixed = getComputedStyle(bar).position === 'fixed';
+      document.body.style.paddingBottom = fixed ? `${bar.offsetHeight}px` : '';
+    };
+    reserve();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reserve);
+    observer?.observe(bar);
+    window.addEventListener('resize', reserve);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', reserve);
+      document.body.style.paddingBottom = '';
+    };
+  }, []);
 
   const whatsappUrl = buildWhatsAppUrl({
     number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+573000000000',
@@ -34,7 +55,7 @@ export function PropertyStickySidebar({ property, locale }: PropertyStickySideba
   const isRent = property.operacion === 'ALQUILER';
 
   return (
-    <aside className={styles.sidebar} aria-label={t('contactAgent')}>
+    <aside ref={barRef} className={styles.sidebar} aria-label={t('contactAgent')}>
       <div className={styles.priceBlock}>
         <span className={styles.operationTag}>{operacionLabel}</span>
         <div className={styles.priceRow}>

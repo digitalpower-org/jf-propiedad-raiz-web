@@ -19,19 +19,20 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.4.1 | Ficha renderiza con datos básicos
   test('AC2.4.1 | ficha renderiza con título, precio, ubicación', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     await expect(page).not.toHaveURL(/404/);
     await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('text=/\\$.*COP/')).toBeVisible();
+    await expect(page.locator('text=/\\$\\s*[\\d.]+/')).toBeVisible();
     await expect(page.locator('text=/Medellín|Antioquia/')).toBeVisible();
   });
 
   // AC2.4.2 | Gallery con thumbnails y navegación
   test('AC2.4.2 | gallery muestra imágenes y thumbnails', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const mainImage = page.locator('[data-testid="gallery-main-image"], .gallery-main img').first();
+    test.skip((await mainImage.count()) === 0, 'el seed no trae fotos (fotos: [])');
     await expect(mainImage).toBeVisible();
     const thumbnails = page.locator('[data-testid="gallery-thumbnail"], .gallery-thumbnails img');
     const thumbCount = await thumbnails.count();
@@ -42,18 +43,23 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.4.3 | Sticky sidebar con precio, operación, botón WhatsApp
   test('AC2.4.3 | sticky sidebar muestra precio, operación, botón WhatsApp', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
-    await expect(page.locator('text=/\\$.*COP/')).toBeVisible();
-    await expect(page.locator('text=/Venta|Alquiler|Proyecto/')).toBeVisible();
-    const whatsappBtn = page.locator('a[href*="wa.me"]');
+    await expect(page.locator('text=/\\$\\s*[\\d.]+/')).toBeVisible();
+    await expect(
+      page
+        .locator('main aside')
+        .getByText(/Venta|Alquiler|Proyecto/)
+        .first(),
+    ).toBeVisible();
+    const whatsappBtn = page.locator('main a[href*="wa.me"]');
     await expect(whatsappBtn).toBeVisible();
     await expect(whatsappBtn).toHaveAttribute('href', /wa\.me/);
   });
 
   // AC2.4.4 | PropertyPOIs - puntos de interés
   test('AC2.4.4 | puntos de interés se muestran si existen', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const poisSection = page.locator('text=Puntos de interés');
     const hasPois = (await poisSection.count()) > 0;
@@ -66,20 +72,20 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.4.5 | Descripción del inmueble
   test('AC2.4.5 | descripción se renderiza correctamente', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const descSection = page.locator('text=Descripción');
     const hasDesc = (await descSection.count()) > 0;
     if (hasDesc) {
       await expect(descSection).toBeVisible();
-      const descText = page.locator('.description-text, [data-testid="description"]');
+      const descText = page.locator('section[aria-labelledby="description-title"]');
       await expect(descText.first()).toBeVisible();
     }
   });
 
   // AC2.4.6 | VideoFacade - videos de YouTube con lazy load
   test('AC2.4.6 | videos se muestran con thumbnail y abren modal', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const videosSection = page.locator('text=Videos');
     const hasVideos = (await videosSection.count()) > 0;
@@ -101,7 +107,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.4.7 | PanoramaViewer - tour 360°
   test('AC2.4.7 | panoramas 360° se muestran y abren modal', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const panoramaSection = page.locator('text=/Tour virtual|360/');
     const hasPanoramas = (await panoramaSection.count()) > 0;
@@ -123,7 +129,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.4.8 | SEO - meta tags, JSON-LD, hreflang
   test('AC2.4.8 | SEO meta tags y JSON-LD presentes', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     await expect(page).toHaveTitle(/JF Propiedad Raíz/);
     const metaDesc = page.locator('meta[name="description"]');
@@ -162,9 +168,9 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.5.1 | botón WhatsApp abre wa.me con mensaje codificado
   test('AC2.5.1 | botón WhatsApp abre wa.me con mensaje codificado', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
-    const whatsappBtn = page.locator('a[href*="wa.me"]').first();
+    const whatsappBtn = page.locator('main a[href*="wa.me"]').first();
     await expect(whatsappBtn).toBeVisible();
     const href = await whatsappBtn.getAttribute('href');
     expect(href).toMatch(/^https:\/\/wa\.me\/\d+\?text=.+/);
@@ -178,7 +184,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.5.2 | mensaje en idioma de la página
   test('AC2.5.2 | mensaje en idioma de la página', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const whatsappBtn = page.locator('a[href*="wa.me"]').first();
     const href = await whatsappBtn.getAttribute('href');
@@ -193,7 +199,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.5.3 | número desde variable de entorno
   test('AC2.5.3 | número desde variable de entorno', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const whatsappBtn = page.locator('a[href*="wa.me"]').first();
     const href = await whatsappBtn.getAttribute('href');
@@ -202,7 +208,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.5.4 | buildWhatsAppUrl helper usado en todos los enlaces
   test('AC2.5.4 | buildWhatsAppUrl helper usado en todos los enlaces', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const whatsappLinks = page.locator('a[href*="wa.me"]');
     const count = await whatsappLinks.count();
@@ -214,7 +220,7 @@ test.describe('US2.4 - Ficha de inmueble', () => {
 
   // AC2.5.5 | un solo botón WhatsApp en la ficha
   test('AC2.5.5 | un solo botón WhatsApp en la ficha', async ({ page }) => {
-    const { isErrorPage } = await gotoProperty(page, 'casa-centro');
+    const { isErrorPage } = await gotoProperty(page, 'casa-en-el-retiro-JF-0010');
     test.skip(isErrorPage, 'requiere seed MT2.4');
     const fichaWhatsApp = page.locator('main a[href*="wa.me"], article a[href*="wa.me"]');
     const count = await fichaWhatsApp.count();

@@ -28,6 +28,30 @@
   margin: 0;
 }
 
+.draftBanner {
+  background: var(--color-arena-suave);
+  border: 1px solid var(--color-amarillo-sol);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-16) var(--spacing-18);
+  margin-bottom: var(--spacing-24);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-tinta);
+  font-weight: var(--font-weight-medium);
+}
+
+.courtesyBanner {
+  background: var(--color-bruma-verde);
+  border: 1px solid var(--color-verde-hoja);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-16) var(--spacing-18);
+  margin-bottom: var(--spacing-24);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-tinta);
+  font-weight: var(--font-weight-medium);
+}
+
 .section {
   margin-bottom: var(--spacing-32);
 }

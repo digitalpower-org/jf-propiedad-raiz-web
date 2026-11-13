@@ -49,6 +49,7 @@ export default defineConfig({
             'src/lib/**/*.{test,spec}.ts',
             'src/i18n/**/*.{test,spec}.ts',
             'src/server/**/*.{test,spec}.ts',
+            'src/app/**/*.{test,spec}.ts',
           ],
         },
       },

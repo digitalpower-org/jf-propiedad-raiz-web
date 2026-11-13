@@ -14,6 +14,11 @@
 # (y su preparación: cache + Chromium) se omite. Es una decisión explícita del
 # autor del PR, no una heurística sobre los archivos cambiados. En push a main y
 # en workflow_dispatch (sin PR) el gate siempre se ejecuta.
+#
+# GATE 8 (E2E CON BACKEND): la suite con tag `@backend` necesita emuladores de
+# Firebase (auth, firestore, functions) + seed de catálogo. Se ejecuta solo si
+# el PR lleva la etiqueta `e2e-backend` (o en workflow_dispatch), nunca bloquea
+# un PR por defecto. Véase job `e2e-backend` al final de este archivo.
 
 name: CI
 
@@ -100,3 +105,73 @@ jobs:
           && !contains(github.event.pull_request.labels.*.name, 'e2e-omit'))
         working-directory: packages/client
         run: npm run test:e2e
+
+  # --- Gate 8: E2E con backend real (emuladores + seed) ------------------
+  # Solo corre si el PR lleva la etiqueta `e2e-backend`; nunca bloquea el gate 7.
+  e2e-backend:
+    name: Gate 8 · E2E con backend (emuladores + seed)
+    needs: gates
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'pull_request'
+          && contains(github.event.pull_request.labels.*.name, 'e2e-backend'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BFF_INTERNAL_KEY: ci-e2e-backend-internal-key-000000000000
+      SESSION_JWT_SECRET: ci-e2e-backend-session-secret-000000000000
+      FUNCTIONS_BASE_URL: http://127.0.0.1:5001/jf-propiedad-raiz/us-central1
+      FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 24 (según .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Java 21 (emulador de Firestore)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache de navegadores de Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Instalar Chromium (Playwright)
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/client
+
+      - name: Build de Cloud Functions (emulador de Functions)
+        run: npm run build -w @jf/functions
+
+      - name: Variables de entorno de Functions para los emuladores
+        run: |
+          printf 'BFF_INTERNAL_KEY=%s\nSESSION_JWT_SECRET=%s\n' "$BFF_INTERNAL_KEY" "$SESSION_JWT_SECRET" > packages/functions/.env.local
+
+      - name: 'Gate 8/8 · E2E con backend (emuladores + seed)'
+        run: >-
+          npx -y firebase-tools@latest emulators:exec
+          --project=jf-propiedad-raiz
+          --only auth,firestore,functions
+          "npm run seed:catalog && npm run test:e2e:backend"
+
+      - name: Subir artefactos de E2E si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-backend-report-${{ github.run_attempt }}
+          path: |
+            packages/client/test-results
+            packages/client/playwright-report

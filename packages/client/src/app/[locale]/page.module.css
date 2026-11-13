@@ -372,17 +372,6 @@
   transform: translateY(-4px);
 }
 
-.serviceIcon {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto var(--spacing-12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-verde-bosque);
-  font-size: 24px;
-}
-
 .serviceTitle {
   font-size: var(--text-subheading);
   line-height: var(--leading-subheading);
@@ -424,8 +413,7 @@
 
 @media (min-width: 768px) {
   .aboutBlock {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-54);
+    max-width: 720px;
     text-align: left;
   }
 }
@@ -468,33 +456,6 @@
 
 .aboutLink:hover {
   background: var(--color-verde-profundo);
-}
-
-.aboutImage {
-  border-radius: var(--radius-specialtycards);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  aspect-ratio: 4 / 3;
-  background: var(--color-arena-suave);
-}
-
-.aboutImagePlaceholder {
-  width: 100%;
-  height: 100%;
-  background: var(--color-piedra-clara);
-}
-
-.aboutImageAlt {
-  position: absolute;
-  bottom: var(--spacing-16);
-  left: var(--spacing-16);
-  right: var(--spacing-16);
-  font-family: system-ui;
-  font-size: 14px;
-  fill: var(--color-grafito);
-  opacity: 0.5;
-  text-align: center;
-  color: var(--color-grafito);
 }
 
 /* ALIADOS */

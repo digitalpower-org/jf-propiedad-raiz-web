@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:backend": "playwright test -c playwright.backend.config.ts",
     "test:e2e:auth": "E2E_AUTH=1 playwright test e2e/auth-session.spec.ts"
   },
   "dependencies": {

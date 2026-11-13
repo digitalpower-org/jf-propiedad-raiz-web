@@ -3,10 +3,12 @@ import { Metadata } from 'next';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { getRoute } from '@/i18n/routes';
 import { isLocale } from '@/i18n/config';
-import { fetchPropertyBySlug } from '@/lib/api-catalog';
+import { fetchPropertyDetailServer } from '@/server/property-detail';
 import { getOperacionLabel } from '@/components/catalog/property-card-utils';
+import { buildPropertyJsonLd, buildPropertyMetadata, getBaseUrl } from '@/lib/property-seo';
+import { JsonLd } from '@/components/seo/JsonLd';
 
-import React, { ReactElement } from 'react';
+import React, { cache, ReactElement } from 'react';
 import { PropertyGallery } from '@/components/catalog/PropertyGallery';
 import { PropertyStickySidebar } from '@/components/catalog/PropertyStickySidebar';
 import { PropertySpecs } from '@/components/catalog/PropertySpecs';
@@ -20,119 +22,23 @@ type PropiedadDetailPageProps = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-async function fetchPropertyOrNotFound(slug: string, locale: string) {
-  const response = await fetchPropertyBySlug(slug, locale as 'es' | 'en');
-  if (!response.success || !response.data) {
-    notFound();
-  }
-  return response.data;
+// cache(): metadatos y página comparten una sola consulta por petición.
+const fetchProperty = cache(fetchPropertyDetailServer);
+
+async function fetchPropertyOrNotFound(slug: string) {
+  const property = await fetchProperty(slug);
+  if (!property) notFound();
+  return property;
 }
 
-async function generateMetadata({ params }: PropiedadDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PropiedadDetailPageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) return {};
 
-  const property = await fetchPropertyOrNotFound(slug, locale);
+  const property = await fetchPropertyOrNotFound(slug);
   if (property.status !== 'ACTIVE') return {};
 
-  const t = await getTranslations('property');
-
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jfpropiedadraiz.com';
-  const canonicalUrl = `${baseUrl}${getRoute('property', locale, { slug })}`;
-  const alternateEs = `${baseUrl}${getRoute('property', 'es', { slug })}`;
-  const alternateEn = `${baseUrl}${getRoute('property', 'en', { slug })}`;
-
-  const titulo = property.titulo[locale] ?? property.titulo.es ?? '';
-  const descripcion = property.descripcion[locale] ?? property.descripcion.es ?? '';
-  const portadaDerivados = property.fotos?.[0]?.derivados;
-  const portada =
-    portadaDerivados?.[2]?.clave ?? portadaDerivados?.[1]?.clave ?? portadaDerivados?.[0]?.clave;
-  const imageUrl = portada ? `${baseUrl}/${portada}` : `${baseUrl}/og-default.jpg`;
-
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'RealEstateListing',
-    name: titulo,
-    description: descripcion,
-    url: canonicalUrl,
-    image: imageUrl,
-    offers: {
-      '@type': 'Offer',
-      price: property.precio,
-      priceCurrency: 'COP',
-      priceSpecification: {
-        '@type': 'UnitPriceSpecification',
-        priceCurrency: 'COP',
-        price: property.precio,
-      },
-      availability: 'https://schema.org/InStock',
-    },
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: property.municipio,
-      addressRegion: property.departamento,
-      addressCountry: 'CO',
-    },
-    floorSize: property.areaConstruida
-      ? {
-          '@type': 'QuantitativeValue',
-          value: property.areaConstruida,
-          unitCode: 'MTK',
-        }
-      : undefined,
-    numberOfRooms: property.dormitorios,
-    numberOfBathroomsTotal: property.banos,
-    inLanguage: locale === 'es' ? 'es-CO' : 'en',
-    publisher: {
-      '@type': 'Organization',
-      name: 'JF Propiedad Raíz',
-      url: baseUrl,
-    },
-  };
-
-  const cleanJsonLd = JSON.parse(JSON.stringify(jsonLd));
-
-  return {
-    title: `${titulo} | JF Propiedad Raíz`,
-    description: descripcion.slice(0, 160),
-    alternates: {
-      canonical: canonicalUrl,
-      languages: {
-        'es-CO': alternateEs,
-        en: alternateEn,
-        'x-default': alternateEs,
-      },
-    },
-    openGraph: {
-      title: titulo,
-      description: descripcion.slice(0, 160),
-      url: canonicalUrl,
-      type: 'website',
-      locale: locale === 'es' ? 'es-CO' : 'en_US',
-      siteName: 'JF Propiedad Raíz',
-      images: [
-        {
-          url: imageUrl,
-          width: 1280,
-          height: 720,
-          alt: titulo,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: titulo,
-      description: descripcion.slice(0, 160),
-      images: [imageUrl],
-    },
-    robots: {
-      index: !!(property.titulo.en && property.descripcion.en),
-      follow: true,
-    },
-    other: {
-      'application/ld+json': JSON.stringify(cleanJsonLd),
-    },
-  };
+  return buildPropertyMetadata({ property, locale, slug, baseUrl: getBaseUrl() });
 }
 
 export default async function PropiedadDetailPage({ params }: PropiedadDetailPageProps) {
@@ -143,19 +49,17 @@ export default async function PropiedadDetailPage({ params }: PropiedadDetailPag
 
   const tProperty = await getTranslations('property');
 
-  const property = await fetchPropertyOrNotFound(slug, locale);
+  const property = await fetchPropertyOrNotFound(slug);
+  if (property.status !== 'ACTIVE') notFound();
 
-  const hasFullTranslation = !!(property.titulo.en && property.descripcion.en);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jfpropiedadraiz.com';
-  const canonicalUrl = `${baseUrl}${getRoute('property', locale, { slug })}`;
+  const baseUrl = getBaseUrl();
   const alternateEs = `${baseUrl}${getRoute('property', 'es', { slug })}`;
   const alternateEn = `${baseUrl}${getRoute('property', 'en', { slug })}`;
 
   const titulo = property.titulo[locale] ?? property.titulo.es ?? '';
   const descripcion = property.descripcion[locale] ?? property.descripcion.es ?? '';
-  const portadaDerivados = property.fotos?.[0]?.derivados;
-  const portada =
-    portadaDerivados?.[2]?.clave ?? portadaDerivados?.[1]?.clave ?? portadaDerivados?.[0]?.clave;
+
+  const jsonLd = buildPropertyJsonLd({ property, locale, slug, baseUrl });
 
   const videos = property.videos ? property.videos.filter((v): v is string => v !== undefined) : [];
   const panoramas = property.panoramas
@@ -166,6 +70,7 @@ export default async function PropiedadDetailPage({ params }: PropiedadDetailPag
 
   return (
     <main className={styles.page}>
+      <JsonLd data={jsonLd} />
       <nav className={styles.breadcrumb} aria-label="Breadcrumb">
         <ol className={styles.breadcrumbList}>
           <li>

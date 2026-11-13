@@ -114,46 +114,69 @@ test('footer: WhatsApp href usa buildWhatsAppUrl helper', async ({ page }) => {
   expect(href).toMatch(/^https:\/\/wa\.me\/\d+\?text=[^\s]+$/);
 });
 
-// FIXME: Tests con slugs dinámicos requieren seed de catálogo (MT2.4) para que las páginas
-// de propiedad/servicio rendericen LayoutWrapper con Navbar/Footer.
+// Las fichas de propiedad necesitan el seed de catálogo (MT2.4); el slug de
+// servicio se resuelve sin backend, así que se queda en el gate 7.
 // AC0.4.3: "llegar a la ruta equivalente conservando el slug"
 // AC0.4.7: "el slug es el mismo en ambos idiomas"
-const SLUG_SWITCH_CASES = [
-  { from: '/es/propiedad/casa-centro', to: '/en/property/casa-centro' },
-  { from: '/es/propiedad/apartamento-norte', to: '/en/property/apartamento-norte' },
-  { from: '/es/servicios/asesoria-legal', to: '/en/services/asesoria-legal' },
+const SLUG_SWITCH_CASES: { from: string; to: string; backend: boolean }[] = [
+  {
+    from: '/es/propiedad/apartamento-en-venta-en-quinta-JF-0001',
+    to: '/en/property/apartamento-en-venta-en-quinta-JF-0001',
+    backend: true,
+  },
+  {
+    from: '/es/propiedad/lote-urbano-en-copacabana-JF-0011',
+    to: '/en/property/lote-urbano-en-copacabana-JF-0011',
+    backend: true,
+  },
+  {
+    from: '/es/servicios/asesoria-legal',
+    to: '/en/services/asesoria-legal',
+    backend: false,
+  },
 ];
 
-for (const { from, to } of SLUG_SWITCH_CASES) {
-  test.fixme(`navbar: slug cambia de ${from} a ${to}`, async ({ page }) => {
-    await page.goto(from, { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(from);
+for (const { from, to, backend } of SLUG_SWITCH_CASES) {
+  test(
+    `navbar: slug cambia de ${from} a ${to}`,
+    { tag: backend ? '@backend' : [] },
+    async ({ page }) => {
+      await page.goto(from, { waitUntil: 'domcontentloaded' });
+      await expect(page).toHaveURL(from);
 
-    await expect(page.locator('nav')).toBeVisible();
+      await expect(page.locator('nav').first()).toBeVisible();
 
-    const switchLink = page.locator('nav').getByRole('link', {
-      name: /ver en inglés|view in spanish/i,
-    });
-    await expect(switchLink).toBeVisible();
-    await switchLink.click();
+      const switchLink = page
+        .locator('nav')
+        .first()
+        .getByRole('link', {
+          name: /ver en inglés|view in spanish/i,
+        });
+      await expect(switchLink).toBeVisible();
+      await switchLink.click();
 
-    await expect(page).toHaveURL(to);
-  });
+      await expect(page).toHaveURL(to);
+    },
+  );
 }
 
-for (const { from, to } of SLUG_SWITCH_CASES) {
-  test.fixme(`footer: slug cambia de ${from} a ${to}`, async ({ page }) => {
-    await page.goto(from, { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(from);
+for (const { from, to, backend } of SLUG_SWITCH_CASES) {
+  test(
+    `footer: slug cambia de ${from} a ${to}`,
+    { tag: backend ? '@backend' : [] },
+    async ({ page }) => {
+      await page.goto(from, { waitUntil: 'domcontentloaded' });
+      await expect(page).toHaveURL(from);
 
-    await expect(page.locator('footer')).toBeVisible();
+      await expect(page.locator('footer')).toBeVisible();
 
-    const footerSwitchLink = page.locator('footer').getByRole('link', {
-      name: /ver en inglés|view in spanish/i,
-    });
-    await expect(footerSwitchLink).toBeVisible();
-    await footerSwitchLink.click();
+      const footerSwitchLink = page.locator('footer').getByRole('link', {
+        name: /ver en inglés|view in spanish/i,
+      });
+      await expect(footerSwitchLink).toBeVisible();
+      await footerSwitchLink.click();
 
-    await expect(page).toHaveURL(to);
-  });
+      await expect(page).toHaveURL(to);
+    },
+  );
 }
