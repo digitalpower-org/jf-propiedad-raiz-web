@@ -372,17 +372,6 @@
   transform: translateY(-4px);
 }
 
-.serviceIcon {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto var(--spacing-12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-verde-bosque);
-  font-size: 24px;
-}
-
 .serviceTitle {
   font-size: var(--text-subheading);
   line-height: var(--leading-subheading);

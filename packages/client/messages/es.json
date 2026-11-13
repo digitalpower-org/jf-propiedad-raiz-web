@@ -24,33 +24,8 @@
     "intro": "Compra, venta y alquiler de propiedades.",
     "featured": "Destacados",
     "aboutExtract": "Extracto de nosotros",
-    "servicesPreview": [
-      {
-        "id": "asesoria",
-        "title": "Asesoría Inmobiliaria",
-        "description": "Acompañamiento experto en compra, venta y alquiler de propiedades.",
-        "icon": "home"
-      },
-      {
-        "id": "gestion",
-        "title": "Gestión de Proyectos",
-        "description": "Supervisión y ejecución de proyectos de construcción y desarrollo.",
-        "icon": "building"
-      },
-      {
-        "id": "avalúos",
-        "title": "Avalúos y Peritajes",
-        "description": "Valoración técnica profesional de inmuebles para decisiones informadas.",
-        "icon": "calculator"
-      }
-    ],
     "quickAccessAriaLabel": "Accesos rápidos",
     "featuredSubtitle": "Las mejores oportunidades seleccionadas por nuestro equipo",
-    "featuredCardTitle": "Propiedad Destacada {index}",
-    "featuredCardLocation": "Medellín, Antioquia",
-    "featuredCardBedrooms": "{count} hab.",
-    "featuredCardBathrooms": "{count} baños",
-    "featuredCardArea": "{area} m²",
     "viewAllSale": "Ver todas las propiedades en venta",
     "servicesPreviewSubtitle": "Soluciones integrales para tus proyectos inmobiliarios y de ingeniería",
     "learnMore": "Conocer más",

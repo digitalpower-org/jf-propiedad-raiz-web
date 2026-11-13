@@ -17,7 +17,7 @@ function collectPaths(value: Json, prefix = ''): string[] {
 }
 
 /** Claves que pueden contener arrays de objetos (no solo strings) */
-const OBJECT_ARRAY_KEYS = new Set(['about.sections', 'about.equipo', 'home.servicesPreview']);
+const OBJECT_ARRAY_KEYS = new Set(['about.sections', 'about.equipo']);
 
 function isObjectArrayKey(path: string): boolean {
   return OBJECT_ARRAY_KEYS.has(path);

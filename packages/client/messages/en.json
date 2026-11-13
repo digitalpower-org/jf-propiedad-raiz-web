@@ -24,33 +24,8 @@
     "intro": "Buy, sell and rent properties.",
     "featured": "Featured",
     "aboutExtract": "About us extract",
-    "servicesPreview": [
-      {
-        "id": "asesoria",
-        "title": "Real Estate Advisory",
-        "description": "Expert guidance in buying, selling, and renting properties.",
-        "icon": "home"
-      },
-      {
-        "id": "gestion",
-        "title": "Project Management",
-        "description": "Supervision and execution of construction and development projects.",
-        "icon": "building"
-      },
-      {
-        "id": "avalúos",
-        "title": "Appraisals & Expert Reports",
-        "description": "Professional technical valuation of properties for informed decisions.",
-        "icon": "calculator"
-      }
-    ],
     "quickAccessAriaLabel": "Quick access",
     "featuredSubtitle": "The best opportunities selected by our team",
-    "featuredCardTitle": "Featured Property {index}",
-    "featuredCardLocation": "Medellín, Antioquia",
-    "featuredCardBedrooms": "{count} bed.",
-    "featuredCardBathrooms": "{count} bath.",
-    "featuredCardArea": "{area} m²",
     "viewAllSale": "View all properties for sale",
     "servicesPreviewSubtitle": "Comprehensive solutions for your real estate and engineering projects",
     "learnMore": "Learn more",

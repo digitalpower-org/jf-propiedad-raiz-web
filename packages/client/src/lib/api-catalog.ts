@@ -25,17 +25,6 @@ export interface PropertyListData {
   readonly nextCursor: string | null;
 }
 
-export interface ServiceCard {
-  readonly id: string;
-  readonly slug: string;
-  readonly titulo: import('@jf/shared-types').Translatable;
-  readonly resumen?: import('@jf/shared-types').Translatable;
-  readonly orden: number;
-  readonly portada?: {
-    readonly clavesPorAncho?: Record<string, string>;
-  };
-}
-
 export interface AboutDocument {
   readonly titulo: import('@jf/shared-types').Translatable;
   readonly extracto: import('@jf/shared-types').Translatable;
@@ -77,21 +66,11 @@ export async function fetchPropertiesPage(
   return client.get<PropertyListData>(url);
 }
 
-export async function fetchFeaturedProperties(
-  operacion: 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS',
-): Promise<ApiResponse<{ items: readonly PropertyCard[] }>> {
-  return httpClient<{ items: readonly PropertyCard[] }>(`/api/properties/featured`);
-}
-
 export async function fetchPropertyBySlug(
   slug: string,
   locale: 'es' | 'en',
 ): Promise<ApiResponse<PropertyDetail>> {
   return httpClient<PropertyDetail>(`/api/properties/${slug}`);
-}
-
-export async function fetchServices(): Promise<ApiResponse<{ items: readonly ServiceCard[] }>> {
-  return httpClient<{ items: readonly ServiceCard[] }>(`/api/services`);
 }
 
 export async function fetchAbout(): Promise<ApiResponse<AboutDocument>> {
