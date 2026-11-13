@@ -9,6 +9,7 @@ import type { PropertyCard } from '@jf/shared-types';
 import { HeroSearchForm } from '@/components/catalog/HeroSearchForm';
 import { PropertyCardComponent } from '@/components/catalog/PropertyCard';
 import { fetchFeaturedPropertiesServer } from '@/server/featured-properties';
+import { fetchServicesPreviewServer, type ServicePreview } from '@/server/services-preview';
 
 import styles from './page.module.css';
 
@@ -24,7 +25,6 @@ export default async function HomePage({ params }: HomePageProps) {
   const t = await getTranslations();
   const tHome = await getTranslations('home');
   const messages = await loadMessages(locale);
-  const servicesPreview = messages.home.servicesPreview;
 
   const aboutExtract = tHome('aboutExtract');
   const aboutUrl = getRoute('about', locale);
@@ -34,6 +34,13 @@ export default async function HomePage({ params }: HomePageProps) {
     featured = await fetchFeaturedPropertiesServer();
   } catch (error) {
     console.error('[home] No se pudieron cargar las destacadas:', error);
+  }
+
+  let services: ServicePreview[] = [];
+  try {
+    services = await fetchServicesPreviewServer();
+  } catch (error) {
+    console.error('[home] No se pudieron cargar los servicios:', error);
   }
 
   return (
@@ -101,44 +108,45 @@ export default async function HomePage({ params }: HomePageProps) {
         )}
 
         {/* SERVICIOS PREVIEW */}
-        <section
-          className={`${styles.section} ${styles.servicesPreview}`}
-          aria-labelledby="services-title"
-        >
-          <header className={styles.sectionHeader}>
-            <h2 id="services-title" className={styles.sectionTitle}>
-              {t('nav.services')}
-            </h2>
-            <p className={styles.sectionSubtitle}>{tHome('servicesPreviewSubtitle')}</p>
-          </header>
-          <div className={styles.servicesGrid} role="list">
-            {servicesPreview.map(
-              (service: { id: string; title: string; description: string; icon: string }) => (
-                <article key={service.id} className={styles.serviceCard} role="listitem">
-                  <div className={styles.serviceIcon} aria-hidden="true">
-                    {service.icon === 'home' && <span className={styles.iconHome}>🏠</span>}
-                    {service.icon === 'building' && <span className={styles.iconBuilding}>🏗️</span>}
-                    {service.icon === 'calculator' && (
-                      <span className={styles.iconCalculator}>🧮</span>
-                    )}
-                  </div>
-                  <h3 className={styles.serviceTitle}>{service.title}</h3>
-                  <p className={styles.serviceDescription}>{service.description}</p>
-                  <a href={getRoute('services', locale)} className={styles.serviceLink}>
-                    {tHome('learnMore')}
-                    <span className={styles.arrow}>→</span>
-                  </a>
-                </article>
-              ),
-            )}
-          </div>
-          <footer className={styles.sectionFooter}>
-            <a href={getRoute('contact', locale)} className={styles.aboutLink}>
-              {tHome('viewAllServicesContact')}
-              <span className={styles.arrow}>→</span>
-            </a>
-          </footer>
-        </section>
+        {services.length > 0 && (
+          <section
+            className={`${styles.section} ${styles.servicesPreview}`}
+            aria-labelledby="services-title"
+          >
+            <header className={styles.sectionHeader}>
+              <h2 id="services-title" className={styles.sectionTitle}>
+                {t('nav.services')}
+              </h2>
+              <p className={styles.sectionSubtitle}>{tHome('servicesPreviewSubtitle')}</p>
+            </header>
+            <div className={styles.servicesGrid} role="list">
+              {services.map((service) => {
+                const resumen = service.resumen?.[locale] ?? service.resumen?.es;
+                return (
+                  <article key={service.slug} className={styles.serviceCard} role="listitem">
+                    <h3 className={styles.serviceTitle}>
+                      {service.titulo[locale] ?? service.titulo.es ?? ''}
+                    </h3>
+                    {resumen && <p className={styles.serviceDescription}>{resumen}</p>}
+                    <a
+                      href={getRoute('serviceDetail', locale, { slug: service.slug })}
+                      className={styles.serviceLink}
+                    >
+                      {tHome('learnMore')}
+                      <span className={styles.arrow}>→</span>
+                    </a>
+                  </article>
+                );
+              })}
+            </div>
+            <footer className={styles.sectionFooter}>
+              <a href={getRoute('contact', locale)} className={styles.aboutLink}>
+                {tHome('viewAllServicesContact')}
+                <span className={styles.arrow}>→</span>
+              </a>
+            </footer>
+          </section>
+        )}
 
         {/* NOSOTROS */}
         <section className={styles.aboutBlock} aria-labelledby="about-title">
