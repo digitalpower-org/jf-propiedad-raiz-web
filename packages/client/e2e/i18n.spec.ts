@@ -114,26 +114,34 @@ test('footer: WhatsApp href usa buildWhatsAppUrl helper', async ({ page }) => {
   expect(href).toMatch(/^https:\/\/wa\.me\/\d+\?text=[^\s]+$/);
 });
 
-// FIXME: Tests con slugs dinámicos requieren seed de catálogo (MT2.4) para que las páginas
-// de propiedad/servicio rendericen LayoutWrapper con Navbar/Footer.
+// Requieren el seed de catálogo (MT2.4): las páginas de propiedad y servicio dependen de datos reales.
 // AC0.4.3: "llegar a la ruta equivalente conservando el slug"
 // AC0.4.7: "el slug es el mismo en ambos idiomas"
 const SLUG_SWITCH_CASES = [
-  { from: '/es/propiedad/casa-centro', to: '/en/property/casa-centro' },
-  { from: '/es/propiedad/apartamento-norte', to: '/en/property/apartamento-norte' },
+  {
+    from: '/es/propiedad/apartamento-en-venta-en-quinta-JF-0001',
+    to: '/en/property/apartamento-en-venta-en-quinta-JF-0001',
+  },
+  {
+    from: '/es/propiedad/lote-urbano-en-copacabana-JF-0011',
+    to: '/en/property/lote-urbano-en-copacabana-JF-0011',
+  },
   { from: '/es/servicios/asesoria-legal', to: '/en/services/asesoria-legal' },
 ];
 
 for (const { from, to } of SLUG_SWITCH_CASES) {
-  test.fixme(`navbar: slug cambia de ${from} a ${to}`, async ({ page }) => {
+  test(`navbar: slug cambia de ${from} a ${to}`, async ({ page }) => {
     await page.goto(from, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(from);
 
-    await expect(page.locator('nav')).toBeVisible();
+    await expect(page.locator('nav').first()).toBeVisible();
 
-    const switchLink = page.locator('nav').getByRole('link', {
-      name: /ver en inglés|view in spanish/i,
-    });
+    const switchLink = page
+      .locator('nav')
+      .first()
+      .getByRole('link', {
+        name: /ver en inglés|view in spanish/i,
+      });
     await expect(switchLink).toBeVisible();
     await switchLink.click();
 
@@ -142,7 +150,7 @@ for (const { from, to } of SLUG_SWITCH_CASES) {
 }
 
 for (const { from, to } of SLUG_SWITCH_CASES) {
-  test.fixme(`footer: slug cambia de ${from} a ${to}`, async ({ page }) => {
+  test(`footer: slug cambia de ${from} a ${to}`, async ({ page }) => {
     await page.goto(from, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(from);
 
