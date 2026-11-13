@@ -123,6 +123,7 @@ export async function seedCatalog(
       municipio: prop.municipio,
       createdAt,
       updatedAt: createdAt,
+      fechaPublicacion: createdAt,
       destacada: prop.destacada ?? false,
     };
 
