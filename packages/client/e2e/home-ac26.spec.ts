@@ -1,14 +1,13 @@
 /**
  * AC2.6 - E2E: Portada (Home) completa con backend real
  * Playwright - verificación de bloques A (destacadas), B (servicios), C (Nosotros)
- * AC2.6.1: Destacadas reales desde /api/v1/properties/featured (hasta 12 ACTIVE)
- * AC2.6.2: Servicios desde /api/v1/services (solo ACTIVE: asesoría-legal, administración)
- * AC2.6.3: Nosotros extracto real desde /api/v1/about con fallback a español
- * AC2.6.4: Sección Nosotros oculta si extracto vacío o backend falla (verificado manualmente)
- * AC2.6.5: Backend caído → portada pinta y oculta los 3 bloques sin romperse (verificado manualmente)
- * AC2.6.6: Responsive desktop 1280px (bloque 720px 1 col) / mobile 375px (343px), sin desborde
- * AC2.6.7: 0 errores [home] en consola
- * Nota: AC2.6.4 y AC2.6.5 requieren backend real caído (fetch server-side); tests de mocking no aplican.
+ * AC2.6.2: vista previa de servicios (desde /api/v1/services, solo ACTIVE)
+ * AC2.6.3: destacadas ACTIVE con destacada=true desde /api/v1/properties/featured
+ *          (el caso HIDDEN/DELETED no se cubre aquí)
+ * AC2.6.4: bloque Nosotros con el extracto real de /api/v1/about (respaldo a español)
+ * AC2.6.5: bloque oculto sin datos o con el backend caído: NO cubierto por E2E (tests en
+ *          skip porque el fetch es del servidor); solo verificado a mano en vivo.
+ * Sin AC: responsive de la portada (layout) y consola limpia.
  */
 import { test, expect, type Page } from '@playwright/test';
 
@@ -75,9 +74,9 @@ async function verifyNosotrosLinks(page: Page, locale: string) {
 
 test.describe.configure({ retries: 0 });
 
-// ===== AC2.6.1: Bloque A - Destacadas reales =====
+// ===== AC2.6.3: Bloque A - Destacadas reales =====
 for (const locale of HOME_URLS) {
-  test.describe(`AC2.6.1 | Portada ${locale} - Destacadas reales`, () => {
+  test.describe(`AC2.6.3 | Portada ${locale} - Destacadas reales`, () => {
     test(
       `carga PropertyCard desde /api/v1/properties/featured`,
       { tag: '@backend' },
@@ -135,9 +134,9 @@ for (const locale of HOME_URLS) {
   });
 }
 
-// ===== AC2.6.3: Bloque C - Nosotros (extracto real) =====
+// ===== AC2.6.4: Bloque C - Nosotros (extracto real) =====
 for (const locale of HOME_URLS) {
-  test.describe(`AC2.6.3 | Portada ${locale} - Nosotros extracto real`, () => {
+  test.describe(`AC2.6.4 | Portada ${locale} - Nosotros extracto real`, () => {
     test(
       'muestra extracto de /api/v1/about con fallback a español',
       { tag: '@backend' },
@@ -178,8 +177,8 @@ for (const locale of HOME_URLS) {
   });
 }
 
-// ===== AC2.6.4: Sección oculta si vacío o error (requiere backend real caído - verificado manualmente) =====
-test.describe('AC2.6.4 | Nosotros se oculta si extracto vacío o backend falla', () => {
+// ===== AC2.6.5: Sección oculta si vacío o error (sin cobertura E2E: test en skip, el fetch es del servidor) =====
+test.describe('AC2.6.5 | Nosotros se oculta si extracto vacío o backend falla', () => {
   test.skip('simula backend fallando → sección Nosotros oculta (fetch server-side, no mockeable con Playwright)', async () => {
     // Verificado manualmente: al detener emulador Functions, sección se oculta
   });
@@ -189,17 +188,17 @@ test.describe('AC2.6.4 | Nosotros se oculta si extracto vacío o backend falla',
   });
 });
 
-// ===== AC2.6.5: Backend caído → portada resiliente (requiere backend real caído - verificado manualmente) =====
+// ===== AC2.6.5: Backend caído → portada resiliente (sin cobertura E2E: test en skip, el fetch es del servidor) =====
 test.describe('AC2.6.5 | Backend caído - portada resiliente', () => {
-  test.skip('todos los endpoints fallan → portada renderiza sin bloques y sin errores (fetch server-side, verificado manualmente)', async () => {
+  test.skip('todos los endpoints fallan → portada renderiza sin bloques y sin errores (fetch server-side, sin cobertura E2E)', async () => {
     // Verificado manualmente: al detener emulador Functions, portada pinta y oculta 3 bloques
   });
 });
 
-// ===== AC2.6.6: Responsive =====
+// ===== Layout: Responsive =====
 for (const viewport of VIEWPORTS) {
   for (const locale of HOME_URLS) {
-    test.describe(`AC2.6.6 | Responsive ${viewport.name} ${viewport.width}px - ${locale}`, () => {
+    test.describe(`Layout | Responsive ${viewport.name} ${viewport.width}px - ${locale}`, () => {
       test.use({ viewport: { width: viewport.width, height: viewport.height } });
 
       test(
@@ -216,9 +215,9 @@ for (const viewport of VIEWPORTS) {
   }
 }
 
-// ===== AC2.6.7: 0 errores [home] en consola =====
+// ===== Consola limpia: 0 errores [home] =====
 for (const locale of HOME_URLS) {
-  test.describe(`AC2.6.7 | Portada ${locale} - Consola limpia`, () => {
+  test.describe(`Portada ${locale} - Consola limpia`, () => {
     test('sin errores [home] en consola del navegador', async ({ page }) => {
       const errors = await captureHomeErrors(page);
       await page.goto(locale, { waitUntil: 'networkidle' });
