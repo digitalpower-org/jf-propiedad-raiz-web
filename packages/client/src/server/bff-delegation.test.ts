@@ -209,3 +209,25 @@ describe('X-Client-IP — IP del solicitante hacia el backend', () => {
     expect(h.get('x-client-ip')).toBeNull();
   });
 });
+
+describe('Consulta (query string) hacia el backend', () => {
+  async function upstreamUrl(pathWithQuery: string): Promise<string> {
+    const { bffRoute, delegateToBackend } = await load();
+    const fetchMock = vi.fn().mockImplementation(upstreamFactory());
+    vi.stubGlobal('fetch', fetchMock);
+    const handler = bffRoute((req, ctx) => delegateToBackend(req, ctx));
+    await handler(request(pathWithQuery, { method: 'GET' }), {});
+    return String(fetchMock.mock.calls[0]?.[0]);
+  }
+
+  it('reenvía la query del listado público al backend', async () => {
+    const url = await upstreamUrl('/api/properties?operacion=VENTA&destacada=true&limit=12');
+    expect(new URL(url).pathname.endsWith('/api/v1/properties')).toBe(true);
+    expect(new URL(url).search).toBe('?operacion=VENTA&destacada=true&limit=12');
+  });
+
+  it('sin query no añade un signo de interrogación', async () => {
+    const url = await upstreamUrl('/api/properties');
+    expect(url.includes('?')).toBe(false);
+  });
+});

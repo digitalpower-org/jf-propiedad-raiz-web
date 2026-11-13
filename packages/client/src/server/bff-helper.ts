@@ -106,7 +106,9 @@ export async function delegateToBackend(
   const path = internalPath.replace(/\{(\w+)\}/g, (_segment, name: string) =>
     encodeURIComponent(params[name] ?? ''),
   );
-  const url = backendUrl(path);
+  // El listado público filtra por query (operacion, destacada, limit...): hay que reenviarla.
+  const query = request.method === 'GET' || request.method === 'HEAD' ? request.nextUrl.search : '';
+  const url = `${backendUrl(path)}${query}`;
 
   const headers = new Headers({ 'X-Internal-Key': ctx.internalKey });
   const contentType = request.headers.get('content-type');
