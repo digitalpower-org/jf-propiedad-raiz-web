@@ -246,7 +246,7 @@ test.describe('Sitemap incluye rutas de catálogo', () => {
     const response = await page.request.get('/sitemap.xml');
     expect(response.status()).toBe(200);
     const xml = await response.text();
-    expect(xml).toContain('<loc>http://');
+    expect(xml).toMatch(/<loc>https?:\/\//);
     expect(xml).toContain('/es/venta');
     expect(xml).toContain('/es/alquiler');
     expect(xml).toContain('/es/proyectos');
