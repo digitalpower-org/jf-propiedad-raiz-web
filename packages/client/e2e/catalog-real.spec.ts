@@ -6,9 +6,30 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const CATALOG_ROUTES = [
-  { key: 'venta', es: '/es/venta', en: '/en/sale', operation: 'VENTA', opLabelEs: 'Venta', opLabelEn: 'For Sale' },
-  { key: 'alquiler', es: '/es/alquiler', en: '/en/rent', operation: 'ALQUILER', opLabelEs: 'Alquiler', opLabelEn: 'For Rent' },
-  { key: 'proyectos', es: '/es/proyectos', en: '/en/projects', operation: 'PROYECTO_SOBRE_PLANOS', opLabelEs: 'Proyecto', opLabelEn: 'Off-Plan' },
+  {
+    key: 'venta',
+    es: '/es/venta',
+    en: '/en/sale',
+    operation: 'VENTA',
+    opLabelEs: 'Venta',
+    opLabelEn: 'For Sale',
+  },
+  {
+    key: 'alquiler',
+    es: '/es/alquiler',
+    en: '/en/rent',
+    operation: 'ALQUILER',
+    opLabelEs: 'Alquiler',
+    opLabelEn: 'For Rent',
+  },
+  {
+    key: 'proyectos',
+    es: '/es/proyectos',
+    en: '/en/projects',
+    operation: 'PROYECTO_SOBRE_PLANOS',
+    opLabelEs: 'Proyecto',
+    opLabelEn: 'Off-Plan',
+  },
 ] as const;
 
 const VIEWPORTS = [
@@ -17,16 +38,25 @@ const VIEWPORTS = [
 ] as const;
 
 // Helper: verifica PropertyCard básica (usa article como contenedor)
-async function verifyPropertyCard(card: ReturnType<Page['locator']>, operation: string, locale: string, opLabel: string) {
+async function verifyPropertyCard(
+  card: ReturnType<Page['locator']>,
+  operation: string,
+  locale: string,
+  opLabel: string,
+) {
   await expect(card).toBeVisible();
   // Imagen (o placeholder)
   await expect(card.locator('img, [class*="image"], [class*="placeholder"]').first()).toBeVisible();
   // Precio
   await expect(card.locator('text=/\\$\\s*[\\d.,]+|COP\\s*[\\d.,]+/').first()).toBeVisible();
   // Operación badge (selector específico para el tag, no el título)
-  await expect(card.locator('[class*="operationTag"], [class*="OperationTag"]').first()).toContainText(opLabel, { ignoreCase: true });
+  await expect(
+    card.locator('[class*="operationTag"], [class*="OperationTag"]').first(),
+  ).toContainText(opLabel, { ignoreCase: true });
   // Ubicación (ciudad/barrio)
-  await expect(card.locator('text=/Medellín|Envigado|Bello|Copacabana|Sabaneta|Itagüí|La Estrella|Rionegro/i')).toBeVisible();
+  await expect(
+    card.locator('text=/Medellín|Envigado|Bello|Copacabana|Sabaneta|Itagüí|La Estrella|Rionegro/i'),
+  ).toBeVisible();
   // Enlace a ficha
   const link = card.locator('a[href*="/propiedad/"]').first();
   await expect(link).toHaveAttribute('href', new RegExp(`/${locale}/propiedad/`));
@@ -42,13 +72,21 @@ async function verifyCatalogSEO(page: Page, routeKey: string, locale: string) {
   const ogType = page.locator('meta[property="og:type"]');
   await expect(ogType).toHaveAttribute('content', 'website');
   const canonical = page.locator('link[rel="canonical"]');
-  const expectedPath = locale === 'es' ? `/es/${routeKey}` : `/en/${routeKey === 'venta' ? 'sale' : routeKey === 'alquiler' ? 'rent' : 'projects'}`;
+  const expectedPath =
+    locale === 'es'
+      ? `/es/${routeKey}`
+      : `/en/${routeKey === 'venta' ? 'sale' : routeKey === 'alquiler' ? 'rent' : 'projects'}`;
   await expect(canonical).toHaveAttribute('href', new RegExp(expectedPath));
   // hreflang
   const hreflangEs = page.locator('link[rel="alternate"][hreflang="es-CO"]');
   await expect(hreflangEs).toHaveAttribute('href', new RegExp(`/es/${routeKey}`));
   const hreflangEn = page.locator('link[rel="alternate"][hreflang="en"]');
-  await expect(hreflangEn).toHaveAttribute('href', new RegExp(`/en/${routeKey === 'venta' ? 'sale' : routeKey === 'alquiler' ? 'rent' : 'projects'}`));
+  await expect(hreflangEn).toHaveAttribute(
+    'href',
+    new RegExp(
+      `/en/${routeKey === 'venta' ? 'sale' : routeKey === 'alquiler' ? 'rent' : 'projects'}`,
+    ),
+  );
 }
 
 // Helper: espera a que carguen las tarjetas (usa article como contenedor)
@@ -93,13 +131,17 @@ for (const route of CATALOG_ROUTES) {
             // Verificar que todas las tarjetas tienen operación correcta
             for (let i = 0; i < Math.min(count, 5); i++) {
               const card = cards.nth(i);
-              await expect(card.locator('[class*="operationTag"], [class*="OperationTag"]').first()).toContainText(opLabel, { ignoreCase: true });
+              await expect(
+                card.locator('[class*="operationTag"], [class*="OperationTag"]').first(),
+              ).toContainText(opLabel, { ignoreCase: true });
             }
           }
         });
 
         // Test 2: SEO técnico (skip: catálogo es client-side rendered, meta tags se inyectan tras hidratación)
-        test.skip('SEO: meta tags, canonical, hreflang, JSON-LD (client-side rendered)', async ({ page }) => {
+        test.skip('SEO: meta tags, canonical, hreflang, JSON-LD (client-side rendered)', async ({
+          page,
+        }) => {
           await page.goto(url, { waitUntil: 'networkidle' });
           await verifyCatalogSEO(page, route.key, locale);
         });
@@ -122,7 +164,9 @@ for (const route of CATALOG_ROUTES) {
           }
 
           // Filtro de precio (si existe)
-          const precioMin = page.locator('input[name="precioMin"], input[placeholder*="Mín"]').first();
+          const precioMin = page
+            .locator('input[name="precioMin"], input[placeholder*="Mín"]')
+            .first();
           const hasPrecio = (await precioMin.count()) > 0;
           if (hasPrecio) {
             await precioMin.fill('100000000');
@@ -188,7 +232,9 @@ test.describe('Catálogo usa datos reales (no mock)', () => {
 
 // ===== AC2.7: Sitemap incluye catálogo =====
 test.describe('Sitemap incluye rutas de catálogo', () => {
-  test('/sitemap.xml contiene /es/venta, /es/alquiler, /es/proyectos y /en/...', async ({ page }) => {
+  test('/sitemap.xml contiene /es/venta, /es/alquiler, /es/proyectos y /en/...', async ({
+    page,
+  }) => {
     const response = await page.request.get('/sitemap.xml');
     expect(response.status()).toBe(200);
     const xml = await response.text();

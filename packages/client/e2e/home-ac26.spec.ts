@@ -34,18 +34,18 @@ async function verifyAboutBlockDimensions(page: Page, expectedWidth: number) {
   const aboutBlock = page.locator('[class*="aboutBlock"]').first();
   await expect(aboutBlock).toBeVisible({ timeout: 10000 });
 
-  const blockWidth = await aboutBlock.evaluate((el) => Math.round(el.getBoundingClientRect().width));
+  const blockWidth = await aboutBlock.evaluate((el) =>
+    Math.round(el.getBoundingClientRect().width),
+  );
   expect(blockWidth).toBe(expectedWidth);
 
   // Verificar una sola columna (gridTemplateColumns = '720px' o '343px')
-  const gridCols = await aboutBlock.evaluate((el) =>
-    getComputedStyle(el).gridTemplateColumns
-  );
+  const gridCols = await aboutBlock.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
   expect(gridCols).toBe(`${expectedWidth}px`);
 
   // Verificar sin desborde horizontal
   const hasOverflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
   expect(hasOverflow).toBe(false);
 
@@ -65,7 +65,7 @@ async function verifyNosotrosLinks(page: Page, locale: string) {
       if (footer > 0) return 'footer';
       if (main > 0) return 'main';
       return 'otro';
-    })
+    }),
   );
   // Debe haber al menos nav, main, footer
   expect(contexts).toContain('nav');
@@ -93,9 +93,13 @@ for (const locale of HOME_URLS) {
       const firstCard = propertyCards;
       await expect(firstCard.locator('img, [class*="image"]').first()).toBeVisible();
       // Precio: puede ser "$ 150.000.000" (es) o "COP 150,000,000" (en)
-      await expect(firstCard.locator('text=/\\$\\s*[\\d.,]+|COP\\s*[\\d.,]+/').first()).toBeVisible();
+      await expect(
+        firstCard.locator('text=/\\$\\s*[\\d.,]+|COP\\s*[\\d.,]+/').first(),
+      ).toBeVisible();
       // Ubicación
-      await expect(firstCard.locator('[class*="specItem"], [class*="location"]').first()).toBeVisible();
+      await expect(
+        firstCard.locator('[class*="specItem"], [class*="location"]').first(),
+      ).toBeVisible();
     });
   });
 }
@@ -106,7 +110,9 @@ for (const locale of HOME_URLS) {
     test('muestra servicios ACTIVE desde /api/v1/services', async ({ page }) => {
       await page.goto(locale, { waitUntil: 'networkidle' });
 
-      const servicesSection = page.locator('[class*="servicesPreview"], [class*="servicesSection"]').first();
+      const servicesSection = page
+        .locator('[class*="servicesPreview"], [class*="servicesSection"]')
+        .first();
       await expect(servicesSection).toBeVisible({ timeout: 10000 });
 
       // Verificar al menos 2 servicios (asesoria-legal orden 1, administracion orden 2)
