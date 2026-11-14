@@ -12,6 +12,7 @@ import type { Request, Response, NextFunction } from 'express';
 const bodySchema = z.object({
   key: z.string().min(1),
   recurso: z.enum(['foto', 'panorama']),
+  propertyId: z.string().optional(),
 });
 
 /**
@@ -28,6 +29,7 @@ export const makeConfirmarMediaUploadHandler =
       const command: ConfirmarMediaUploadCommand = {
         key: body.key,
         recurso: body.recurso,
+        propertyId: body.propertyId,
       };
       const resultado = await useCase.execute(command);
 

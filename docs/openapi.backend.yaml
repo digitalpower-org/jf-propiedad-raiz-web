@@ -593,6 +593,9 @@ paths:
                   type: string
                   enum: [foto, panorama]
                   description: 'Destino del archivo: foto o panorámica 360° (AC1.9.1, US4.3.3).'
+                propertyId:
+                  type: string
+                  description: 'ID del inmueble al que se vinculan los derivados generados (opcional).'
       responses:
         '200':
           description: Derivados generados; el original se elimina después de guardarlos todos (AC1.9.1).
