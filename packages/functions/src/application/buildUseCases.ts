@@ -74,7 +74,11 @@ export function buildUseCases(ports: ApplicationPorts, config: { juanEmail: stri
     listarServices: new ListarServicesUseCase(ports.services, ports.logger),
     obtenerAbout: new ObtenerAboutUseCase(ports.about, ports.logger),
     presignMediaUpload: new PresignMediaUploadUseCase(ports.mediaStorage, ports.logger),
-    confirmarMediaUpload: new ConfirmarMediaUploadUseCase(ports.mediaStorage, ports.logger),
+    confirmarMediaUpload: new ConfirmarMediaUploadUseCase(
+      ports.mediaStorage,
+      ports.properties,
+      ports.logger,
+    ),
     crearConsignment: new CrearConsignmentUseCase(
       ports.emailSender,
       ports.logger,

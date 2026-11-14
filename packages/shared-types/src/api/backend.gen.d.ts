@@ -1249,6 +1249,8 @@ export interface operations {
                      * @enum {string}
                      */
                     recurso: "foto" | "panorama";
+                    /** @description ID del inmueble al que se vinculan los derivados generados (opcional). */
+                    propertyId?: string;
                 };
             };
         };
