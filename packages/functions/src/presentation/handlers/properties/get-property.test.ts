@@ -5,11 +5,11 @@ import { makeObtenerPropertyHandler } from './get-property';
 import type { AsyncHandler } from '../types';
 import type { Request, Response, NextFunction } from 'express';
 
-function makeRes() {
+function makeRes(userIdentity?: { uid: string; role: 'admin'; email: string }) {
   return {
     status: vi.fn().mockReturnThis(),
     json: vi.fn(),
-    locals: {},
+    locals: { userIdentity },
   } as unknown as Response;
 }
 
@@ -63,7 +63,7 @@ describe('makeObtenerPropertyHandler', () => {
       esPublico: true,
     });
     const handler = makeObtenerPropertyHandler(useCase);
-    const res = makeRes();
+    const res = makeRes({ uid: 'user-1', role: 'admin', email: 'admin@example.com' });
     const req = makeReq(
       { idOrSlug: 'doc-1' },
       {
@@ -117,7 +117,7 @@ describe('makeObtenerPropertyHandler', () => {
       esPublico: true,
     });
     const handler = makeObtenerPropertyHandler(useCase);
-    const res = makeRes();
+    const res = makeRes({ uid: 'user-1', role: 'admin', email: 'admin@example.com' });
     const req = makeReq(
       { idOrSlug: 'doc-1' },
       {
