@@ -32,16 +32,19 @@ async function captureHomeErrors(page: Page): Promise<string[]> {
 // Helper: verifica dimensiones del bloque Nosotros
 async function verifyAboutBlockDimensions(page: Page, expectedWidth: number) {
   const aboutBlock = page.locator('[class*="aboutBlock"]').first();
-  await expect(aboutBlock).toBeVisible({ timeout: 10000 });
+  const aboutContent = aboutBlock.locator('[class*="aboutContent"]').first();
+  await expect(aboutContent).toBeVisible({ timeout: 10000 });
 
-  const blockWidth = await aboutBlock.evaluate((el) =>
+  // El texto tiene ancho controlado: 720 px en escritorio, el ancho de la columna en móvil
+  const contentWidth = await aboutContent.evaluate((el) =>
     Math.round(el.getBoundingClientRect().width),
   );
-  expect(blockWidth).toBe(expectedWidth);
+  expect(contentWidth).toBe(expectedWidth);
 
-  // Verificar una sola columna (gridTemplateColumns = '720px' o '343px')
+  // Una sola columna: una única pista en la cuadrícula y un solo hijo en el bloque
   const gridCols = await aboutBlock.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
-  expect(gridCols).toBe(`${expectedWidth}px`);
+  expect(gridCols.trim().split(/\s+/)).toHaveLength(1);
+  expect(await aboutBlock.evaluate((el) => el.children.length)).toBe(1);
 
   // Verificar sin desborde horizontal
   const hasOverflow = await page.evaluate(
@@ -75,15 +78,9 @@ async function verifyNosotrosLinks(page: Page, locale: string) {
 
 test.describe.configure({ retries: 0 });
 
-<<<<<<< HEAD
 // ===== AC2.6.1: Bloque A - Destacadas reales =====
 for (const locale of HOME_URLS) {
   test.describe(`AC2.6.1 | Portada ${locale} - Destacadas reales`, () => {
-=======
-// ===== AC2.6.1: Bloque A - Destacadas reales =====
-for (const locale of HOME_URLS) {
-  test.describe(`AC2.6.1 | Portada ${locale} - Destacadas reales`, () => {
->>>>>>> 6b5b4a143fc77bb020f29bf0d8991578755b7b34
     test(
       `carga PropertyCard desde /api/v1/properties/featured`,
       { tag: '@backend' },
@@ -141,15 +138,9 @@ for (const locale of HOME_URLS) {
   });
 }
 
-<<<<<<< HEAD
 // ===== AC2.6.3: Bloque C - Nosotros (extracto real) =====
 for (const locale of HOME_URLS) {
   test.describe(`AC2.6.3 | Portada ${locale} - Nosotros extracto real`, () => {
-=======
-// ===== AC2.6.3: Bloque C - Nosotros (extracto real) =====
-for (const locale of HOME_URLS) {
-  test.describe(`AC2.6.3 | Portada ${locale} - Nosotros extracto real`, () => {
->>>>>>> 6b5b4a143fc77bb020f29bf0d8991578755b7b34
     test(
       'muestra extracto de /api/v1/about con fallback a español',
       { tag: '@backend' },
@@ -190,13 +181,8 @@ for (const locale of HOME_URLS) {
   });
 }
 
-<<<<<<< HEAD
 // ===== AC2.6.4: Sección oculta si vacío o error (requiere backend real caído - verificado manualmente) =====
 test.describe('AC2.6.4 | Nosotros se oculta si extracto vacío o backend falla', () => {
-=======
-// ===== AC2.6.4: Sección oculta si vacío o error (requiere backend real caído - verificado manualmente) =====
-test.describe('AC2.6.4 | Nosotros se oculta si extracto vacío o backend falla', () => {
->>>>>>> 6b5b4a143fc77bb020f29bf0d8991578755b7b34
   test.skip('simula backend fallando → sección Nosotros oculta (fetch server-side, no mockeable con Playwright)', async () => {
     // Verificado manualmente: al detener emulador Functions, sección se oculta
   });
@@ -206,30 +192,17 @@ test.describe('AC2.6.4 | Nosotros se oculta si extracto vacío o backend falla',
   });
 });
 
-<<<<<<< HEAD
 // ===== AC2.6.5: Backend caído → portada resiliente (requiere backend real caído - verificado manualmente) =====
 test.describe('AC2.6.5 | Backend caído - portada resiliente', () => {
   test.skip('todos los endpoints fallan → portada renderiza sin bloques y sin errores (fetch server-side, verificado manualmente)', async () => {
-=======
-// ===== AC2.6.5: Backend caído → portada resiliente (requiere backend real caído - verificado manualmente) =====
-test.describe('AC2.6.5 | Backend caído - portada resiliente', () => {
-  test.skip('todos los endpoints fallan → portada renderiza sin bloques y sin errores (fetch server-side, verificado manualmente)', async () => {
->>>>>>> 6b5b4a143fc77bb020f29bf0d8991578755b7b34
     // Verificado manualmente: al detener emulador Functions, portada pinta y oculta 3 bloques
   });
 });
 
-<<<<<<< HEAD
 // ===== AC2.6.6: Responsive =====
 for (const viewport of VIEWPORTS) {
   for (const locale of HOME_URLS) {
     test.describe(`AC2.6.6 | Responsive ${viewport.name} ${viewport.width}px - ${locale}`, () => {
-=======
-// ===== AC2.6.6: Responsive =====
-for (const viewport of VIEWPORTS) {
-  for (const locale of HOME_URLS) {
-    test.describe(`AC2.6.6 | Responsive ${viewport.name} ${viewport.width}px - ${locale}`, () => {
->>>>>>> 6b5b4a143fc77bb020f29bf0d8991578755b7b34
       test.use({ viewport: { width: viewport.width, height: viewport.height } });
 
       test(
@@ -246,15 +219,9 @@ for (const viewport of VIEWPORTS) {
   }
 }
 
-<<<<<<< HEAD
 // ===== AC2.6.7: 0 errores [home] en consola =====
 for (const locale of HOME_URLS) {
   test.describe(`AC2.6.7 | Portada ${locale} - Consola limpia`, () => {
-=======
-// ===== AC2.6.7: 0 errores [home] en consola =====
-for (const locale of HOME_URLS) {
-  test.describe(`AC2.6.7 | Portada ${locale} - Consola limpia`, () => {
->>>>>>> 6b5b4a143fc77bb020f29bf0d8991578755b7b34
     test('sin errores [home] en consola del navegador', async ({ page }) => {
       const errors = await captureHomeErrors(page);
       await page.goto(locale, { waitUntil: 'networkidle' });
