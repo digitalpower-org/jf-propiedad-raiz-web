@@ -409,16 +409,18 @@
   grid-template-columns: 1fr;
   gap: var(--spacing-32);
   align-items: center;
+  justify-items: center;
 }
 
 @media (min-width: 768px) {
   .aboutBlock {
-    max-width: 720px;
     text-align: left;
   }
 }
 
 .aboutContent {
+  max-width: 720px;
+  width: 100%;
   padding: var(--spacing-24) 0;
 }
 
