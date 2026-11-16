@@ -3,6 +3,7 @@ import { Router, type RequestHandler } from 'express';
 import type { UseCases } from '../application/buildUseCases';
 import type { ApiDeps } from './appBuilder';
 import { internalKeyGuard } from './guards/internal-key';
+import { optionalAdminIdentity, requireUserIdentity } from './guards/user-identity';
 import { buildHandlers } from './handlers';
 import { methodNotAllowed } from './middlewares/method-not-allowed';
 import { API_PATHS, OPS_PATHS } from './paths';
@@ -64,75 +65,75 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     {
       method: 'post',
       path: API_PATHS.properties,
-      guards: [guardInternal],
+      guards: [guardInternal, requireUserIdentity],
       handler: handlers.createProperty,
     },
     {
       method: 'put',
       path: API_PATHS.property,
-      guards: [guardInternal],
+      guards: [guardInternal, requireUserIdentity],
       handler: handlers.updateProperty,
     },
     {
       method: 'delete',
       path: API_PATHS.property,
-      guards: [guardInternal],
+      guards: [guardInternal, requireUserIdentity],
       handler: handlers.deleteProperty,
     },
     {
       method: 'post',
       path: API_PATHS.activateProperty,
-      guards: [guardInternal],
+      guards: [guardInternal, requireUserIdentity],
       handler: handlers.activateProperty,
     },
     {
       method: 'post',
       path: API_PATHS.hideProperty,
-      guards: [guardInternal],
+      guards: [guardInternal, requireUserIdentity],
       handler: handlers.hideProperty,
     },
-    // Propiedades — lectura pública (sin sesión)
+    // Propiedades — lectura pública (sin sesión obligatoria; identidad opcional para incluir HIDDEN)
     {
       method: 'get',
       path: API_PATHS.properties,
-      guards: [],
+      guards: [guardInternal, optionalAdminIdentity],
       handler: handlers.listProperties,
     },
     {
       method: 'get',
       path: API_PATHS.featuredProperties,
-      guards: [],
+      guards: [guardInternal],
       handler: handlers.listFeaturedProperties,
     },
     {
       method: 'get',
       path: API_PATHS.property,
-      guards: [],
+      guards: [guardInternal, optionalAdminIdentity],
       handler: handlers.obtenerProperty,
     },
     {
       method: 'get',
       path: API_PATHS.services,
-      guards: [],
+      guards: [guardInternal],
       handler: handlers.listServices,
     },
     {
       method: 'get',
       path: API_PATHS.about,
-      guards: [],
+      guards: [guardInternal],
       handler: handlers.getAbout,
     },
     // Media — presignar y confirmar subida (requieren sesión de admin)
     {
       method: 'post',
       path: API_PATHS.presignedMediaUrl,
-      guards: [guardInternal],
+      guards: [guardInternal, requireUserIdentity],
       handler: handlers.presignMediaUpload,
     },
     {
       method: 'post',
       path: API_PATHS.confirmMedia,
-      guards: [guardInternal],
+      guards: [guardInternal, requireUserIdentity],
       handler: handlers.confirmarMediaUpload,
     },
   ];
