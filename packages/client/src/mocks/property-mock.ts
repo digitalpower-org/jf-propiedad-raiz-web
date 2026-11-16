@@ -546,11 +546,3 @@ export function getPropertyBySlug(slug: string): PropertyDetail | undefined {
     fechaPublicacion: '2024-12-01',
   };
 }
-
-export function isNewProperty(createdAt: string): boolean {
-  const NEW_PROPERTY_DAYS = Number(process.env.NEW_PROPERTY_DAYS) || 30;
-  const created = new Date(createdAt);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-  return diffDays < NEW_PROPERTY_DAYS;
-}

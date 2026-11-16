@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  // AC1.11.3: la tarjeta se pinta también en el navegador, donde `process.env.NEW_FLAG_DAYS`
+  // no existe salvo que se inyecte al compilar. Vacío = valor por defecto (30 días).
+  env: {
+    NEW_FLAG_DAYS: process.env.NEW_FLAG_DAYS ?? '',
+  },
   // Rewrites para rutas traducidas: las carpetas físicas están en español
   // (venta, alquiler, etc.) pero las URLs en inglés usan los segmentos
   // traducidos (sale, rent, etc.) definidos en src/i18n/routes.ts.

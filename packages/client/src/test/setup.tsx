@@ -26,6 +26,7 @@ const { createTranslator, setLocale } = vi.hoisted(() => {
       contactAgent: 'Contactar agente',
       whatsappMessage:
         'Hola, me interesa la propiedad {codigo} - {titulo}. ¿Podrían darme más información?',
+      newBadge: 'Nuevo',
       New: 'Nuevo',
       Featured: 'Destacada',
     },
@@ -54,6 +55,7 @@ const { createTranslator, setLocale } = vi.hoisted(() => {
       contactAgent: 'Contact Agent',
       whatsappMessage:
         "Hello, I'm interested in property {codigo} - {titulo}. Could you provide more information?",
+      newBadge: 'New',
       New: 'New',
       Featured: 'Featured',
     },

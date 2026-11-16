@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import type { PropertyCard } from '@jf/shared-types';
-import { isNewProperty } from '@/mocks/property-mock';
+import { isNewProperty } from '@/lib/property';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
 import {
   formatPrice,
@@ -38,7 +38,7 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
 
   return (
     <article className={styles.card}>
-      {isNew && <div className={styles.newBadge}>{locale === 'es' ? 'Nuevo' : 'New'}</div>}
+      {isNew && <div className={styles.newBadge}>{t('newBadge')}</div>}
 
       <div className={styles.imageContainer}>
         {portada ? (
