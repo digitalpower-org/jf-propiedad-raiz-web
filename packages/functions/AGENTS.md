@@ -148,6 +148,16 @@ Envelope (D15):
 
 ---
 
+### CodeGraph (opcional, si está disponible)
+
+- **Detección:** úsalo solo si el binario está disponible (`command -v codegraph` o `~/.omo/codegraph/bin/codegraph`) y existe `.codegraph/` en la raíz del monorepo. El índice es local (ignorado por git); no es automático ni obligatorio.
+- **Mantenimiento:** desde la raíz, `codegraph status` / `codegraph sync` (o `index` tras cambios grandes) para mantener el grafo al día.
+- **Antes de refactor/cambios:** `codegraph impact|callers|callees <símbolo>` y `explore "<tema>"` para detectar usos e impactos cruzados (incluyendo otros paquetes) y evitar cabos sueltos.
+- **Tras tocar fuentes:** `codegraph affected <archivos...>` para ubicar tests a revisar/ejecutar.
+- **Fallback:** si no está disponible, el índice no existe o falla, continúa con las herramientas habituales (búsqueda/LSP/tests) sin bloquear la tarea.
+
+---
+
 ## 10. Git
 
 - Commits: `tipo(scope): descripción en español` (tipos en inglés: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`).
