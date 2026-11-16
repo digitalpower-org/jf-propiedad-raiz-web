@@ -20,6 +20,7 @@ import { createR2MediaStorage } from './media/r2-media-storage';
 import { createSharpImageProcessor } from './media/sharp-image-processor';
 import { ResendEmailSender } from './email/resend-email-sender';
 import { MemoryRateLimiter } from './rate-limiter/memory-rate-limiter';
+import { YouTubeOEmbedValidator } from './video/youtube-oembed-validator';
 
 export interface Infrastructure extends ApplicationPorts {
   readonly config: ServerConfig;
@@ -67,5 +68,6 @@ export function createInfrastructure(overrides: Partial<Infrastructure> = {}): I
       overrides.emailSender ??
       new ResendEmailSender(configValue.resendApiKey, configValue.resendFromEmail),
     rateLimiter: overrides.rateLimiter ?? new MemoryRateLimiter(),
+    videoValidator: overrides.videoValidator ?? new YouTubeOEmbedValidator(logger),
   };
 }

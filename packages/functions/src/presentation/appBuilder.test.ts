@@ -58,6 +58,7 @@ function makePorts() {
     },
     emailSender: { send: vi.fn() },
     rateLimiter: { check: vi.fn() },
+    videoValidator: { validate: vi.fn() },
   };
   return { ...ports, logger };
 }

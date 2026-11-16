@@ -8,6 +8,7 @@ import { errorCode } from '../../../domain/errors/errorCatalog';
 export interface ObtenerPropertyCommand {
   readonly idOrSlug: string;
   readonly esPublico: boolean;
+  readonly includeHidden?: boolean;
 }
 
 /**
@@ -24,7 +25,11 @@ export class ObtenerPropertyUseCase implements UseCase<
   ) {}
 
   async execute(command: ObtenerPropertyCommand): Promise<ObtenerPropertyResult> {
-    const resultado = await this.properties.findByIdOrSlug(command.idOrSlug, command.esPublico);
+    const resultado = await this.properties.findByIdOrSlug(
+      command.idOrSlug,
+      command.esPublico,
+      command.includeHidden,
+    );
 
     if (resultado === null) {
       throw new ApiError(errorCode.propertyNotFound, `Inmueble no encontrado: ${command.idOrSlug}`);

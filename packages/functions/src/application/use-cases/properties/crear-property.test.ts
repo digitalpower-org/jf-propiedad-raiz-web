@@ -34,6 +34,9 @@ function makePorts() {
       softDelete: vi.fn(),
     },
     revalidateContent: new FakeRevalidateContent(),
+    videoValidator: {
+      validate: vi.fn().mockResolvedValue(undefined),
+    },
     logger: {
       debug: vi.fn(),
       info: vi.fn(),
@@ -61,6 +64,7 @@ describe('CrearPropertyUseCase', () => {
     const useCase = new CrearPropertyUseCase(
       ports.properties,
       ports.revalidateContent,
+      ports.videoValidator,
       ports.logger,
     );
 
@@ -80,6 +84,7 @@ describe('CrearPropertyUseCase', () => {
     const useCase = new CrearPropertyUseCase(
       ports.properties,
       ports.revalidateContent,
+      ports.videoValidator,
       ports.logger,
     );
 
@@ -95,5 +100,64 @@ describe('CrearPropertyUseCase', () => {
         },
       }),
     ).rejects.toThrow('error_creando');
+  });
+
+  it('valida cada URL de YouTube antes de crear', async () => {
+    const ports = makePorts();
+    const input: CrearPropertyInputDto = {
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'Casa en venta' },
+      precio: 150000000,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+      videos: ['https://youtu.be/dQw4w9WgXcQ', 'https://youtu.be/abc123'],
+    };
+
+    ports.properties.create.mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+    });
+    const useCase = new CrearPropertyUseCase(
+      ports.properties,
+      ports.revalidateContent,
+      ports.videoValidator,
+      ports.logger,
+    );
+
+    await useCase.execute({ input });
+
+    expect(ports.videoValidator.validate).toHaveBeenCalledTimes(2);
+    expect(ports.videoValidator.validate).toHaveBeenCalledWith('https://youtu.be/dQw4w9WgXcQ');
+    expect(ports.videoValidator.validate).toHaveBeenCalledWith('https://youtu.be/abc123');
+  });
+
+  it('rechaza cuando una URL de YouTube es inválida', async () => {
+    const ports = makePorts();
+    ports.videoValidator.validate.mockRejectedValueOnce(new Error('URL de YouTube inválida'));
+    ports.properties.create.mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+    });
+    const useCase = new CrearPropertyUseCase(
+      ports.properties,
+      ports.revalidateContent,
+      ports.videoValidator,
+      ports.logger,
+    );
+
+    await expect(
+      useCase.execute({
+        input: {
+          operacion: 'VENTA',
+          tipo: 'CASA',
+          titulo: { es: 'Casa en venta' },
+          precio: 150000000,
+          departamento: 'Antioquia',
+          municipio: 'Medellín',
+          videos: ['https://youtu.be/invalido'],
+        },
+      }),
+    ).rejects.toThrow('URL de YouTube inválida');
+
+    expect(ports.properties.create).not.toHaveBeenCalled();
   });
 });

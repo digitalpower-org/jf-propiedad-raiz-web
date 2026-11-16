@@ -84,9 +84,10 @@ export function createR2MediaStorage(imageProcessor: ImageProcessor): MediaStora
     await r2Del(key);
 
     return {
-      derivados: derivados.map((d: { readonly clave: string; readonly ancho: number }) => ({
+      derivados: derivados.map((d) => ({
         clave: d.clave,
         ancho: d.ancho,
+        alto: d.alto,
       })),
     };
   }

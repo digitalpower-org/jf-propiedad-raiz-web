@@ -4,6 +4,7 @@
 export interface DerivadoImagenProcesado {
   readonly clave: string;
   readonly ancho: number;
+  readonly alto: number;
   readonly buffer: Buffer;
 }
 

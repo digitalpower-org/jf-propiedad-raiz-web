@@ -34,6 +34,9 @@ function makePorts() {
       softDelete: vi.fn(),
     },
     revalidateContent: new FakeRevalidateContent(),
+    videoValidator: {
+      validate: vi.fn().mockResolvedValue(undefined),
+    },
     logger: {
       debug: vi.fn(),
       info: vi.fn(),
@@ -53,6 +56,7 @@ describe('ActualizarPropertyUseCase', () => {
     const useCase = new ActualizarPropertyUseCase(
       ports.properties,
       ports.revalidateContent,
+      ports.videoValidator,
       ports.logger,
     );
 
@@ -75,6 +79,7 @@ describe('ActualizarPropertyUseCase', () => {
     const useCase = new ActualizarPropertyUseCase(
       ports.properties,
       ports.revalidateContent,
+      ports.videoValidator,
       ports.logger,
     );
 
@@ -84,5 +89,58 @@ describe('ActualizarPropertyUseCase', () => {
         input: { precio: 200000000 },
       }),
     ).rejects.toThrow('error_actualizando');
+  });
+
+  it('valida cada URL de YouTube antes de actualizar', async () => {
+    const ports = makePorts();
+    const input: ActualizarPropertyInputDto = {
+      precio: 200000000,
+      videos: ['https://youtu.be/dQw4w9WgXcQ', 'https://youtu.be/abc123'],
+    };
+
+    ports.properties.update.mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+    });
+    const useCase = new ActualizarPropertyUseCase(
+      ports.properties,
+      ports.revalidateContent,
+      ports.videoValidator,
+      ports.logger,
+    );
+
+    await useCase.execute({
+      idOrSlug: 'doc-1',
+      input,
+    });
+
+    expect(ports.videoValidator.validate).toHaveBeenCalledTimes(2);
+    expect(ports.videoValidator.validate).toHaveBeenCalledWith('https://youtu.be/dQw4w9WgXcQ');
+    expect(ports.videoValidator.validate).toHaveBeenCalledWith('https://youtu.be/abc123');
+  });
+
+  it('rechaza cuando una URL de YouTube es inválida en actualización', async () => {
+    const ports = makePorts();
+    ports.videoValidator.validate.mockRejectedValueOnce(new Error('URL de YouTube inválida'));
+    ports.properties.update.mockResolvedValue({
+      property: { codigo: 'JF-0001' },
+    });
+    const useCase = new ActualizarPropertyUseCase(
+      ports.properties,
+      ports.revalidateContent,
+      ports.videoValidator,
+      ports.logger,
+    );
+
+    await expect(
+      useCase.execute({
+        idOrSlug: 'doc-1',
+        input: {
+          precio: 200000000,
+          videos: ['https://youtu.be/invalido'],
+        },
+      }),
+    ).rejects.toThrow('URL de YouTube inválida');
+
+    expect(ports.properties.update).not.toHaveBeenCalled();
   });
 });

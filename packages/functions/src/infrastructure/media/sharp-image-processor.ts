@@ -58,6 +58,7 @@ export function createSharpImageProcessor(): ImageProcessor {
   ): Promise<DerivadosImagenResult> {
     const metadata = await sharp(buffer).metadata();
     const anchoOriginal = metadata.width ?? 0;
+    const altoOriginal = metadata.height ?? 0;
 
     const derivados: DerivadoImagenProcesado[] = [];
 
@@ -65,13 +66,14 @@ export function createSharpImageProcessor(): ImageProcessor {
       // No generar derivado más grande que la original
       if (anchoObjetivo > anchoOriginal) continue;
 
+      const altoObjetivo = Math.round(anchoObjetivo * (altoOriginal / anchoOriginal));
       const clave = `${claveBase}-${anchoObjetivo}.webp`;
       const bufferDerivado = await sharp(buffer)
         .resize(anchoObjetivo)
         .webp({ quality: 85, effort: 4 })
         .toBuffer();
 
-      derivados.push({ clave, ancho: anchoObjetivo, buffer: bufferDerivado });
+      derivados.push({ clave, ancho: anchoObjetivo, alto: altoObjetivo, buffer: bufferDerivado });
     }
 
     // Siempre incluir el derivado completo (tamaño original en WebP)
@@ -82,6 +84,7 @@ export function createSharpImageProcessor(): ImageProcessor {
       derivados.push({
         clave: claveCompleta,
         ancho: anchoOriginal,
+        alto: altoOriginal,
         buffer: bufferCompleto,
       });
     }
