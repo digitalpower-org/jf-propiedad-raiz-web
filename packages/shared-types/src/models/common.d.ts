@@ -66,9 +66,10 @@ export interface PuntoInteresPersonalizado {
 /** Punto de interés: categoría predefinida o ítem personalizado (MODELO DE DATOS, TASKS). */
 export type PuntoInteres = PuntoInteresPredefinido | PuntoInteresPersonalizado;
 
-/** Derivado WebP generado solo en el backend (US1.9); `ancho` es el lado mayor en px. */
+/** Derivado WebP generado solo en el backend (US1.9); `ancho` es el lado mayor en px y `alto` el lado menor. */
 export interface DerivadoImagen {
     readonly ancho: number;
+    readonly alto: number;
     readonly clave: string;
 }
 

@@ -1,4 +1,12 @@
-import type { EstadoPropiedad, Operacion, TipoInmueble } from '@jf/shared-types';
+import type {
+  EstadoPropiedad,
+  Foto,
+  Operacion,
+  Panorama,
+  TipoInmueble,
+  Translatable,
+  VideoYouTube,
+} from '@jf/shared-types';
 
 /**
  * Filtros del listado público de inmuebles (AC1.10.1).
@@ -15,6 +23,7 @@ export interface FiltrosListadoPublico {
   readonly precioMax?: number;
   readonly cursor?: string;
   readonly limit?: number;
+  readonly includeHidden?: boolean;
 }
 
 /**
@@ -50,8 +59,8 @@ export interface PropertyDto {
   readonly status: EstadoPropiedad;
   readonly operacion: Operacion;
   readonly tipo: TipoInmueble;
-  readonly titulo: { readonly es: string; readonly en?: string };
-  readonly descripcion?: { readonly es: string; readonly en?: string };
+  readonly titulo: Translatable;
+  readonly descripcion?: Translatable;
   readonly precio: number;
   readonly departamento: string;
   readonly municipio: string;
@@ -62,7 +71,7 @@ export interface PropertyDto {
   readonly estrato?: number;
   readonly predial?: string;
   readonly administracion?: string;
-  readonly acabados?: { readonly es: string; readonly en?: string };
+  readonly acabados?: Translatable;
   readonly antiguedad?: string;
   readonly areaConstruida?: number;
   readonly areaLote?: number;
@@ -71,11 +80,11 @@ export interface PropertyDto {
   readonly parqueaderos?: number;
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
-  readonly fotos?: readonly unknown[];
-  readonly videos?: readonly string[];
-  readonly panoramas?: readonly unknown[];
+  readonly fotos?: readonly Foto[];
+  readonly videos?: readonly VideoYouTube[];
+  readonly panoramas?: readonly Panorama[];
   readonly proyecto?: {
-    readonly etapa?: { readonly es: string; readonly en?: string };
+    readonly etapa?: Translatable;
     readonly fechaEntregaEstimada?: string;
     readonly unidadesDisponibles?: number;
   };
@@ -91,15 +100,15 @@ export interface ObtenerPropertyResult {
 export interface CrearPropertyInputDto {
   readonly operacion: Operacion;
   readonly tipo: TipoInmueble;
-  readonly titulo: { readonly es: string; readonly en?: string };
-  readonly descripcion?: { readonly es: string; readonly en?: string };
+  readonly titulo: Translatable;
+  readonly descripcion?: Translatable;
   readonly precio: number;
   readonly departamento: string;
   readonly municipio: string;
   readonly estrato?: number;
   readonly predial?: string;
   readonly administracion?: string;
-  readonly acabados?: { readonly es: string; readonly en?: string };
+  readonly acabados?: Translatable;
   readonly antiguedad?: string;
   readonly areaConstruida?: number;
   readonly areaLote?: number;
@@ -109,12 +118,12 @@ export interface CrearPropertyInputDto {
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
   readonly puntosInteres?: readonly unknown[];
-  readonly fotos?: readonly unknown[];
-  readonly videos?: readonly string[];
-  readonly panoramas?: readonly unknown[];
+  readonly fotos?: readonly Foto[];
+  readonly videos?: readonly VideoYouTube[];
+  readonly panoramas?: readonly Panorama[];
   readonly destacada?: boolean;
   readonly proyecto?: {
-    readonly etapa?: { readonly es: string; readonly en?: string };
+    readonly etapa?: Translatable;
     readonly fechaEntregaEstimada?: string;
     readonly unidadesDisponibles?: number;
   };
@@ -124,15 +133,15 @@ export interface CrearPropertyInputDto {
 export interface ActualizarPropertyInputDto {
   readonly operacion?: Operacion;
   readonly tipo?: TipoInmueble;
-  readonly titulo?: { readonly es: string; readonly en?: string };
-  readonly descripcion?: { readonly es: string; readonly en?: string };
+  readonly titulo?: Translatable;
+  readonly descripcion?: Translatable;
   readonly precio?: number;
   readonly departamento?: string;
   readonly municipio?: string;
   readonly estrato?: number;
   readonly predial?: string;
   readonly administracion?: string;
-  readonly acabados?: { readonly es: string; readonly en?: string };
+  readonly acabados?: Translatable;
   readonly antiguedad?: string;
   readonly areaConstruida?: number;
   readonly areaLote?: number;
@@ -142,12 +151,12 @@ export interface ActualizarPropertyInputDto {
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
   readonly puntosInteres?: readonly unknown[];
-  readonly fotos?: readonly unknown[];
-  readonly videos?: readonly string[];
-  readonly panoramas?: readonly unknown[];
+  readonly fotos?: readonly Foto[];
+  readonly videos?: readonly VideoYouTube[];
+  readonly panoramas?: readonly Panorama[];
   readonly destacada?: boolean;
   readonly proyecto?: {
-    readonly etapa?: { readonly es: string; readonly en?: string };
+    readonly etapa?: Translatable;
     readonly fechaEntregaEstimada?: string;
     readonly unidadesDisponibles?: number;
   };
@@ -186,6 +195,7 @@ export interface PropertiesRepository {
   readonly findByIdOrSlug: (
     idOrSlug: string,
     esPublico: boolean,
+    includeHidden?: boolean,
   ) => Promise<ObtenerPropertyResult | null>;
   readonly listPublico: (filtros: FiltrosListadoPublico) => Promise<ListadoPublicoResult>;
   readonly getFeatured: () => Promise<readonly PropertyCardDto[]>;

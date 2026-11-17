@@ -29,7 +29,7 @@
     "r2:down": "docker compose -f ${R2_COMPOSE_FILE:-../../docker-services/minio/docker-compose.yml} down",
     "r2:init": "bash scripts/r2-init.sh",
     "seed:admins": "FIRESTORE_EMULATOR_HOST=localhost:8080 node firestore-seed.js",
-    "seed:catalog": "npm run build -w @jf/functions && node packages/functions/lib/seed/catalog-seed-cli.js",
+    "seed:catalog": "npm run build -w @jf/functions && FIRESTORE_EMULATOR_HOST=localhost:8080 node --env-file=packages/functions/.env packages/functions/lib/seed/catalog-seed-cli.js",
     "report": "node scripts/report.mjs"
   },
   "devEngines": {

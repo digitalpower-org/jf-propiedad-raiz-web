@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { RateLimiter } from '../../../application/ports/rate-limiter';
 import type { VerifyInternalSessionUseCase } from '../../../application/use-cases/auth/verify-internal-session';
 import type { VerifiedIdentity } from '../../../application/use-cases/auth/verify-internal-session';
 import { makeVerifyInternalSessionHandler } from './verify-internal-session';
@@ -32,16 +33,19 @@ const identity: VerifiedIdentity = {
   role: 'admin',
 };
 
+const rateLimiter: RateLimiter = { check: vi.fn().mockResolvedValue(undefined) };
+
 describe('makeVerifyInternalSessionHandler', () => {
   it('responde con la identidad verificada y mensaje de éxito', async () => {
     const useCase = { execute: vi.fn() } as unknown as VerifyInternalSessionUseCase;
     (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue(identity);
-    const handler = makeVerifyInternalSessionHandler(useCase);
+    const handler = makeVerifyInternalSessionHandler(useCase, rateLimiter);
     const res = makeRes();
     const req = makeReq({ idToken: 'token-123' });
 
     await (handler as AsyncHandler)(req, res, next);
 
+    expect(rateLimiter.check).toHaveBeenCalled();
     expect(useCase.execute).toHaveBeenCalledWith({ idToken: 'token-123' });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
@@ -55,7 +59,7 @@ describe('makeVerifyInternalSessionHandler', () => {
   it('pasa el error a next cuando el use case falla', async () => {
     const useCase = { execute: vi.fn() } as unknown as VerifyInternalSessionUseCase;
     (useCase.execute as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('token_invalido'));
-    const handler = makeVerifyInternalSessionHandler(useCase);
+    const handler = makeVerifyInternalSessionHandler(useCase, rateLimiter);
     const res = makeRes();
     const req = makeReq({ idToken: 'token-123' });
 

@@ -55,10 +55,16 @@ export function buildUseCases(ports: ApplicationPorts, config: { juanEmail: stri
       logger: ports.logger,
     }),
     revalidateContent,
-    crearProperty: new CrearPropertyUseCase(ports.properties, revalidateContent, ports.logger),
+    crearProperty: new CrearPropertyUseCase(
+      ports.properties,
+      revalidateContent,
+      ports.videoValidator,
+      ports.logger,
+    ),
     actualizarProperty: new ActualizarPropertyUseCase(
       ports.properties,
       revalidateContent,
+      ports.videoValidator,
       ports.logger,
     ),
     eliminarProperty: new EliminarPropertyUseCase(

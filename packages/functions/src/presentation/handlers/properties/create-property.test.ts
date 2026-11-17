@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CrearPropertyUseCase } from '../../../application/use-cases/properties/crear-property';
 import type { CrearPropertyInputDto } from '../../../application/ports/properties-repository';
 import { makeCreatePropertyHandler } from './create-property';
 import type { AsyncHandler } from '../types';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 
 function makeRes() {
   return {
@@ -24,7 +24,7 @@ function makeReq(body: unknown) {
   } as unknown as Request;
 }
 
-const next = vi.fn() as unknown as NextFunction;
+const next = vi.fn();
 
 const validBody: CrearPropertyInputDto = {
   operacion: 'VENTA',
@@ -36,18 +36,20 @@ const validBody: CrearPropertyInputDto = {
 };
 
 describe('makeCreatePropertyHandler', () => {
+  beforeEach(() => {
+    next.mockClear();
+  });
+
   it('responde 201 con la propiedad creada y mensaje de éxito', async () => {
-    const useCase = { execute: vi.fn() } as unknown as CrearPropertyUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
-      property: { codigo: 'JF-0001' },
-    });
+    const useCase = {
+      execute: async () => ({ property: { codigo: 'JF-0001' } }),
+    } as unknown as CrearPropertyUseCase;
     const handler = makeCreatePropertyHandler(useCase);
     const res = makeRes();
     const req = makeReq(validBody);
 
-    await (handler as AsyncHandler)(req, res, next);
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
 
-    expect(useCase.execute).toHaveBeenCalledWith({ input: validBody });
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -58,13 +60,87 @@ describe('makeCreatePropertyHandler', () => {
   });
 
   it('pasa el error a next cuando el use case falla', async () => {
-    const useCase = { execute: vi.fn() } as unknown as CrearPropertyUseCase;
-    (useCase.execute as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('error_creando'));
+    const useCase = {
+      execute: async () => {
+        throw new Error('error_creando');
+      },
+    } as unknown as CrearPropertyUseCase;
     const handler = makeCreatePropertyHandler(useCase);
     const res = makeRes();
     const req = makeReq(validBody);
 
-    await (handler as AsyncHandler)(req, res, next);
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('acepta fotos, videos y panoramas en el body de creación', async () => {
+    const received: unknown[] = [];
+    const useCase = {
+      execute: async (cmd: { input: unknown }) => {
+        received.push(cmd);
+        return { property: { codigo: 'JF-0001' } };
+      },
+    } as unknown as CrearPropertyUseCase;
+    const handler = makeCreatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq({
+      ...validBody,
+      fotos: [
+        {
+          derivados: [
+            { clave: 'abc-123-320.webp', ancho: 320, alto: 240 },
+            { clave: 'abc-123-640.webp', ancho: 640, alto: 480 },
+          ],
+        },
+      ],
+      videos: ['https://youtu.be/abc123'],
+      panoramas: [
+        {
+          derivados: [{ clave: 'pqr-456-2048.webp', ancho: 2048, alto: 1024 }],
+        },
+      ],
+    });
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(received).toHaveLength(1);
+    expect(received[0]).toEqual({
+      input: {
+        ...validBody,
+        fotos: [
+          {
+            derivados: [
+              { clave: 'abc-123-320.webp', ancho: 320, alto: 240 },
+              { clave: 'abc-123-640.webp', ancho: 640, alto: 480 },
+            ],
+          },
+        ],
+        videos: ['https://youtu.be/abc123'],
+        panoramas: [
+          {
+            derivados: [{ clave: 'pqr-456-2048.webp', ancho: 2048, alto: 1024 }],
+          },
+        ],
+      },
+    });
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('rechaza fotos sin derivados', async () => {
+    const useCase = {
+      execute: async () => ({ property: { codigo: 'JF-0001' } }),
+    } as unknown as CrearPropertyUseCase;
+    const handler = makeCreatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq({
+      ...validBody,
+      fotos: [{ derivados: [] }],
+    });
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
 
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(res.status).not.toHaveBeenCalled();

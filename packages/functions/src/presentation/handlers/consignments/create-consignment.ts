@@ -41,9 +41,11 @@ export const makeCreateConsignmentHandler =
   (crearConsignmentUseCase: CrearConsignmentUseCase, rateLimiter: RateLimiter): AsyncHandler =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const clientIp = req.headers['x-client-ip'] as string | undefined;
-      if (!clientIp) {
-        throw new Error('X-Client-IP header requerido');
+      const clientIp = req.header('x-client-ip');
+      if (!clientIp || clientIp.trim() === '') {
+        throw new ApiError(errorCode.validationError, 'Falta la cabecera X-Client-IP', [
+          { field: 'x-client-ip', issue: 'La cabecera X-Client-IP es obligatoria' },
+        ]);
       }
 
       // AC3.4.2 — Límite de envíos: máximo 5 por minuto desde la misma IP.
@@ -56,12 +58,14 @@ export const makeCreateConsignmentHandler =
         throw error;
       }
 
-      bodySchema.parse(req.body);
+      const input = bodySchema.parse(req.body);
+      if (input.consent !== true) {
+        throw new ApiError(errorCode.consentRequired, 'Se requiere consentimiento para enviar');
+      }
 
       const resultado = await crearConsignmentUseCase.execute({
-        input: req.body as Parameters<CrearConsignmentUseCase['execute']>[0]['input'],
+        input: { ...input, consent: true },
       });
-
       writeSuccess(res, resultado, 'Solicitud de consignación registrada');
     } catch (error) {
       next(error);

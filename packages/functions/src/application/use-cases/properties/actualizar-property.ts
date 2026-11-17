@@ -1,6 +1,7 @@
 import type { UseCase } from '../../use-case';
 import type { Logger } from '../../ports/logger';
 import type { PropertiesRepository } from '../../ports/properties-repository';
+import type { VideoValidator } from '../../ports/video-validator';
 import type {
   ActualizarPropertyResult,
   ActualizarPropertyInputDto,
@@ -24,10 +25,17 @@ export class ActualizarPropertyUseCase implements UseCase<
   constructor(
     private readonly properties: PropertiesRepository,
     private readonly revalidateContent: RevalidateContent,
+    private readonly videoValidator: VideoValidator,
     private readonly logger: Logger,
   ) {}
 
   async execute(command: ActualizarPropertyCommand): Promise<ActualizarPropertyResult> {
+    if (command.input.videos) {
+      for (const videoUrl of command.input.videos) {
+        await this.videoValidator.validate(videoUrl);
+      }
+    }
+
     const resultado = await this.properties.update(command.idOrSlug, command.input);
 
     await this.revalidateContent.revalidate('propiedades');

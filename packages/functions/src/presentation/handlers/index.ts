@@ -38,7 +38,10 @@ export interface Handlers {
 
 export function buildHandlers(useCases: UseCases): Handlers {
   return {
-    verifyInternalSession: makeVerifyInternalSessionHandler(useCases.verifyInternalSession),
+    verifyInternalSession: makeVerifyInternalSessionHandler(
+      useCases.verifyInternalSession,
+      useCases.rateLimiter,
+    ),
     health: healthHandler,
     createProperty: makeCreatePropertyHandler(useCases.crearProperty),
     updateProperty: makeUpdatePropertyHandler(useCases.actualizarProperty),
@@ -50,8 +53,14 @@ export function buildHandlers(useCases: UseCases): Handlers {
     listFeaturedProperties: makeListFeaturedPropertiesHandler(useCases.listarFeaturedProperties),
     listServices: makeListServicesHandler(useCases.listarServices),
     getAbout: makeGetAboutHandler(useCases.obtenerAbout),
-    presignMediaUpload: makePresignMediaUploadHandler(useCases.presignMediaUpload),
-    confirmarMediaUpload: makeConfirmarMediaUploadHandler(useCases.confirmarMediaUpload),
+    presignMediaUpload: makePresignMediaUploadHandler(
+      useCases.presignMediaUpload,
+      useCases.rateLimiter,
+    ),
+    confirmarMediaUpload: makeConfirmarMediaUploadHandler(
+      useCases.confirmarMediaUpload,
+      useCases.rateLimiter,
+    ),
     createConsignment: makeCreateConsignmentHandler(
       useCases.crearConsignment,
       useCases.rateLimiter,

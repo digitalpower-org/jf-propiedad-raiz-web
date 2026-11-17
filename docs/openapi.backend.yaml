@@ -79,6 +79,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/properties:
     get:
       tags: [properties]
@@ -151,6 +155,17 @@ paths:
             minimum: 1
             maximum: 50
           description: 'Tamaño de página: 12 por defecto, máx. 50 (AC1.10.1, D19).'
+        - name: includeHidden
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: >-
+            Si es `true`, incluye inmuebles `HIDDEN` en la respuesta. Solo tiene efecto cuando
+            la petición incluye identidad de sesión de administrador válida
+            (`X-User-Id`, `X-User-Role: admin`, `X-User-Email`); sin ella o con identidad parcial/inválida
+            responde 401 `UNAUTHORIZED`. Si no se recibe, se considera `false`.
       responses:
         '200':
           description: Página de tarjetas con cursor siguiente.
@@ -170,6 +185,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
     post:
       tags: [properties]
       operationId: createProperty
@@ -225,6 +242,8 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/properties/featured:
     get:
       tags: [properties]
@@ -258,6 +277,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/properties/{idOrSlug}:
     get:
       tags: [properties]
@@ -294,6 +315,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
     put:
       tags: [properties]
       operationId: updateProperty
@@ -353,6 +376,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
     delete:
       tags: [properties]
       operationId: deleteProperty
@@ -397,6 +422,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/properties/{idOrSlug}/activate:
     post:
       tags: [properties]
@@ -451,6 +478,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/properties/{idOrSlug}/hide:
     post:
       tags: [properties]
@@ -496,6 +525,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/media/presigned-url:
     post:
       tags: [media]
@@ -558,8 +589,12 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/media/confirm:
     post:
       tags: [media]
@@ -626,8 +661,12 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/consignments:
     post:
       tags: [consignments]
@@ -676,6 +715,8 @@ paths:
           $ref: '#/components/responses/InternalError'
         '502':
           $ref: '#/components/responses/EmailDeliveryFailed'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/services:
     get:
       tags: [services]
@@ -708,6 +749,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
     post:
       tags: [services]
       operationId: createService
@@ -755,6 +798,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/services/{idOrSlug}:
     get:
       tags: [services]
@@ -788,6 +833,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
     put:
       tags: [services]
       operationId: updateService
@@ -846,6 +893,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
     delete:
       tags: [services]
       operationId: deleteService
@@ -890,6 +939,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/services/{idOrSlug}/activate:
     post:
       tags: [services]
@@ -934,6 +985,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/services/{idOrSlug}/hide:
     post:
       tags: [services]
@@ -978,6 +1031,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/services/reorder:
     post:
       tags: [services]
@@ -1025,6 +1080,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/about:
     get:
       tags: [about]
@@ -1054,6 +1111,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
     put:
       tags: [about]
       operationId: updateAbout
@@ -1102,6 +1161,30 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+  /health:
+    get:
+      tags: [ops]
+      operationId: healthCheck
+      summary: Comprobación de salud del servicio (operativo)
+      description: |
+        Endpoint operativo para liveness/readiness interno. No forma parte del contrato funcional
+        BFF↔Functions de negocio y no exige `X-Internal-Key`.
+      security: []
+      responses:
+        '200':
+          description: Servicio operativo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+
 components:
   securitySchemes:
     X-Internal-Key:
@@ -1190,6 +1273,12 @@ components:
             $ref: '#/components/schemas/ApiError'
     EmailDeliveryFailed:
       description: '502 `EMAIL_DELIVERY_FAILED`: falló el correo a Juan Fernando; no se envía el recibo (AC3.2.4).'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    MethodNotAllowed:
+      description: '405 `METHOD_NOT_ALLOWED`: el método HTTP no está permitido para esta ruta.'
       content:
         application/json:
           schema:

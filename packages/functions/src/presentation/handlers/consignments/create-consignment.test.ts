@@ -53,6 +53,7 @@ function makePorts(overrides: Partial<ApplicationPorts> = {}): ApplicationPorts 
     imageProcessor: { validarImagen: vi.fn(), generarDerivados: vi.fn() },
     emailSender: { send: vi.fn().mockResolvedValue(undefined) },
     rateLimiter: { check: vi.fn().mockResolvedValue(undefined) },
+    videoValidator: { validate: vi.fn().mockResolvedValue(undefined) },
     ...overrides,
   };
 }
@@ -77,7 +78,7 @@ describe('POST /api/v1/consignments', () => {
     expect(response.body.data.code).toBe('UNAUTHORIZED');
   });
 
-  it('rechaza sin X-Client-IP con 500 (cabecera requerida para rate limit)', async () => {
+  it('rechaza sin X-Client-IP con 422 VALIDATION_ERROR', async () => {
     const { app } = setup();
 
     const response = await request(app)
@@ -85,7 +86,8 @@ describe('POST /api/v1/consignments', () => {
       .set('X-Internal-Key', INTERNAL_KEY)
       .send(inputValido);
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(422);
+    expect(response.body.data.code).toBe('VALIDATION_ERROR');
   });
 
   it('rechaza con 422 cuando consent falta (CONSENT_REQUIRED)', async () => {
