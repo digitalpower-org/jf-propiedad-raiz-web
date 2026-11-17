@@ -46,12 +46,16 @@ const expectedGuards: Record<string, readonly string[]> = {
   [`get:${API_PATHS.properties}`]: [
     'guard-internal',
     'optional-admin-identity',
-    'rate-public-read',
+    'rate-public-properties-list',
   ],
-  [`get:${API_PATHS.featuredProperties}`]: ['guard-internal', 'rate-public-read'],
-  [`get:${API_PATHS.property}`]: ['guard-internal', 'optional-admin-identity', 'rate-public-read'],
-  [`get:${API_PATHS.services}`]: ['guard-internal', 'rate-public-read'],
-  [`get:${API_PATHS.about}`]: ['guard-internal', 'rate-public-read'],
+  [`get:${API_PATHS.featuredProperties}`]: ['guard-internal', 'rate-public-featured'],
+  [`get:${API_PATHS.property}`]: [
+    'guard-internal',
+    'optional-admin-identity',
+    'rate-public-property-detail',
+  ],
+  [`get:${API_PATHS.services}`]: ['guard-internal', 'rate-public-services'],
+  [`get:${API_PATHS.about}`]: ['guard-internal', 'rate-public-about'],
   [`post:${API_PATHS.presignedMediaUrl}`]: [
     'guard-internal',
     'require-user-identity',

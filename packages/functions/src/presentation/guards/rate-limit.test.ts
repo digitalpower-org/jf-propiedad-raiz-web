@@ -6,11 +6,11 @@ import { ApiError } from '../../domain/errors/api-error';
 import { errorCode } from '../../domain/errors/errorCatalog';
 import {
   clientIpKey,
-  fallbackClientIpKey,
   fixedKey,
   identityKey,
   makeFailOpenRateLimitGuard,
   makeRateLimitGuard,
+  publicReadKey,
   socketIpKey,
   type RateLimitConfig,
   type RateLimitRequest,
@@ -159,25 +159,27 @@ describe('extractores de clave', () => {
     expect(clientIpKey(req)).toBe('');
   });
 
-  it('fallbackClientIpKey prefiere x-client-ip', () => {
+  it('publicReadKey incluye cliente y ruta', () => {
     const { req } = makeReqRes({
       header: vi.fn().mockReturnValue('1.2.3.4'),
       ip: '5.6.7.8',
+      path: '/api/v1/about',
     });
-    expect(fallbackClientIpKey(req)).toBe('1.2.3.4');
+    expect(publicReadKey(req)).toBe('client:/api/v1/about:1.2.3.4');
   });
 
-  it('fallbackClientIpKey cae a req.ip', () => {
+  it('publicReadKey aísla SSR por ruta sin usar req.ip', () => {
     const { req } = makeReqRes({
       header: vi.fn().mockReturnValue(undefined),
       ip: '5.6.7.8',
+      path: '/api/v1/services',
     });
-    expect(fallbackClientIpKey(req)).toBe('5.6.7.8');
+    expect(publicReadKey(req)).toBe('ssr:/api/v1/services');
   });
 
-  it('fallbackClientIpKey cae a unknown', () => {
+  it('publicReadKey usa unknown cuando no hay ruta', () => {
     const { req } = makeReqRes({ header: vi.fn().mockReturnValue(undefined) });
-    expect(fallbackClientIpKey(req)).toBe('unknown');
+    expect(publicReadKey(req)).toBe('ssr:unknown');
   });
 
   it('socketIpKey usa req.ip', () => {

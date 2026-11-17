@@ -7,10 +7,10 @@ import { requireClientIp } from './guards/client-ip';
 import {
   clientIpKey,
   fixedKey,
-  fallbackClientIpKey,
   identityKey,
   makeFailOpenRateLimitGuard,
   makeRateLimitGuard,
+  publicReadKey,
   socketIpKey,
 } from './guards/rate-limit';
 import { optionalAdminIdentity, requireUserIdentity } from './guards/user-identity';
@@ -57,13 +57,26 @@ function withName(handler: RequestHandler, name: string): RequestHandler {
   return handler;
 }
 
+function publicReadGuard(useCases: UseCases, deps: ApiDeps, name: string, limit: number) {
+  return withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name,
+      keyFrom: publicReadKey,
+      limit,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    name,
+  );
+}
+
 export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
   const router = Router();
   const handlers = buildHandlers(useCases);
   const guardInternal = withName(internalKeyGuard(deps), 'guard-internal');
   const requireClientIpGuard = withName(requireClientIp, 'require-client-ip');
   const requireUserIdentityGuard = withName(requireUserIdentity, 'require-user-identity');
-  const optionalAdminIdentityGuard = withName(optionalAdminIdentity, 'optional-admin-identity');
+  const optionalAdmin = withName(optionalAdminIdentity, 'optional-admin-identity');
 
   // Instanciados una vez por router; el orden es guardInternal → (IP/identidad) → rateLimit → handler.
   const rateVerify = withName(
@@ -76,7 +89,6 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     }),
     'rate-verify-internal-session',
   );
-
   const rateHealth = withName(
     makeFailOpenRateLimitGuard(useCases.rateLimiter, deps.logger, {
       name: 'rate-health',
@@ -87,7 +99,6 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     }),
     'rate-health',
   );
-
   const rateConsignment = withName(
     makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
       name: 'rate-consignment',
@@ -98,7 +109,6 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     }),
     'rate-consignment',
   );
-
   const rateAdminWrite = withName(
     makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
       name: 'rate-admin-write',
@@ -110,17 +120,7 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     'rate-admin-write',
   );
 
-  const ratePublicRead = withName(
-    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
-      name: 'rate-public-read',
-      keyFrom: fallbackClientIpKey,
-      limit: 60,
-      windowSeconds: 60,
-      message: 'Límite de solicitudes excedido',
-    }),
-    'rate-public-read',
-  );
-
+  const readGuard = (name: string, limit: number) => publicReadGuard(useCases, deps, name, limit);
   const rateMediaPresign = withName(
     makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
       name: 'rate-media-presign',
@@ -131,7 +131,6 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     }),
     'rate-media-presign',
   );
-
   const rateMediaConfirm = withName(
     makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
       name: 'rate-media-confirm',
@@ -197,31 +196,31 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     {
       method: 'get',
       path: API_PATHS.properties,
-      guards: [guardInternal, optionalAdminIdentityGuard, ratePublicRead],
+      guards: [guardInternal, optionalAdmin, readGuard('rate-public-properties-list', 60)],
       handler: handlers.listProperties,
     },
     {
       method: 'get',
       path: API_PATHS.featuredProperties,
-      guards: [guardInternal, ratePublicRead],
+      guards: [guardInternal, readGuard('rate-public-featured', 120)],
       handler: handlers.listFeaturedProperties,
     },
     {
       method: 'get',
       path: API_PATHS.property,
-      guards: [guardInternal, optionalAdminIdentityGuard, ratePublicRead],
+      guards: [guardInternal, optionalAdmin, readGuard('rate-public-property-detail', 60)],
       handler: handlers.obtenerProperty,
     },
     {
       method: 'get',
       path: API_PATHS.services,
-      guards: [guardInternal, ratePublicRead],
+      guards: [guardInternal, readGuard('rate-public-services', 120)],
       handler: handlers.listServices,
     },
     {
       method: 'get',
       path: API_PATHS.about,
-      guards: [guardInternal, ratePublicRead],
+      guards: [guardInternal, readGuard('rate-public-about', 60)],
       handler: handlers.getAbout,
     },
     // Media — presignar y confirmar subida (requieren sesión de admin)

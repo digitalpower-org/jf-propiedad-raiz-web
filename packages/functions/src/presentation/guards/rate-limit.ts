@@ -25,6 +25,7 @@ import type { UserIdentity } from './user-identity';
 export interface RateLimitRequest {
   readonly header: (name: string) => string | undefined;
   readonly ip?: string;
+  readonly path?: string;
 }
 
 /** Subconjunto mínimo de Express.Response que consumen los extractores de clave. */
@@ -122,9 +123,11 @@ export function clientIpKey(req: RateLimitRequest): string {
   return req.header('x-client-ip') ?? '';
 }
 
-/** Clave con fallback: `x-client-ip ?? req.ip ?? 'unknown'`. */
-export function fallbackClientIpKey(req: RateLimitRequest): string {
-  return req.header('x-client-ip') ?? req.ip ?? 'unknown';
+/** Clave pública que aísla buckets por ruta y, si hay cliente, por IP. */
+export function publicReadKey(req: RateLimitRequest): string {
+  const path = req.path ?? 'unknown';
+  const clientIp = req.header('x-client-ip');
+  return clientIp ? `client:${path}:${clientIp}` : `ssr:${path}`;
 }
 
 /** Clave a partir de `req.ip`, con fallback `'unknown'`. */

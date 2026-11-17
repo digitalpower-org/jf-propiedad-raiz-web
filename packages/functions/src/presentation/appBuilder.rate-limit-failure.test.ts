@@ -61,7 +61,7 @@ describe('Rate limit — modos de fallo (fail-close / fail-open)', () => {
       'rate_limiter_unavailable',
       expect.any(Error),
       expect.objectContaining({
-        guard: 'rate-public-read',
+        guard: 'rate-public-featured',
         requestId: expect.any(String),
       }),
     );
