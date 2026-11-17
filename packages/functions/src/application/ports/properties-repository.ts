@@ -122,6 +122,7 @@ export interface CrearPropertyInputDto {
   readonly videos?: readonly VideoYouTube[];
   readonly panoramas?: readonly Panorama[];
   readonly destacada?: boolean;
+  readonly fechaPublicacion?: string;
   readonly proyecto?: {
     readonly etapa?: Translatable;
     readonly fechaEntregaEstimada?: string;
