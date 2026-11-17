@@ -132,7 +132,7 @@ const SLUG_SWITCH_CASES: { from: string; to: string; backend: boolean }[] = [
   {
     from: '/es/servicios/asesoria-legal',
     to: '/en/services/asesoria-legal',
-    backend: false,
+    backend: true,
   },
 ];
 
