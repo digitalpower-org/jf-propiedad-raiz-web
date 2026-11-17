@@ -103,7 +103,7 @@
     - [ ] `[D2]` UI formulario `app/[locale]/consignar` (campos, consentimiento, manejo 429/422/500)
   - [ ] US3.2 `[D1]` Notificación por correo con Resend (BFF/Functions)
   - [ ] US3.3 `[D2]` Consentimiento de tratamiento de datos (UI)
-  - [ ] US3.4 `[D1]` Protección contra bots y límite de envíos (BFF/Functions)
+  - [x] US3.4 `[D1]` Protección contra bots y límite de envíos (BFF/Functions)
 
 ---
 

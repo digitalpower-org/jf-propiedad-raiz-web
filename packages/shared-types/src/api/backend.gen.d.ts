@@ -802,7 +802,7 @@ export interface components {
                 "application/json": components["schemas"]["ApiError"];
             };
         };
-        /** @description 429 `RATE_LIMITED`: más de 5 envíos en un minuto desde la misma IP (AC3.4.2). */
+        /** @description 429 RATE_LIMITED: límite de solicitudes excedido; el criterio por operación se describe en el endpoint. */
         RateLimited: {
             headers: {
                 [name: string]: unknown;
@@ -932,6 +932,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1005,6 +1006,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1034,6 +1036,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1082,6 +1085,7 @@ export interface operations {
             405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1122,6 +1126,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1168,6 +1173,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1189,7 +1195,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Inmueble oculto (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Soft delete confirmado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1208,6 +1214,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1387,6 +1394,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1693,6 +1701,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1760,6 +1769,7 @@ export interface operations {
                 };
             };
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
         };
     };
 }

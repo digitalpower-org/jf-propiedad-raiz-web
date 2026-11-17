@@ -183,6 +183,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '422':
           $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
         '405':
@@ -275,6 +277,8 @@ paths:
                               $ref: '#/components/schemas/PropertyCard'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
         '405':
@@ -307,14 +311,16 @@ paths:
                   - type: object
                     required: [data]
                     properties:
-                      data:
-                        $ref: '#/components/schemas/PropertyDetail'
+                       data:
+                         $ref: '#/components/schemas/PropertyDetail'
         '404':
           $ref: '#/components/responses/NotFound'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
     put:
@@ -344,26 +350,26 @@ paths:
               $ref: '#/components/schemas/PropertyInput'
       responses:
         '200':
-          description: 'Inmueble actualizado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiSuccess'
-                  - type: object
-                    required: [data]
-                    properties:
-                      data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
-                        properties:
-                          id:
-                            type: string
-                          status:
-                            $ref: '#/components/schemas/EstadoPropiedad'
-                          updatedAt:
-                            type: string
-                            format: date-time
+           description: 'Inmueble actualizado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+           content:
+             application/json:
+               schema:
+                 allOf:
+                   - $ref: '#/components/schemas/ApiSuccess'
+                   - type: object
+                     required: [data]
+                     properties:
+                       data:
+                         type: object
+                         description: 'PENDIENTE: definición pendiente en TASKS.'
+                         properties:
+                           id:
+                             type: string
+                           status:
+                             $ref: '#/components/schemas/EstadoPropiedad'
+                           updatedAt:
+                             type: string
+                             format: date-time
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -376,6 +382,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
     delete:
@@ -418,6 +426,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -478,6 +488,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/properties/{idOrSlug}/hide:
@@ -500,7 +512,7 @@ paths:
         - $ref: '#/components/parameters/XUserEmail'
       responses:
         '200':
-          description: 'Inmueble oculto (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          description: 'Soft delete confirmado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
           content:
             application/json:
               schema:
@@ -525,6 +537,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
   /api/v1/media/presigned-url:
@@ -749,6 +763,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
     post:
@@ -1111,6 +1127,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
     put:
@@ -1182,6 +1200,8 @@ paths:
                   status:
                     type: string
                     example: ok
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
 
@@ -1260,7 +1280,7 @@ components:
           schema:
             $ref: '#/components/schemas/ApiError'
     RateLimited:
-      description: '429 `RATE_LIMITED`: más de 5 envíos en un minuto desde la misma IP (AC3.4.2).'
+      description: '429 RATE_LIMITED: límite de solicitudes excedido; el criterio por operación se describe en el endpoint.'
       content:
         application/json:
           schema:

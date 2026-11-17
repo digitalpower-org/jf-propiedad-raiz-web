@@ -106,7 +106,7 @@ Envelope (D15):
 | Validación               | `errorMap` global en `presentation/validation/zodErrorMap.ts`                                    | Pendiente    |
 | Tiempo                   | Puerto `Clock` + `createSystemClock`                                                             | Pendiente    |
 | Email                    | `EmailSender` (Resend): 3 intentos con backoff, admin → solicitante, `502 EMAIL_DELIVERY_FAILED` | Pendiente    |
-| Rate limit               | `RateLimiter`: IP en públicos, `X-User-Id` en admin, 5/min en consignaciones, `429 RATE_LIMITED` | Pendiente    |
+| Rate limit               | `RateLimiter`: IP en públicos, `X-User-Id` en admin, 5/min en consignaciones, `429 RATE_LIMITED` | Implementado |
 | Cobertura                | `coverage.thresholds` al 80 % en `vitest.config.ts`                                              | Pendiente    |
 | R2                       | TTL 900 s, MIME jpeg/png/webp, 5 MB, derivados WebP 320/640/1280/2048                            | Parcial      |
 | Traducción               | 1 reintento (500 ms); fallo → `enPendiente: true`; no pisar `en` editado a mano; sin caché       | Implementado |
