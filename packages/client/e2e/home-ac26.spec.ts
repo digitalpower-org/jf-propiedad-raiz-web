@@ -32,16 +32,19 @@ async function captureHomeErrors(page: Page): Promise<string[]> {
 // Helper: verifica dimensiones del bloque Nosotros
 async function verifyAboutBlockDimensions(page: Page, expectedWidth: number) {
   const aboutBlock = page.locator('[class*="aboutBlock"]').first();
-  await expect(aboutBlock).toBeVisible({ timeout: 10000 });
+  const aboutContent = aboutBlock.locator('[class*="aboutContent"]').first();
+  await expect(aboutContent).toBeVisible({ timeout: 10000 });
 
-  const blockWidth = await aboutBlock.evaluate((el) =>
+  // El texto tiene ancho controlado: 720 px en escritorio, el ancho de la columna en móvil
+  const contentWidth = await aboutContent.evaluate((el) =>
     Math.round(el.getBoundingClientRect().width),
   );
-  expect(blockWidth).toBe(expectedWidth);
+  expect(contentWidth).toBe(expectedWidth);
 
-  // Verificar una sola columna (gridTemplateColumns = '720px' o '343px')
+  // Una sola columna: una única pista en la cuadrícula y un solo hijo en el bloque
   const gridCols = await aboutBlock.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
-  expect(gridCols).toBe(`${expectedWidth}px`);
+  expect(gridCols.trim().split(/\s+/)).toHaveLength(1);
+  expect(await aboutBlock.evaluate((el) => el.children.length)).toBe(1);
 
   // Verificar sin desborde horizontal
   const hasOverflow = await page.evaluate(

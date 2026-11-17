@@ -51,6 +51,7 @@
     "empty": "No hay proyectos disponibles en este momento."
   },
   "property": {
+    "newBadge": "Nuevo",
     "details": "Detalles de la propiedad",
     "features": "Características",
     "amenities": "Amenidades",
