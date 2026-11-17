@@ -76,13 +76,28 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type OptionalNumber = { readonly ok: true; readonly value?: number } | { readonly ok: false };
 
-// Vacío = no informado (opcional). Con valor: entero positivo (valor) o decimal positivo (áreas).
+const INTEGER_PATTERN = /^\d+$/;
+// Miles con punto o coma (350.000.000 / 1,500,000): el primer grupo de 1 a 3 dígitos y el resto de 3.
+const GROUPED_INTEGER_PATTERN = /^\d{1,3}([.,]\d{3})+$/;
+const DECIMAL_PATTERN = /^\d+([.,]\d+)?$/;
+
+// Vacío = no informado (opcional). Con valor: entero positivo (valor, admite separador de miles)
+// o decimal positivo (áreas, admite coma decimal).
 function parseOptionalNumber(raw: string | number, integerOnly: boolean): OptionalNumber {
   const text = String(raw).trim();
   if (text === '') return { ok: true };
-  const pattern = integerOnly ? /^\d+$/ : /^\d+([.,]\d+)?$/;
-  if (!pattern.test(text)) return { ok: false };
-  const value = Number(text.replace(',', '.'));
+
+  let normalized: string;
+  if (integerOnly) {
+    if (INTEGER_PATTERN.test(text)) normalized = text;
+    else if (GROUPED_INTEGER_PATTERN.test(text)) normalized = text.replace(/[.,]/g, '');
+    else return { ok: false };
+  } else {
+    if (!DECIMAL_PATTERN.test(text)) return { ok: false };
+    normalized = text.replace(',', '.');
+  }
+
+  const value = Number(normalized);
   return value > 0 ? { ok: true, value } : { ok: false };
 }
 

@@ -116,6 +116,25 @@ describe('AC3.1.1 | campos opcionales', () => {
   });
 
   it.each([
+    ['350.000.000', 350000000],
+    ['1,500,000', 1500000],
+    ['1.500', 1500],
+    ['999.999', 999999],
+    ['12.345.678', 12345678],
+  ])('el valor admite separador de miles: %s', (valor, esperado) => {
+    const result = validateConsignment(withValues({ valor }), 'es');
+    expect(result.ok && result.payload.valor).toBe(esperado);
+  });
+
+  it.each(['1.5', '1.50', '1000.000', '.500', '1..000', '1.000.', '0.000'])(
+    'el valor rechaza una agrupación inválida: %s',
+    (valor) => {
+      const result = validateConsignment(withValues({ valor }), 'es');
+      expect(result).toEqual({ ok: false, errors: { valor: 'invalidNumber' } });
+    },
+  );
+
+  it.each([
     ['valor con letras', { valor: 'abc' }, 'valor'],
     ['valor decimal', { valor: '1.5' }, 'valor'],
     ['valor cero', { valor: '0' }, 'valor'],

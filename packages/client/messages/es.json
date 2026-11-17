@@ -283,7 +283,68 @@
   "consign": {
     "title": "Consigne su propiedad",
     "whatsapp": "Contactar por WhatsApp",
-    "whatsappMessage": "Hola, me gustaría consignar mi propiedad."
+    "whatsappMessage": "Hola, me gustaría consignar mi propiedad.",
+    "subtitle": "Publique su inmueble en nuestro catálogo.",
+    "intro": "Complete el formulario y uno de nuestros asesores se pondrá en contacto con usted a la brevedad.",
+    "contactLink": "Contactarnos directamente",
+    "sections": {
+      "personal": "Sus datos personales",
+      "property": "Datos de su inmueble"
+    },
+    "fields": {
+      "nombre": "Nombre completo",
+      "telefono": "Teléfono",
+      "email": "Correo electrónico",
+      "tipo": "Tipo de inmueble",
+      "departamento": "Departamento",
+      "municipio": "Municipio",
+      "valor": "Valor solicitado (COP)",
+      "areaConstruida": "Área construida (m²)",
+      "areaLote": "Área del lote (m²)",
+      "mensaje": "Mensaje"
+    },
+    "placeholders": {
+      "select": "Seleccione una opción",
+      "municipioFirst": "Seleccione primero el departamento"
+    },
+    "types": {
+      "CASA": "Casa",
+      "APARTAMENTO": "Apartamento",
+      "LOTE_CAMPESTRE": "Lote campestre",
+      "LOTE_URBANO": "Lote urbano",
+      "FINCA": "Finca",
+      "LOCAL_COMERCIAL": "Local comercial",
+      "BODEGA": "Bodega",
+      "OFICINA": "Oficina"
+    },
+    "consent": {
+      "label": "Autorizo el Tratamiento de Datos Personales",
+      "policy": "Ver la Política de Tratamiento de Datos"
+    },
+    "submit": "Enviar solicitud",
+    "submitting": "Enviando…",
+    "success": {
+      "title": "¡Solicitud recibida!",
+      "body": "Gracias por confiar en nosotros. Un asesor se comunicará con usted a la brevedad."
+    },
+    "fallback": {
+      "title": "No pudimos enviar su solicitud por correo",
+      "body": "Sus datos siguen en el formulario. Puede enviarlos por WhatsApp o intentar de nuevo.",
+      "button": "Enviar por WhatsApp"
+    },
+    "errors": {
+      "required": "Este campo es obligatorio",
+      "invalidEmail": "Ingrese un correo electrónico válido",
+      "invalidPhone": "Ingrese un teléfono válido, por ejemplo 300 123 4567",
+      "invalidNumber": "Ingrese un número válido mayor que cero",
+      "invalidOption": "Seleccione una opción válida",
+      "consentRequired": "Debe autorizar el tratamiento de datos personales para continuar"
+    },
+    "formErrors": {
+      "invalid": "Revise los datos del formulario e intente de nuevo.",
+      "rateLimited": "Realizó demasiados envíos seguidos. Espere un minuto e intente de nuevo.",
+      "generic": "No pudimos enviar su solicitud. Intente de nuevo en unos minutos."
+    }
   },
   "about": {
     "title": "Nosotros",
