@@ -1,12 +1,9 @@
 import { z } from 'zod';
 
-import type { RateLimiter, RateLimitedError } from '../../../application/ports/rate-limiter';
 import type {
   ConfirmarMediaUploadUseCase,
   ConfirmarMediaUploadCommand,
 } from '../../../application/use-cases/media/confirmar-media-upload';
-import { ApiError } from '../../../domain/errors/api-error';
-import { errorCode } from '../../../domain/errors/errorCatalog';
 import { writeSuccess } from '../../protocol';
 import { MSG_MEDIA_CONFIRMED } from '../../messages';
 import type { AsyncHandler } from '../types';
@@ -23,19 +20,9 @@ const bodySchema = z.object({
  * Genera derivados y elimina el original de `pending/` (US1.9).
  */
 export const makeConfirmarMediaUploadHandler =
-  (useCase: ConfirmarMediaUploadUseCase, rateLimiter: RateLimiter): AsyncHandler =>
+  (useCase: ConfirmarMediaUploadUseCase): AsyncHandler =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const key = res.locals.userIdentity?.uid ?? 'media-confirm';
-      try {
-        await rateLimiter.check(`media-confirm:${key}`, 60, 60);
-      } catch (error) {
-        if ((error as RateLimitedError).code === 'RATE_LIMITED') {
-          throw new ApiError(errorCode.rateLimited, 'Límite de solicitudes excedido');
-        }
-        throw error;
-      }
-
       const body = bodySchema.parse(req.body);
 
       const command: ConfirmarMediaUploadCommand = {

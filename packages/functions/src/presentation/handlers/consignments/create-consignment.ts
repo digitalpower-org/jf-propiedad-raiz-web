@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import type { CrearConsignmentUseCase } from '../../../application/use-cases/consignments/crear-consignment';
-import type { RateLimiter, RateLimitedError } from '../../../application/ports/rate-limiter';
 import type { AsyncHandler } from '../types';
 import type { Request, Response, NextFunction } from 'express';
 import { writeSuccess } from '../../protocol';
@@ -38,26 +37,9 @@ const bodySchema = z.object({
  * Ruta pública (sin sesión). Requiere `X-Client-IP` para el límite de envíos.
  */
 export const makeCreateConsignmentHandler =
-  (crearConsignmentUseCase: CrearConsignmentUseCase, rateLimiter: RateLimiter): AsyncHandler =>
+  (crearConsignmentUseCase: CrearConsignmentUseCase): AsyncHandler =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const clientIp = req.header('x-client-ip');
-      if (!clientIp || clientIp.trim() === '') {
-        throw new ApiError(errorCode.validationError, 'Falta la cabecera X-Client-IP', [
-          { field: 'x-client-ip', issue: 'La cabecera X-Client-IP es obligatoria' },
-        ]);
-      }
-
-      // AC3.4.2 — Límite de envíos: máximo 5 por minuto desde la misma IP.
-      try {
-        await rateLimiter.check(clientIp, 5, 60);
-      } catch (error) {
-        if ((error as RateLimitedError).code === 'RATE_LIMITED') {
-          throw new ApiError(errorCode.rateLimited, 'Límite de envíos excedido');
-        }
-        throw error;
-      }
-
       const input = bodySchema.parse(req.body);
       if (input.consent !== true) {
         throw new ApiError(errorCode.consentRequired, 'Se requiere consentimiento para enviar');
