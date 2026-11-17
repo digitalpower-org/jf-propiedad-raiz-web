@@ -75,7 +75,7 @@
   - [x] US1.9 `[D1]` Confirmación de subida y derivados
 - [x] **MT2.2** `[D1]` Consulta pública y vigencia ← MT2.1, MT1.2, MT1.4, MT0.3
   - [x] US1.10 `[D1]` Consulta pública (filtros, orden, cursor, índices)
-  - [ ] US1.11 `[D1]` Bandera «Nuevo» (tarea programada) — ACs son de frontend (`isNewProperty(createdAt)` en UI); backend ya expone `createdAt` en la respuesta
+  - [x] US1.11 `[D1]` Bandera «Nuevo» (tarea programada) — ACs son de frontend (`isNewProperty(createdAt)` en UI); backend ya expone `createdAt` en la respuesta
   - [x] US7.4 `[D1]` (backend) `PropertyCard` tipos en `shared-types` ya existen (AC7.4.1); compresión/caché son de infraestructura
 - [x] **MT2.4** `[D1]` Seed de catálogo ← MT2.1, MT2.2
   - [x] US6.1 `[D1]` (catálogo) Inmuebles, servicios y Nosotros; idempotente, traductor falso
