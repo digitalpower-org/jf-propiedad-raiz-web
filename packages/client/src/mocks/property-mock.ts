@@ -30,6 +30,7 @@ const createDerivados = (clave: string, anchos: number[]): readonly DerivadoImag
   anchos.map((ancho) => ({
     clave: `${clave}-${ancho}.webp`,
     ancho,
+    alto: ancho,
   }));
 
 const createFoto = (clave: string, anchos: number[]): Foto => ({
