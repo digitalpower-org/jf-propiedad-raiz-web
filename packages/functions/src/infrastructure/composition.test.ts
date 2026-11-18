@@ -21,7 +21,7 @@ vi.mock('./config/server-config', () => ({
     firebaseProjectId: 'project-1',
     useFakeTranslator: true,
     resendApiKey: 're_resend_key',
-    juanEmail: 'juanfer@jfpropiedadraiz.com',
+    consignmentToEmail: 'juanfer@jfpropiedadraiz.com',
     firebaseAuthEmulatorHost: undefined,
     r2: {
       endpoint: 'https://account-id.r2.cloudflarestorage.com',
@@ -68,7 +68,7 @@ const config: ServerConfig = {
   useFakeTranslator: true,
   resendApiKey: 're_resend_key',
   resendFromEmail: 'consignaciones@jfpropiedadraiz.com',
-  juanEmail: 'juanfer@jfpropiedadraiz.com',
+  consignmentToEmail: 'juanfer@jfpropiedadraiz.com',
   firebaseAuthEmulatorHost: undefined,
   r2: {
     endpoint: 'https://account-id.r2.cloudflarestorage.com',
@@ -89,6 +89,12 @@ const logger: Logger = {
 
 const identityVerifier: IdentityVerifier = { verify: vi.fn() };
 const authorizedUsers: AuthorizedUsersRepository = { findActiveByEmail: vi.fn() };
+
+const rateLimiterMocks = vi.hoisted(() => ({ createFirestoreRateLimiter: vi.fn() }));
+
+vi.mock('./rate-limiter/firestore-rate-limiter', () => ({
+  createFirestoreRateLimiter: rateLimiterMocks.createFirestoreRateLimiter,
+}));
 
 describe('createInfrastructure', () => {
   it('respeta todas las implementaciones inyectadas', () => {
@@ -159,5 +165,33 @@ describe('createInfrastructure', () => {
 
     expect(mocks.createGoogleCloudTranslator).toHaveBeenCalledTimes(1);
     expect(infra.translator).toBe(googleTranslator);
+  });
+
+  it('usa createFirestoreRateLimiter por defecto y respeta el override', () => {
+    const emailSender: EmailSender = { send: vi.fn() };
+    const rateLimiter: RateLimiter = { check: vi.fn() };
+
+    const infra = createInfrastructure({
+      config,
+      logger,
+      identityVerifier,
+      authorizedUsers,
+      emailSender,
+      rateLimiter,
+    });
+
+    expect(infra.rateLimiter).toBe(rateLimiter);
+    expect(rateLimiterMocks.createFirestoreRateLimiter).not.toHaveBeenCalled();
+
+    const infra2 = createInfrastructure({
+      config,
+      logger,
+      identityVerifier,
+      authorizedUsers,
+      emailSender,
+    });
+
+    expect(infra2.rateLimiter).not.toBe(rateLimiter);
+    expect(rateLimiterMocks.createFirestoreRateLimiter).toHaveBeenCalledTimes(1);
   });
 });

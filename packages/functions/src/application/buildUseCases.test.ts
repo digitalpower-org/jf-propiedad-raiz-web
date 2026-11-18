@@ -51,7 +51,7 @@ function makePorts(): ApplicationPorts {
 
 describe('buildUseCases', () => {
   it('construye los casos de uso con los puertos inyectados', () => {
-    const useCases = buildUseCases(makePorts(), { juanEmail: 'test@example.com' });
+    const useCases = buildUseCases(makePorts(), { consignmentToEmail: 'test@example.com' });
 
     expect(useCases.verifyInternalSession).toBeInstanceOf(VerifyInternalSessionUseCase);
     expect(useCases.translationService).toBeInstanceOf(TranslationService);

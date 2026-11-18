@@ -3,6 +3,16 @@ import { Router, type RequestHandler } from 'express';
 import type { UseCases } from '../application/buildUseCases';
 import type { ApiDeps } from './appBuilder';
 import { internalKeyGuard } from './guards/internal-key';
+import { requireClientIp } from './guards/client-ip';
+import {
+  clientIpKey,
+  fixedKey,
+  identityKey,
+  makeFailOpenRateLimitGuard,
+  makeRateLimitGuard,
+  publicReadKey,
+  socketIpKey,
+} from './guards/rate-limit';
 import { optionalAdminIdentity, requireUserIdentity } from './guards/user-identity';
 import { buildHandlers } from './handlers';
 import { methodNotAllowed } from './middlewares/method-not-allowed';
@@ -37,103 +47,193 @@ function register(router: Router, route: RouteDeclaration): void {
   }
 }
 
+/**
+ * Asigna el `name` de una función manejadora para que los tests de rutas puedan
+ * identificar cada guard por nombre (el `name` del config del rate limiter).
+ * `Function.name` es configurable, por lo que se redefine sin casts.
+ */
+function withName(handler: RequestHandler, name: string): RequestHandler {
+  Object.defineProperty(handler, 'name', { value: name, configurable: true });
+  return handler;
+}
+
+function publicReadGuard(useCases: UseCases, deps: ApiDeps, name: string, limit: number) {
+  return withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name,
+      keyFrom: publicReadKey,
+      limit,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    name,
+  );
+}
+
 export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
   const router = Router();
   const handlers = buildHandlers(useCases);
-  const guardInternal = internalKeyGuard(deps);
+  const guardInternal = withName(internalKeyGuard(deps), 'guard-internal');
+  const requireClientIpGuard = withName(requireClientIp, 'require-client-ip');
+  const requireUserIdentityGuard = withName(requireUserIdentity, 'require-user-identity');
+  const optionalAdmin = withName(optionalAdminIdentity, 'optional-admin-identity');
+
+  // Instanciados una vez por router; el orden es guardInternal → (IP/identidad) → rateLimit → handler.
+  const rateVerify = withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-verify-internal-session',
+      keyFrom: fixedKey('internal-auth-verify'),
+      limit: 30,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    'rate-verify-internal-session',
+  );
+  const rateHealth = withName(
+    makeFailOpenRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-health',
+      keyFrom: socketIpKey,
+      limit: 600,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    'rate-health',
+  );
+  const rateConsignment = withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-consignment',
+      keyFrom: clientIpKey,
+      limit: 5,
+      windowSeconds: 60,
+      message: 'Límite de envíos excedido',
+    }),
+    'rate-consignment',
+  );
+  const rateAdminWrite = withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-admin-write',
+      keyFrom: identityKey('admin-write'),
+      limit: 60,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    'rate-admin-write',
+  );
+
+  const readGuard = (name: string, limit: number) => publicReadGuard(useCases, deps, name, limit);
+  const rateMediaPresign = withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-media-presign',
+      keyFrom: identityKey('media-presign'),
+      limit: 60,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    'rate-media-presign',
+  );
+  const rateMediaConfirm = withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-media-confirm',
+      keyFrom: identityKey('media-confirm'),
+      limit: 60,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    'rate-media-confirm',
+  );
 
   const routes: readonly RouteDeclaration[] = [
     {
       method: 'post',
       path: API_PATHS.verifyInternalSession,
-      guards: [guardInternal],
+      guards: [guardInternal, rateVerify],
       handler: handlers.verifyInternalSession,
     },
     {
       method: 'get',
       path: OPS_PATHS.health,
-      guards: [],
+      guards: [rateHealth],
       handler: handlers.health,
     },
     {
       method: 'post',
       path: API_PATHS.consignments,
-      guards: [guardInternal],
+      guards: [guardInternal, requireClientIpGuard, rateConsignment],
       handler: handlers.createConsignment,
     },
     // Propiedades — escritura (requieren sesión de admin vía X-Internal-Key + X-User-*)
     {
       method: 'post',
       path: API_PATHS.properties,
-      guards: [guardInternal, requireUserIdentity],
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
       handler: handlers.createProperty,
     },
     {
       method: 'put',
       path: API_PATHS.property,
-      guards: [guardInternal, requireUserIdentity],
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
       handler: handlers.updateProperty,
     },
     {
       method: 'delete',
       path: API_PATHS.property,
-      guards: [guardInternal, requireUserIdentity],
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
       handler: handlers.deleteProperty,
     },
     {
       method: 'post',
       path: API_PATHS.activateProperty,
-      guards: [guardInternal, requireUserIdentity],
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
       handler: handlers.activateProperty,
     },
     {
       method: 'post',
       path: API_PATHS.hideProperty,
-      guards: [guardInternal, requireUserIdentity],
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
       handler: handlers.hideProperty,
     },
     // Propiedades — lectura pública (sin sesión obligatoria; identidad opcional para incluir HIDDEN)
     {
       method: 'get',
       path: API_PATHS.properties,
-      guards: [guardInternal, optionalAdminIdentity],
+      guards: [guardInternal, optionalAdmin, readGuard('rate-public-properties-list', 60)],
       handler: handlers.listProperties,
     },
     {
       method: 'get',
       path: API_PATHS.featuredProperties,
-      guards: [guardInternal],
+      guards: [guardInternal, readGuard('rate-public-featured', 120)],
       handler: handlers.listFeaturedProperties,
     },
     {
       method: 'get',
       path: API_PATHS.property,
-      guards: [guardInternal, optionalAdminIdentity],
+      guards: [guardInternal, optionalAdmin, readGuard('rate-public-property-detail', 60)],
       handler: handlers.obtenerProperty,
     },
     {
       method: 'get',
       path: API_PATHS.services,
-      guards: [guardInternal],
+      guards: [guardInternal, readGuard('rate-public-services', 120)],
       handler: handlers.listServices,
     },
     {
       method: 'get',
       path: API_PATHS.about,
-      guards: [guardInternal],
+      guards: [guardInternal, readGuard('rate-public-about', 60)],
       handler: handlers.getAbout,
     },
     // Media — presignar y confirmar subida (requieren sesión de admin)
     {
       method: 'post',
       path: API_PATHS.presignedMediaUrl,
-      guards: [guardInternal, requireUserIdentity],
+      guards: [guardInternal, requireUserIdentityGuard, rateMediaPresign],
       handler: handlers.presignMediaUpload,
     },
     {
       method: 'post',
       path: API_PATHS.confirmMedia,
-      guards: [guardInternal, requireUserIdentity],
+      guards: [guardInternal, requireUserIdentityGuard, rateMediaConfirm],
       handler: handlers.confirmarMediaUpload,
     },
   ];
