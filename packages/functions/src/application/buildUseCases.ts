@@ -38,7 +38,10 @@ export interface UseCases {
 }
 
 /** Único lugar donde se construyen los casos de uso. */
-export function buildUseCases(ports: ApplicationPorts, config: { juanEmail: string }): UseCases {
+export function buildUseCases(
+  ports: ApplicationPorts,
+  config: { consignmentToEmail: string },
+): UseCases {
   const revalidateContent = new RevalidateContent({
     gateway: ports.revalidationGateway,
     logger: ports.logger,
@@ -84,7 +87,7 @@ export function buildUseCases(ports: ApplicationPorts, config: { juanEmail: stri
     crearConsignment: new CrearConsignmentUseCase(
       ports.emailSender,
       ports.logger,
-      config.juanEmail,
+      config.consignmentToEmail,
     ),
     rateLimiter: ports.rateLimiter,
   };

@@ -9,7 +9,7 @@ setGlobalOptions({ region: 'us-central1', maxInstances: 10 });
 
 const infrastructure = createInfrastructure();
 const useCases = buildUseCases(infrastructure, {
-  juanEmail: infrastructure.config.juanEmail,
+  consignmentToEmail: infrastructure.config.consignmentToEmail,
 });
 const app = appBuilder(useCases, {
   internalKey: infrastructure.config.internalKey,

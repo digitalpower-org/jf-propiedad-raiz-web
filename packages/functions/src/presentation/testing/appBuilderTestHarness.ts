@@ -72,7 +72,7 @@ export function makePorts(overrides: Partial<ApplicationPorts> = {}) {
 
 export function setup(overrides: Partial<ApplicationPorts> = {}) {
   const deps = makePorts(overrides);
-  const app = appBuilder(buildUseCases(deps, { juanEmail: 'test@example.com' }), {
+  const app = appBuilder(buildUseCases(deps, { consignmentToEmail: 'test@example.com' }), {
     internalKey: INTERNAL_KEY,
     logger: deps.logger,
     secretComparator: deps.secretComparator,
