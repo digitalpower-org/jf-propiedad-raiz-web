@@ -1,4 +1,5 @@
 import type { Firestore } from 'firebase-admin/firestore';
+import { z } from 'zod';
 
 import type { PropertiesRepository } from '../../application/ports/properties-repository';
 import type {
@@ -20,6 +21,27 @@ import { errPropertyNotFound } from '../../domain/errors/error-messages';
 
 const CODIGOS_SECUENCIALES = 'counters';
 const DOC_CODIGO_PROPIEDAD = 'property';
+
+const MedioSchema = z.object({
+  derivados: z
+    .array(
+      z.object({
+        clave: z.string().min(1),
+        ancho: z.number().int().positive(),
+      }),
+    )
+    .nonempty(),
+});
+
+const MediosSchema = z.object({
+  fotos: z.array(MedioSchema).optional(),
+  videos: z.array(z.string()).optional(),
+  panoramas: z.array(MedioSchema).optional(),
+});
+
+function validarMedios(input: { fotos?: unknown; videos?: unknown; panoramas?: unknown }): void {
+  MediosSchema.parse(input);
+}
 
 /**
  * Mapea un documento de Firestore a un `PropertyDto` (tipo plano, sin Domain).
@@ -122,6 +144,12 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
     const ahora = new Date().toISOString();
     const slug = `${slugify(input.titulo.es)}-${codigo}`;
 
+    validarMedios({
+      fotos: input.fotos,
+      videos: input.videos,
+      panoramas: input.panoramas,
+    });
+
     await db.doc(`properties/${id}`).set({
       codigo,
       slug,
@@ -203,12 +231,13 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
   async function findByIdOrSlug(
     idOrSlug: string,
     esPublico: boolean,
+    includeHidden?: boolean,
   ): Promise<ObtenerPropertyResult | null> {
     // 1) Intentar por ID de documento
     const porIdSnap = await db.doc(`properties/${idOrSlug}`).get();
     if (porIdSnap.exists) {
       const property = documentoAPropertyDto(porIdSnap);
-      if (esPublico && property.status !== 'ACTIVE') return null;
+      if (esPublico && property.status !== 'ACTIVE' && !includeHidden) return null;
       return { property, esPublico };
     }
 
@@ -218,17 +247,20 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       return null;
     }
     const property = documentoAPropertyDto(porSlugSnap.docs[0]);
-    if (esPublico && property.status !== 'ACTIVE') return null;
+    if (esPublico && property.status !== 'ACTIVE' && !includeHidden) return null;
     return { property, esPublico };
   }
 
   async function listPublico(filtros: FiltrosListadoPublico): Promise<ListadoPublicoResult> {
     let consulta = propiedades
-      .where('status', '==', 'ACTIVE')
       .where('operacion', '==', filtros.operacion)
       .where('destacada', '==', filtros.destacada)
       .orderBy('createdAt', 'desc')
       .orderBy('__name__', 'desc');
+
+    if (!filtros.includeHidden) {
+      consulta = consulta.where('status', '==', 'ACTIVE');
+    }
 
     if (filtros.tipo) {
       consulta = consulta.where('tipo', '==', filtros.tipo);
@@ -339,6 +371,13 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
     }
 
     const ahora = new Date().toISOString();
+
+    validarMedios({
+      fotos: input.fotos,
+      videos: input.videos,
+      panoramas: input.panoramas,
+    });
+
     const actualizaciones: Record<string, unknown> = { updatedAt: ahora };
 
     if (input.operacion !== undefined) actualizaciones.operacion = input.operacion;

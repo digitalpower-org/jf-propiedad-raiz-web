@@ -52,9 +52,6 @@ export function buildHandlers(useCases: UseCases): Handlers {
     getAbout: makeGetAboutHandler(useCases.obtenerAbout),
     presignMediaUpload: makePresignMediaUploadHandler(useCases.presignMediaUpload),
     confirmarMediaUpload: makeConfirmarMediaUploadHandler(useCases.confirmarMediaUpload),
-    createConsignment: makeCreateConsignmentHandler(
-      useCases.crearConsignment,
-      useCases.rateLimiter,
-    ),
+    createConsignment: makeCreateConsignmentHandler(useCases.crearConsignment),
   };
 }

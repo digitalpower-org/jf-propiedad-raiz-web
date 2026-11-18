@@ -13,7 +13,7 @@ const ENV_KEYS = [
   'TRANSLATOR_FAKE',
   'RESEND_API_KEY',
   'RESEND_FROM_EMAIL',
-  'JUAN_EMAIL',
+  'CONSIGNMENT_TO_EMAIL',
   'FIREBASE_AUTH_EMULATOR_HOST',
   'R2_ENDPOINT',
   'R2_REGION',
@@ -33,7 +33,7 @@ const VALID_ENV: Record<EnvKey, string> = {
   TRANSLATOR_FAKE: '1',
   RESEND_API_KEY: 're_resend_key',
   RESEND_FROM_EMAIL: 'consignaciones@jfpropiedadraiz.com',
-  JUAN_EMAIL: 'juanfer@jfpropiedadraiz.com',
+  CONSIGNMENT_TO_EMAIL: 'juanfer@jfpropiedadraiz.com',
   FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099',
   R2_ENDPOINT: 'https://account-id.r2.cloudflarestorage.com',
   R2_REGION: 'auto',
@@ -105,7 +105,7 @@ describe('server-config', () => {
       useFakeTranslator: true,
       resendApiKey: VALID_ENV.RESEND_API_KEY,
       resendFromEmail: VALID_ENV.RESEND_FROM_EMAIL,
-      juanEmail: VALID_ENV.JUAN_EMAIL,
+      consignmentToEmail: VALID_ENV.CONSIGNMENT_TO_EMAIL,
       firebaseAuthEmulatorHost: VALID_ENV.FIREBASE_AUTH_EMULATOR_HOST,
       r2: {
         endpoint: VALID_ENV.R2_ENDPOINT,
@@ -174,7 +174,7 @@ describe('server-config', () => {
       NEXT_PUBLIC_FIREBASE_PROJECT_ID: undefined,
       TRANSLATOR_FAKE: undefined,
       RESEND_FROM_EMAIL: undefined,
-      JUAN_EMAIL: undefined,
+      CONSIGNMENT_TO_EMAIL: undefined,
       FIREBASE_AUTH_EMULATOR_HOST: undefined,
     });
 
@@ -188,18 +188,18 @@ describe('server-config', () => {
     expect(config.firebaseProjectId).toBe('jf-propiedad-raiz');
     expect(config.useFakeTranslator).toBe(false);
     expect(config.resendFromEmail).toBe('consignaciones@jfpropiedadraiz.com');
-    expect(config.juanEmail).toBe('juanfer@jfpropiedadraiz.com');
+    expect(config.consignmentToEmail).toBe('juanfer@jfpropiedadraiz.com');
     expect(config.firebaseAuthEmulatorHost).toBeUndefined();
   });
 
-  it('rechaza JUAN_EMAIL que no es un correo válido', async () => {
-    applyEnv({ JUAN_EMAIL: 'no-es-un-correo' });
+  it('rechaza CONSIGNMENT_TO_EMAIL que no es un correo válido', async () => {
+    applyEnv({ CONSIGNMENT_TO_EMAIL: 'no-es-un-correo' });
 
     await expect(importConfig()).rejects.toThrow(
       'Fallo al validar variables de entorno del backend.',
     );
     const messages = consoleErrorSpy.mock.calls.map((call) => String(call[0]));
-    expect(messages.some((message) => message.includes('JUAN_EMAIL'))).toBe(true);
+    expect(messages.some((message) => message.includes('CONSIGNMENT_TO_EMAIL'))).toBe(true);
   });
 
   it('no falla si NODE_ENV es production, development o test', async () => {

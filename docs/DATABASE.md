@@ -14,7 +14,67 @@
 - **Campos de solo lectura** en la API y en el editor: `codigo`, `createdAt`, `fechaPublicacion` y `updatedAt` (AC1.7.2). `updatedAt` además sostiene la concurrencia optimista: guardar con un valor desactualizado responde 409 `CONFLICT` y la UI conserva lo escrito (AC1.7.8, AC4.5.5).
 - **Marcas de tiempo:** TASKS no fija el tipo de `createdAt`, `fechaPublicacion` ni `updatedAt` (Timestamp de Firestore u otra representación); esa elección se toma en `shared-types`.
 - **Valores de catálogo sin traducir:** `tipo`, `operacion`, `amenidades` y las categorías de puntos de interés se guardan tal cual y se traducen en pantalla con los diccionarios (AC0.4.6).
-- **Otras escrituras en Firestore que TASKS no modela:** los contadores del límite de envíos, con política TTL (AC3.4.2), y la configuración de contacto de US5.5 (historia COULD). Al no definir TASKS su forma, no se documentan aquí.
+- **Otras escrituras en Firestore que TASKS no modela:** la configuración de contacto de US5.5 (historia COULD). Al no definir TASKS su forma, no se documenta aquí.
+- **Colección `rate_limits` (infraestructura):** contadores de límite de tasa con expiración TTL (AC3.4.2, US3.4).
+
+---
+
+## Colección `rate_limits` (infraestructura)
+
+Contadores globales de límite de tasa para proteger endpoints públicos (consignaciones, formularios) contra abuso. Un documento por clave de rate-limit (IP, identidad, clave fija). Los contadores son atómicos entre instancias mediante transacción de Firestore y expiran automáticamente por TTL.
+
+### Identificador del documento
+
+`id` = SHA-256 hex de la clave de rate-limit (p. ej., IP del cliente, `user:<uid>`, `media-presign:<key>`). La clave en claro **nunca** se persiste ni se loguea.
+
+### Campos
+
+| Campo | Tipo | Descripción |
+| :---- | :---- | :---------- |
+| `keyHash` | `string` | SHA-256 hex de la clave (id del documento). |
+| `count` | `number` (entero ≥ 0) | Contador de solicitudes en la ventana actual. |
+| `windowStart` | `number` (epoch ms) | Inicio de la ventana deslizante fija. |
+| `expiresAt` | `Timestamp` | Momento de expiración TTL; Firestore borra el documento automáticamente. |
+
+### Política TTL
+
+- Configurada en Firestore sobre el campo `expiresAt`.
+- Valor por defecto: **300 segundos** (5 minutos).
+- El valor es configurable fuera de código (variable de entorno / configuración de despliegue), no hardcodeado en la lógica de negocio.
+
+### Coste de operaciones
+
+| Resultado del check | Lecturas | Escrituras |
+| :------------------ | :------: | :--------: |
+| Permitido (dentro del límite) | 1 | 1 |
+| Rechazado (429 `RATE_LIMITED`) | 1 | 0 |
+
+La transacción lee el documento y, si el contador no excede el límite, lo escribe con el nuevo `count` y `expiresAt` renovado. Si excede, lanza `RateLimitedError` antes de escribir.
+
+### Privacidad (sin PII)
+
+- La clave original (IP, UID, etc.) **nunca** se guarda en claro. Solo su hash SHA-256.
+- `keyHash` no es reversible criptográficamente; sirve solo para deduplicar contadores.
+- No hay campos de identificación personal, email, ni metadatos de usuario en la colección.
+
+### Sharding
+
+- **Por defecto: sin sharding.** Un documento por clave.
+- Reversible: si en el futuro se requiere mayor throughput, se puede añadir un sufijo de shard a la clave (p. ej., `keyHash + ":shard:N"`) sin migración de datos existente.
+
+### Extracción de la clave de cliente (IP)
+
+El guard de rate-limit público usa el siguiente fallback porque **`appBuilder.ts` no configura `trust proxy`** (Express `app.set('trust proxy', true)`). Detrás de un balanceador de carga (Cloud Run, Cloudflare, ALB, etc.), `req.ip` devuelve la IP del proxy, no la del cliente real.
+
+```ts
+const clientKey = req.header('x-client-ip') ?? req.ip ?? 'unknown';
+```
+
+- `x-client-ip`: cabecera inyectada por el balanceador / CDN (configuración de infraestructura).
+- `req.ip`: fallback si la cabecera no llega; puede ser la IP del proxy si `trust proxy` no está activo.
+- `'unknown'`: último recurso para que el rate-limit no falle silenciosamente; agrupa todo tráfico sin IP identificable bajo una misma clave.
+
+> **Nota operativa:** para que `req.ip` sea la IP real del cliente detrás de balanceador, habilitar `app.set('trust proxy', true)` en `appBuilder.ts` y configurar el balanceador para enviar `X-Forwarded-For` / `X-Client-IP`. Mientras no se haga, el fallback anterior es la defensa razonable.
 
 ---
 

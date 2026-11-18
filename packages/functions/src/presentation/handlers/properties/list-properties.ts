@@ -4,6 +4,8 @@ import type { ListarPropertiesUseCase } from '../../../application/use-cases/pro
 import type { FiltrosListadoPublico } from '../../../application/ports/properties-repository';
 import { OPERACIONES } from '../../../domain/value-objects/operacion';
 import { TIPOS_INMUEBLE } from '../../../domain/value-objects/tipo-propiedad';
+import { ApiError } from '../../../domain/errors/api-error';
+import { errorCode } from '../../../domain/errors/errorCatalog';
 import { writeSuccess } from '../../protocol';
 import type { AsyncHandler } from '../types';
 import type { Request, Response, NextFunction } from 'express';
@@ -19,11 +21,11 @@ const querySchema = z
     precioMax: z.coerce.number().int().positive().optional(),
     cursor: z.string().optional(),
     limit: z.coerce.number().int().min(1).max(50).optional(),
+    includeHidden: z
+      .enum(['true', 'false'])
+      .transform((v) => v === 'true')
+      .optional(),
   })
-  /**
-   * AC1.10.3: `precioMin` no puede ser mayor que `precioMax`. Ambas son opcionales
-   * individualmente, pero si se envían ambas debe cumplirse precioMin ≤ precioMax.
-   */
   .refine(
     (data) =>
       data.precioMin === undefined ||
@@ -31,11 +33,6 @@ const querySchema = z
       data.precioMin <= data.precioMax,
     { message: 'precioMin no puede ser mayor que precioMax', path: ['precioMin'] },
   )
-  /**
-   * AC1.10.5 / D24: `departamento` y `municipio` van juntos o ninguno. Una
-   * combinación fuera de los 8 presets documentados responde 422
-   * VALIDATION_ERROR, nunca FAILED_PRECONDITION ni 500.
-   */
   .refine((data) => (data.departamento !== undefined) === (data.municipio !== undefined), {
     message: 'departamento y municipio deben enviarse juntos',
     path: ['departamento'],
@@ -56,19 +53,33 @@ function buildFiltrosListadoPublico(raw: z.infer<typeof querySchema>): FiltrosLi
     ...(raw.precioMax !== undefined ? { precioMax: raw.precioMax } : {}),
     ...(raw.cursor !== undefined ? { cursor: raw.cursor } : {}),
     ...(raw.limit !== undefined ? { limit: raw.limit } : {}),
+    ...(raw.includeHidden !== undefined ? { includeHidden: raw.includeHidden } : {}),
   };
 }
 
 /**
  * GET /api/v1/properties — Listado público de inmuebles con filtros y paginación por cursor.
  * Solo devuelve inmuebles `ACTIVE`. No requiere sesión.
+ * Si `includeHidden=true` y hay sesión admin válida, incluye inmuebles `HIDDEN`.
  */
 export const makeListPropertiesHandler =
   (useCase: ListarPropertiesUseCase): AsyncHandler =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const filtrosRaw = querySchema.parse(req.query);
-      const filtros = buildFiltrosListadoPublico(filtrosRaw);
+
+      if (filtrosRaw.includeHidden === true && !res.locals.userIdentity) {
+        throw new ApiError(
+          errorCode.unauthorized,
+          'Se requiere sesión de administrador para ver inmuebles ocultos',
+        );
+      }
+
+      const includeHidden = filtrosRaw.includeHidden === true && !!res.locals.userIdentity;
+      const filtros = buildFiltrosListadoPublico({
+        ...filtrosRaw,
+        includeHidden,
+      });
       const resultado = await useCase.execute(filtros);
 
       writeSuccess(res, resultado, 'Listado de inmuebles');

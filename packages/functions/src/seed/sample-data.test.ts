@@ -11,7 +11,7 @@ vi.mock('../infrastructure/config/server-config', () => ({
     firebaseProjectId: 'test-project',
     useFakeTranslator: true,
     resendApiKey: 're_test',
-    juanEmail: 'juanfer@jfpropiedadraiz.com',
+    consignmentToEmail: 'juanfer@jfpropiedadraiz.com',
     firebaseAuthEmulatorHost: undefined,
     r2: {
       endpoint: 'https://account-id.r2.cloudflarestorage.com',

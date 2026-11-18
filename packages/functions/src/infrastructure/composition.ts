@@ -19,7 +19,8 @@ import { createFirestoreAboutRepository } from './about/firestore-about-reposito
 import { createR2MediaStorage } from './media/r2-media-storage';
 import { createSharpImageProcessor } from './media/sharp-image-processor';
 import { ResendEmailSender } from './email/resend-email-sender';
-import { MemoryRateLimiter } from './rate-limiter/memory-rate-limiter';
+import { createFirestoreRateLimiter } from './rate-limiter/firestore-rate-limiter';
+import { YouTubeOEmbedValidator } from './video/youtube-oembed-validator';
 
 export interface Infrastructure extends ApplicationPorts {
   readonly config: ServerConfig;
@@ -66,6 +67,8 @@ export function createInfrastructure(overrides: Partial<Infrastructure> = {}): I
     emailSender:
       overrides.emailSender ??
       new ResendEmailSender(configValue.resendApiKey, configValue.resendFromEmail),
-    rateLimiter: overrides.rateLimiter ?? new MemoryRateLimiter(),
+    rateLimiter:
+      overrides.rateLimiter ?? createFirestoreRateLimiter(createFirestore(requireAdminApp())),
+    videoValidator: overrides.videoValidator ?? new YouTubeOEmbedValidator(logger),
   };
 }

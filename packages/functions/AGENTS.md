@@ -106,7 +106,7 @@ Envelope (D15):
 | Validación               | `errorMap` global en `presentation/validation/zodErrorMap.ts`                                    | Pendiente    |
 | Tiempo                   | Puerto `Clock` + `createSystemClock`                                                             | Pendiente    |
 | Email                    | `EmailSender` (Resend): 3 intentos con backoff, admin → solicitante, `502 EMAIL_DELIVERY_FAILED` | Pendiente    |
-| Rate limit               | `RateLimiter`: IP en públicos, `X-User-Id` en admin, 5/min en consignaciones, `429 RATE_LIMITED` | Pendiente    |
+| Rate limit               | `RateLimiter`: IP en públicos, `X-User-Id` en admin, 5/min en consignaciones, `429 RATE_LIMITED` | Implementado |
 | Cobertura                | `coverage.thresholds` al 80 % en `vitest.config.ts`                                              | Pendiente    |
 | R2                       | TTL 900 s, MIME jpeg/png/webp, 5 MB, derivados WebP 320/640/1280/2048                            | Parcial      |
 | Traducción               | 1 reintento (500 ms); fallo → `enPendiente: true`; no pisar `en` editado a mano; sin caché       | Implementado |
@@ -145,6 +145,16 @@ Envelope (D15):
 - Node: **24** (raíz fija `24.22.1`). Usa siempre `npm`.
 - No digas "listo" si falla `typecheck`, `lint`, `test` o la cobertura.
 - CI: `.github/workflows/ci.yml` corre 7 gates; la cobertura aún pasa en vacío hasta activar los umbrales.
+
+---
+
+### CodeGraph (opcional, si está disponible)
+
+- **Detección:** úsalo solo si el binario está disponible (`command -v codegraph` o `~/.omo/codegraph/bin/codegraph`) y existe `.codegraph/` en la raíz del monorepo. El índice es local (ignorado por git); no es automático ni obligatorio.
+- **Mantenimiento:** desde la raíz, `codegraph status` / `codegraph sync` (o `index` tras cambios grandes) para mantener el grafo al día.
+- **Antes de refactor/cambios:** `codegraph impact|callers|callees <símbolo>` y `explore "<tema>"` para detectar usos e impactos cruzados (incluyendo otros paquetes) y evitar cabos sueltos.
+- **Tras tocar fuentes:** `codegraph affected <archivos...>` para ubicar tests a revisar/ejecutar.
+- **Fallback:** si no está disponible, el índice no existe o falla, continúa con las herramientas habituales (búsqueda/LSP/tests) sin bloquear la tarea.
 
 ---
 

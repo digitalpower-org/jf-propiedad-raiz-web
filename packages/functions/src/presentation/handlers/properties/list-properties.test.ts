@@ -43,7 +43,11 @@ describe('makeListPropertiesHandler', () => {
 
     await (handler as AsyncHandler)(req, res, next);
 
-    expect(useCase.execute).toHaveBeenCalledWith({ operacion: 'VENTA', destacada: false });
+    expect(useCase.execute).toHaveBeenCalledWith({
+      operacion: 'VENTA',
+      destacada: false,
+      includeHidden: false,
+    });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
@@ -132,6 +136,7 @@ describe('makeListPropertiesHandler', () => {
       destacada: false,
       precioMin: 100000000,
       precioMax: 200000000,
+      includeHidden: false,
     });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
@@ -159,6 +164,7 @@ describe('makeListPropertiesHandler', () => {
       destacada: false,
       departamento: 'Medellín',
       municipio: 'Envigado',
+      includeHidden: false,
     });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();

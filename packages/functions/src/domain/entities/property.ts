@@ -1,4 +1,11 @@
-import type { EstadoPropiedad, Translatable } from '@jf/shared-types';
+import type {
+  EstadoPropiedad,
+  Foto,
+  Panorama,
+  PuntoInteres,
+  Translatable,
+  VideoYouTube,
+} from '@jf/shared-types';
 
 import { ApiError } from '../errors/api-error';
 import { errorCode } from '../errors/errorCatalog';
@@ -38,10 +45,10 @@ export interface CreatePropertyInput {
   readonly parqueaderos?: number;
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
-  readonly puntosInteres?: readonly unknown[];
-  readonly fotos?: readonly unknown[];
-  readonly videos?: readonly string[];
-  readonly panoramas?: readonly unknown[];
+  readonly puntosInteres?: readonly PuntoInteres[];
+  readonly fotos?: readonly Foto[];
+  readonly videos?: readonly VideoYouTube[];
+  readonly panoramas?: readonly Panorama[];
   readonly destacada?: boolean;
   readonly proyecto?: {
     readonly etapa?: Translatable;
@@ -74,10 +81,10 @@ export interface UpdatePropertyInput {
   readonly parqueaderos?: number;
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
-  readonly puntosInteres?: readonly unknown[];
-  readonly fotos?: readonly unknown[];
-  readonly videos?: readonly string[];
-  readonly panoramas?: readonly unknown[];
+  readonly puntosInteres?: readonly PuntoInteres[];
+  readonly fotos?: readonly Foto[];
+  readonly videos?: readonly VideoYouTube[];
+  readonly panoramas?: readonly Panorama[];
   readonly destacada?: boolean;
   readonly proyecto?: {
     readonly etapa?: Translatable;
@@ -132,10 +139,10 @@ export class Property {
     readonly parqueaderos?: number,
     readonly deposito?: number,
     readonly amenidades?: readonly string[],
-    readonly puntosInteres?: readonly unknown[],
-    readonly fotos?: readonly unknown[],
-    readonly videos?: readonly string[],
-    readonly panoramas?: readonly unknown[],
+    readonly puntosInteres?: readonly PuntoInteres[],
+    readonly fotos?: readonly Foto[],
+    readonly videos?: readonly VideoYouTube[],
+    readonly panoramas?: readonly Panorama[],
     readonly destacada: boolean = false,
     readonly proyecto?: {
       readonly etapa?: Translatable;

@@ -178,3 +178,6 @@ playwright-report/
 
 # Arnés local de auditoría de modelos (herramienta de desarrollo, no se versiona)
 scripts/model-audit/
+
+# Codegraph generated index
+.codegraph/

@@ -9,7 +9,7 @@ function makeRes() {
   return {
     status: vi.fn().mockReturnThis(),
     json: vi.fn(),
-    locals: {},
+    locals: { userIdentity: { uid: 'u1', role: 'admin', email: 'a@b.com' } },
   } as unknown as Response;
 }
 

@@ -53,7 +53,7 @@ describe('ObtenerPropertyUseCase', () => {
       esPublico: true,
     });
 
-    expect(ports.properties.findByIdOrSlug).toHaveBeenCalledWith('doc-1', true);
+    expect(ports.properties.findByIdOrSlug).toHaveBeenCalledWith('doc-1', true, undefined);
     expect(resultado).toBe(esperado);
     expect(ports.logger.debug).toHaveBeenCalledWith('property_obtained', {
       idOrSlug: 'doc-1',

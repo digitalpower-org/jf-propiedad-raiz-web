@@ -11,6 +11,7 @@ import type { SecretComparator } from './secret-comparator';
 import type { ServiciosRepository } from './services-repository';
 import type { AboutRepository } from './about-repository';
 import type { Translator } from './translator';
+import type { VideoValidator } from './video-validator';
 
 export type { AuthorizedUser, AuthorizedUsersRepository } from './authorized-users-repository';
 export type { EmailSender } from './email-sender';
@@ -36,6 +37,7 @@ export type {
   Translator,
   TranslatorConfig,
 } from './translator';
+export type { VideoValidator } from './video-validator';
 
 /** Agregado de puertos que consume `buildUseCases`. */
 export interface ApplicationPorts {
@@ -52,4 +54,5 @@ export interface ApplicationPorts {
   readonly imageProcessor: ImageProcessor;
   readonly emailSender: EmailSender;
   readonly rateLimiter: RateLimiter;
+  readonly videoValidator: VideoValidator;
 }

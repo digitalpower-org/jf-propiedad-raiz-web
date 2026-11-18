@@ -1001,6 +1001,8 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1020,6 +1022,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            405: components["responses"]["MethodNotAllowed"];
             /** @description Fallo interno del BFF (sin envoltura: la respuesta no tiene cuerpo en el camino de éxito). */
             500: {
                 headers: {
@@ -1050,6 +1053,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1074,6 +1078,8 @@ export interface operations {
                 cursor?: string;
                 /** @description Tamaño de página: 12 por defecto, máx. 50 (AC1.10.1, D19). */
                 limit?: number;
+                /** @description Si es `true`, incluye inmuebles `HIDDEN` en la respuesta. Solo tiene efecto cuando existe sesión de administrador válida y el BFF propaga `X-User-*` desde su propia cookie; sin sesión admin válida puede resultar en 401 `UNAUTHORIZED`. Si no se recibe, se considera `false`. */
+                includeHidden?: boolean;
             };
             header?: never;
             path?: never;
@@ -1093,6 +1099,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
         };
@@ -1130,6 +1137,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
@@ -1158,6 +1166,8 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
+            422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1185,6 +1195,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1218,6 +1229,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
@@ -1249,6 +1261,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             500: components["responses"]["InternalError"];
         };
@@ -1279,6 +1292,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
@@ -1310,6 +1324,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             500: components["responses"]["InternalError"];
         };
@@ -1359,7 +1374,9 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1405,7 +1422,9 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1438,6 +1457,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
@@ -1467,6 +1487,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1501,6 +1522,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
         };
@@ -1529,6 +1551,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1562,6 +1585,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
@@ -1593,6 +1617,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             500: components["responses"]["InternalError"];
         };
@@ -1623,6 +1648,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             500: components["responses"]["InternalError"];
         };
@@ -1653,6 +1679,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             500: components["responses"]["InternalError"];
         };
@@ -1687,6 +1714,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
         };
@@ -1712,6 +1740,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -1742,6 +1771,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            405: components["responses"]["MethodNotAllowed"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
             500: components["responses"]["InternalError"];
@@ -1788,6 +1818,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+            405: components["responses"]["MethodNotAllowed"];
         };
     };
     getHealth: {
@@ -1822,6 +1853,7 @@ export interface operations {
                     };
                 };
             };
+            405: components["responses"]["MethodNotAllowed"];
             /** @description Degraded — Functions no responde o responde con error. */
             503: {
                 headers: {

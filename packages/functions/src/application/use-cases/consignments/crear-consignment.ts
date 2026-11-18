@@ -21,7 +21,6 @@ export interface CrearConsignmentResult {
   readonly enviado: boolean;
 }
 
-// const JUAN_EMAIL = process.env.JUAN_EMAIL ?? 'juanfer@jfpropiedadraiz.com';
 const ASUNTO_JUAN = 'Nueva solicitud de consignación de propiedad';
 const ASUNTO_RECIBO = 'Recibo de tu solicitud de consignación';
 
@@ -32,7 +31,7 @@ export class CrearConsignmentUseCase implements UseCase<
   constructor(
     private readonly emailSender: EmailSender,
     private readonly logger: Logger,
-    private readonly juanEmail: string,
+    private readonly consignmentToEmail: string,
   ) {}
 
   async execute(command: CrearConsignmentCommand): Promise<CrearConsignmentResult> {
@@ -56,7 +55,7 @@ export class CrearConsignmentUseCase implements UseCase<
     // AC3.2.1 / AC3.2.3 — Correo a Juan Fernando con los datos del solicitante.
     const htmlJuan = this.construirHtmlJuan(input);
     try {
-      await this.emailSender.send(this.juanEmail, ASUNTO_JUAN, htmlJuan);
+      await this.emailSender.send(this.consignmentToEmail, ASUNTO_JUAN, htmlJuan);
     } catch (error) {
       this.logger.warn('consignment_email_juan_failed', { error: String(error) });
       throw new ApiError(
