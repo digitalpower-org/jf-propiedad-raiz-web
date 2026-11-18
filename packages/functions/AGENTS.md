@@ -177,6 +177,14 @@ Envelope (D15):
 - **Pedir confirmación** antes de cualquier refactor estructural o migración entre capas.
 - Al cerrar una US, actualizar `docs/TODOS.md` con el estado real.
 
+### Orquestación con agentes OMO (cuando aplique)
+
+- **Zapatero a su zapato:** cada tarea la ejecuta el agente ideal para esa tarea. Sisyphus no la ejecuta directamente si existe un agente idóneo disponible.
+- **Si falla el agente ideal:** Sisyphus decide entre (a) reintento del mismo agente con contexto corregido, o (b) reasignación a otro agente (incluido él mismo como último recurso). El fallo no obliga a rehacer desde cero ni a asumir que Sisyphus debe hacerlo.
+- **Planes:** si los agentes de OMO están activos y **Prometheus** está disponible, es Prometheus quien crea los planes de acción (en `.omo/plans/`). Sisyphus no redacta el plan en su lugar salvo que Prometheus falle y así se decida.
+- **Revisión de planes:** **Momus** revisa siempre todo plan antes de su implementación. Ningún plan se da por final sin el dictamen de Momus; sus observaciones se incorporan antes de empezar a implementar.
+- **Fallback:** si Prometheus o Momus no están disponibles, Sisyphus asume la responsabilidad correspondiente y lo documenta explícitamente.
+
 ---
 
 ## 12. Dónde mirar
