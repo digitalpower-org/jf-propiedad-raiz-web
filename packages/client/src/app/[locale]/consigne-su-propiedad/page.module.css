@@ -55,44 +55,6 @@
   box-shadow: var(--shadow-subtle);
 }
 
-.ctaRow {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16);
-  margin-bottom: var(--spacing-32);
-}
-
-@media (min-width: 768px) {
-  .ctaRow {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-48);
-  }
-}
-
-.whatsappBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-10);
-  background: var(--color-verde-bosque);
-  color: var(--color-blanco-puro);
-  font-weight: var(--font-weight-medium);
-  text-decoration: none;
-  padding: var(--spacing-14) var(--spacing-24);
-  border-radius: var(--radius-buttons);
-  min-height: 48px;
-  transition: background 0.2s ease;
-}
-
-.whatsappBtn:hover {
-  background: var(--color-verde-profundo);
-}
-
-.whatsappIcon {
-  font-size: var(--text-body);
-}
-
 .contactLink {
   display: inline-flex;
   align-items: center;
@@ -104,18 +66,4 @@
 
 .contactLink:hover {
   gap: var(--spacing-12);
-}
-
-.localeSwitcher {
-  margin-top: var(--spacing-24);
-}
-
-.localeLink {
-  color: var(--color-verde-bosque);
-  text-decoration: none;
-  font-weight: var(--font-weight-medium);
-}
-
-.localeLink:hover {
-  text-decoration: underline;
 }

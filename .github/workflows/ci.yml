@@ -158,7 +158,7 @@ jobs:
 
       - name: Variables de entorno de Functions para los emuladores
         run: |
-          printf 'BFF_INTERNAL_KEY=%s\nSESSION_JWT_SECRET=%s\nRESEND_API_KEY=resend_ci_falso_no_valido\nR2_ENDPOINT=http://127.0.0.1:9000\nR2_REGION=us-east-1\nR2_ACCESS_KEY_ID=CI_R2_ACCESS_KEY_ID_FALSO\nR2_SECRET_ACCESS_KEY=CI_R2_SECRET_ACCESS_KEY_FALSO\nR2_BUCKET=jf-propiedad-raiz-ci\nR2_PUBLIC_BASE_URL=http://127.0.0.1:9000/ci\n' > packages/functions/.env.local
+          printf 'BFF_INTERNAL_KEY=%s\nSESSION_JWT_SECRET=%s\nRESEND_API_KEY=resend_ci_falso_no_valido\nR2_ENDPOINT=http://127.0.0.1:9000\nR2_REGION=us-east-1\nR2_ACCESS_KEY_ID=CI_R2_ACCESS_KEY_ID_FALSO\nR2_SECRET_ACCESS_KEY=CI_R2_SECRET_ACCESS_KEY_FALSO\nR2_BUCKET=jf-propiedad-raiz-ci\nR2_PUBLIC_BASE_URL=http://127.0.0.1:9000/ci\n' "$BFF_INTERNAL_KEY" "$SESSION_JWT_SECRET" > packages/functions/.env.local
           cp packages/functions/.env.local packages/functions/.env
 
       - name: 'Gate 8/8 · E2E con backend (emuladores + seed)'
