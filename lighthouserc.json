@@ -14,6 +14,8 @@
         "http://localhost:3001/en/projects",
         "http://localhost:3001/es/propiedad/casa-ejemplo",
         "http://localhost:3001/en/property/casa-ejemplo",
+        "http://localhost:3001/es/consigne-su-propiedad",
+        "http://localhost:3001/en/list-your-property",
         "http://localhost:3001/es/aviso-de-privacidad",
         "http://localhost:3001/en/privacy-notice",
         "http://localhost:3001/es/politica-de-tratamiento-de-datos",
