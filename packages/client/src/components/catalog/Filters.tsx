@@ -326,7 +326,7 @@ export function Filters({
           </Text>
           <Select
             placeholder={t.departamento}
-            value={departamento}
+            value={departamento || null}
             onChange={(value) => {
               setDepartamento(value || '');
               setMunicipio('');
@@ -344,7 +344,7 @@ export function Filters({
           </Text>
           <Select
             placeholder={t.municipio}
-            value={municipio}
+            value={municipio || null}
             onChange={(value) => setMunicipio(value || '')}
             data={municipioOptions.map((m) => ({ value: m.es, label: m[locale] }))}
             size="sm"
