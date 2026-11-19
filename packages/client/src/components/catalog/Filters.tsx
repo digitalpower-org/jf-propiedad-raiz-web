@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Checkbox, Select, Input, Button, Group, Text, Grid, Divider } from '@mantine/core';
 import type { TipoInmueble, Operacion } from '@jf/shared-types';
 import styles from './Filters.module.css';
+import { DEPARTAMENTOS, municipiosDe } from '@/lib/consignment/locations';
 export interface PropertyFilters {
   tipo?: string | undefined;
   departamento?: string | undefined;
@@ -45,57 +46,6 @@ const TIPO_INMUEBLE_OPTIONS = {
     { value: 'BODEGA', label: 'Warehouse' },
     { value: 'OFICINA', label: 'Office' },
   ],
-};
-
-const DEPARTAMENTO_OPTIONS = {
-  es: [
-    { value: 'Antioquia', label: 'Antioquia' },
-    { value: 'Cundinamarca', label: 'Cundinamarca' },
-    { value: 'Valle del Cauca', label: 'Valle del Cauca' },
-    { value: 'Atlántico', label: 'Atlántico' },
-    { value: 'Santander', label: 'Santander' },
-    { value: 'Bolívar', label: 'Bolívar' },
-  ],
-  en: [
-    { value: 'Antioquia', label: 'Antioquia' },
-    { value: 'Cundinamarca', label: 'Cundinamarca' },
-    { value: 'Valle del Cauca', label: 'Valle del Cauca' },
-    { value: 'Atlántico', label: 'Atlántico' },
-    { value: 'Santander', label: 'Santander' },
-    { value: 'Bolívar', label: 'Bolívar' },
-  ],
-};
-
-const MUNICIPIO_OPTIONS: Record<string, { es: string; en: string }[]> = {
-  Antioquia: [
-    { es: 'Medellín', en: 'Medellín' },
-    { es: 'Envigado', en: 'Envigado' },
-    { es: 'Itagüí', en: 'Itagüí' },
-    { es: 'Bello', en: 'Bello' },
-    { es: 'Sabaneta', en: 'Sabaneta' },
-    { es: 'Rionegro', en: 'Rionegro' },
-    { es: 'Copacabana', en: 'Copacabana' },
-  ],
-  Cundinamarca: [
-    { es: 'Bogotá', en: 'Bogotá' },
-    { es: 'Soacha', en: 'Soacha' },
-    { es: 'Chía', en: 'Chía' },
-    { es: 'Cajicá', en: 'Cajicá' },
-  ],
-  'Valle del Cauca': [
-    { es: 'Cali', en: 'Cali' },
-    { es: 'Palmira', en: 'Palmira' },
-    { es: 'Tuluá', en: 'Tuluá' },
-  ],
-  Atlántico: [
-    { es: 'Barranquilla', en: 'Barranquilla' },
-    { es: 'Soledad', en: 'Soledad' },
-  ],
-  Santander: [
-    { es: 'Bucaramanga', en: 'Bucaramanga' },
-    { es: 'Floridablanca', en: 'Floridablanca' },
-  ],
-  Bolívar: [{ es: 'Cartagena', en: 'Cartagena' }],
 };
 
 export function Filters({
@@ -275,7 +225,7 @@ export function Filters({
     },
   }[locale];
 
-  const municipioOptions = departamento ? MUNICIPIO_OPTIONS[departamento] || [] : [];
+  const municipioOptions = municipiosDe(departamento);
 
   return (
     <div className={styles.container}>
@@ -326,12 +276,12 @@ export function Filters({
           </Text>
           <Select
             placeholder={t.departamento}
-            value={departamento}
+            value={departamento || null}
             onChange={(value) => {
               setDepartamento(value || '');
               setMunicipio('');
             }}
-            data={DEPARTAMENTO_OPTIONS[locale].map((d) => ({ value: d.value, label: d.label }))}
+            data={[...DEPARTAMENTOS]}
             size="sm"
             clearable
           />
@@ -344,9 +294,9 @@ export function Filters({
           </Text>
           <Select
             placeholder={t.municipio}
-            value={municipio}
+            value={municipio || null}
             onChange={(value) => setMunicipio(value || '')}
-            data={municipioOptions.map((m) => ({ value: m.es, label: m[locale] }))}
+            data={[...municipioOptions]}
             size="sm"
             clearable
             disabled={!departamento}

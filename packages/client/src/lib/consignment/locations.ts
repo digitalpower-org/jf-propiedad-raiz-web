@@ -1,6 +1,5 @@
 // Ubicaciones del formulario de consignación (AC3.1.1, D9: departamento y municipio juntos).
-// Mismos datos que usan hoy los filtros del catálogo (Filters.tsx); los nombres propios no se traducen.
-// DEUDA: cuando Filters adopte este módulo, desaparece la duplicación.
+// También los usan los filtros del catálogo (Filters.tsx); los nombres propios no se traducen.
 
 export const DEPARTAMENTOS = [
   'Antioquia',
