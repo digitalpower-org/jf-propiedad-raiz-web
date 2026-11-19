@@ -126,4 +126,37 @@ describe('CrearConsignmentUseCase', () => {
     });
     expect(emailSender.send).toHaveBeenCalledTimes(2);
   });
+
+  it('rechaza con EMAIL_DELIVERY_FAILED cuando el correo a Juan falla con error del SDK', async () => {
+    const { sut, emailSender } = makeSut({
+      emailSender: {
+        send: vi.fn().mockImplementation((to) => {
+          if (to === 'juanfer@jfpropiedadraiz.com')
+            throw new Error('Resend error: Invalid API key');
+          return Promise.resolve();
+        }),
+      },
+    });
+
+    await expect(sut.execute({ input: inputBase })).rejects.toMatchObject({
+      code: 'EMAIL_DELIVERY_FAILED',
+    });
+    expect(emailSender.send).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechaza con EMAIL_DELIVERY_FAILED cuando el recibo al solicitante falla con error del SDK', async () => {
+    const { sut, emailSender } = makeSut({
+      emailSender: {
+        send: vi.fn().mockImplementation((to) => {
+          if (to === 'cliente@ejemplo.com') throw new Error('Resend error: Invalid API key');
+          return Promise.resolve();
+        }),
+      },
+    });
+
+    await expect(sut.execute({ input: inputBase })).rejects.toMatchObject({
+      code: 'EMAIL_DELIVERY_FAILED',
+    });
+    expect(emailSender.send).toHaveBeenCalledTimes(2);
+  });
 });

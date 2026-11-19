@@ -55,6 +55,22 @@ describe('POST /api/v1/consignments', () => {
     expect(vi.mocked(emailSender.send)).toHaveBeenCalledTimes(2);
   });
 
+  it('retorna 502 con EMAIL_DELIVERY_FAILED cuando falla el envío de correo', async () => {
+    const emailSender = {
+      send: vi.fn().mockRejectedValue(new Error('Resend error: Invalid API key')),
+    };
+    const { app } = setup({ emailSender });
+
+    const response = await request(app)
+      .post('/api/v1/consignments')
+      .set('X-Internal-Key', INTERNAL_KEY)
+      .set('X-Client-IP', '203.0.113.10')
+      .send(inputValido);
+
+    expect(response.status).toBe(502);
+    expect(response.body.data.code).toBe('EMAIL_DELIVERY_FAILED');
+  });
+
   it('retorna enviado=false y no envía correos cuando el honeypot `sitio` tiene valor', async () => {
     const emailSender = { send: vi.fn().mockResolvedValue(undefined) };
     const { app } = setup({ emailSender });

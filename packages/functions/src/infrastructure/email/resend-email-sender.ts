@@ -17,11 +17,17 @@ export class ResendEmailSender implements EmailSender {
   }
 
   async send(to: string, subject: string, html: string): Promise<void> {
-    await this.resend.emails.send({
+    const result = await this.resend.emails.send({
       from: `Consignaciones <${this.fromEmail}>`,
       to,
       subject,
       html,
     });
+
+    if (result.error) {
+      throw new Error('Resend error: ' + result.error.message);
+    }
+
+    return undefined;
   }
 }
