@@ -130,4 +130,13 @@ describe('Filters | ubicación', () => {
     fireEvent.click(municipioInput('es'));
     expect(optionTexts()).toEqual([]);
   });
+
+  it.each(['toString', 'constructor', '__proto__'])(
+    'el departamento «%s» (p. ej. desde la URL) no rompe el filtro ni ofrece municipios',
+    (departamento) => {
+      expect(() => renderFilters('es', { departamento })).not.toThrow();
+      fireEvent.click(municipioInput('es'));
+      expect(optionTexts()).toEqual([]);
+    },
+  );
 });
