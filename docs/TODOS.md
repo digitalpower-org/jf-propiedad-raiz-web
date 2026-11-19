@@ -102,7 +102,7 @@
     - [x] `[D1]` Endpoint BFF/Functions `POST /api/consignments` (integración Resend, validación, límite de envíos)
     - [ ] `[D2]` UI formulario `app/[locale]/consignar` (campos, consentimiento, manejo 429/422/500)
   - [ ] US3.2 `[D1]` Notificación por correo con Resend (BFF/Functions)
-  - [ ] US3.3 `[D2]` Consentimiento de tratamiento de datos (UI)
+  - [x] US3.3 `[D2]` Consentimiento de tratamiento de datos (UI)
   - [x] US3.4 `[D1]` Protección contra bots y límite de envíos (BFF/Functions)
 
 ---
