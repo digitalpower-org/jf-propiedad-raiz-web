@@ -283,7 +283,68 @@
   "consign": {
     "title": "List Your Property",
     "whatsapp": "Contact via WhatsApp",
-    "whatsappMessage": "Hello, I would like to list my property."
+    "whatsappMessage": "Hello, I would like to list my property.",
+    "subtitle": "List your property in our catalog.",
+    "intro": "Complete the form and one of our advisors will contact you shortly.",
+    "contactLink": "Contact us directly",
+    "sections": {
+      "personal": "Your personal details",
+      "property": "Your property details"
+    },
+    "fields": {
+      "nombre": "Full name",
+      "telefono": "Phone",
+      "email": "Email",
+      "tipo": "Property type",
+      "departamento": "Department",
+      "municipio": "Municipality",
+      "valor": "Asking price (COP)",
+      "areaConstruida": "Built area (m²)",
+      "areaLote": "Lot area (m²)",
+      "mensaje": "Message"
+    },
+    "placeholders": {
+      "select": "Select an option",
+      "municipioFirst": "Select the department first"
+    },
+    "types": {
+      "CASA": "House",
+      "APARTAMENTO": "Apartment",
+      "LOTE_CAMPESTRE": "Country lot",
+      "LOTE_URBANO": "Urban lot",
+      "FINCA": "Farm",
+      "LOCAL_COMERCIAL": "Commercial space",
+      "BODEGA": "Warehouse",
+      "OFICINA": "Office"
+    },
+    "consent": {
+      "label": "I authorize the Processing of my Personal Data",
+      "policy": "View the Data Processing Policy"
+    },
+    "submit": "Send request",
+    "submitting": "Sending…",
+    "success": {
+      "title": "Request received!",
+      "body": "Thank you for trusting us. An advisor will get in touch with you shortly."
+    },
+    "fallback": {
+      "title": "We could not send your request by email",
+      "body": "Your details are still in the form. You can send them by WhatsApp or try again.",
+      "button": "Send via WhatsApp"
+    },
+    "errors": {
+      "required": "This field is required",
+      "invalidEmail": "Enter a valid email address",
+      "invalidPhone": "Enter a valid phone number, for example 300 123 4567",
+      "invalidNumber": "Enter a valid number greater than zero",
+      "invalidOption": "Select a valid option",
+      "consentRequired": "You must authorize the processing of personal data to continue"
+    },
+    "formErrors": {
+      "invalid": "Please check the form details and try again.",
+      "rateLimited": "You have sent too many requests in a row. Wait a minute and try again.",
+      "generic": "We could not send your request. Please try again in a few minutes."
+    }
   },
   "about": {
     "title": "About Us",
