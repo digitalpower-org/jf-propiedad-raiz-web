@@ -738,14 +738,68 @@ export interface components {
              */
             updatedAt?: string;
         };
-        /** @description PENDIENTE: definición pendiente en TASKS. Ficha completa del inmueble (US2.4): los campos del modelo `Property` de `shared-types/src/models`; TASKS no desglosa el DTO de respuesta de esta operación. */
+        /** @description Ficha completa del inmueble devuelta por el detalle público y por las mutaciones de administración; DTO plano `PropertyDto` (US2.4, AC1.7.7, US4.1). */
         PropertyDetail: {
-            id?: string;
-            codigo?: string;
-            slug?: string;
-            status?: components["schemas"]["EstadoPropiedad"];
-        } & {
-            [key: string]: unknown;
+            id: string;
+            /** @description Código secuencial `JF-XXXX` (D6, AC2.2.11). */
+            codigo: string;
+            slug: string;
+            status: components["schemas"]["EstadoPropiedad"];
+            operacion: components["schemas"]["Operacion"];
+            tipo: components["schemas"]["TipoInmueble"];
+            titulo: components["schemas"]["Translatable"];
+            descripcion?: components["schemas"]["Translatable"];
+            /** @description COP entero, sin decimales (D22, AC0.4.8). */
+            precio: number;
+            departamento: string;
+            municipio: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: date-time
+             * @description Se fija solo en la primera activación (AC1.7.5).
+             */
+            fechaPublicacion?: string;
+            destacada: boolean;
+            estrato?: number;
+            predial?: string;
+            administracion?: string;
+            acabados?: components["schemas"]["Translatable"];
+            antiguedad?: string;
+            areaConstruida?: number;
+            areaLote?: number;
+            dormitorios?: number;
+            banos?: number;
+            parqueaderos?: number;
+            /** @description Cuarto útil. */
+            deposito?: number;
+            /** @description Catálogo cerrado definido en `shared-types` (p. ej. `PISCINA`, `CANCHA`, `GIMNASIO`). */
+            amenidades?: string[];
+            /** @description Orden = posición; posición 1 = portada (US4.2.1). */
+            fotos?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            videos?: string[];
+            panoramas?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            /** @description Solo si `operacion = PROYECTO_SOBRE_PLANOS` (D20, AC4.1.5). */
+            proyecto?: {
+                etapa?: components["schemas"]["Translatable"];
+                /** @description Mes y año de entrega en formato `AAAA-MM`. */
+                fechaEntregaEstimada?: string;
+                unidadesDisponibles?: number;
+            };
         };
         /** @description Solicitud «Consigne su propiedad» (US3.1). Obligatorios: nombre, teléfono, email, tipo, ubicación y consentimiento (SUPUESTO 9); el resto es opcional. No se persiste (D11). */
         ConsignmentInput: {
