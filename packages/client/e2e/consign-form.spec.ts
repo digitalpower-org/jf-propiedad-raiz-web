@@ -99,15 +99,15 @@ test.describe('US3.1 / US3.3 | formulario «Consigne su propiedad»', () => {
   });
 
   for (const [nombre, handler, texto] of [
-    ['429 RATE_LIMITED', fail(429, 'RATE_LIMITED'), 'Realizó demasiados envíos seguidos'],
-    ['500', fail(500, 'INTERNAL'), 'No pudimos enviar su solicitud. Intente de nuevo'],
+    ['AC3.4.2 | 429 RATE_LIMITED', fail(429, 'RATE_LIMITED'), 'Realizó demasiados envíos seguidos'],
+    ['US3.1 | 500', fail(500, 'INTERNAL'), 'No pudimos enviar su solicitud. Intente de nuevo'],
     [
-      'caída de red',
+      'US3.1 | caída de red',
       (route: Route) => route.abort('failed'),
       'No pudimos enviar su solicitud. Intente de nuevo',
     ],
   ] as [string, Handler, string][]) {
-    test(`AC3.1.2 | ${nombre}: aviso en el formulario, datos conservados y botón reactivado`, async ({
+    test(`${nombre}: aviso en el formulario, datos conservados y botón reactivado`, async ({
       page,
     }) => {
       await openForm(page, handler);
@@ -119,7 +119,7 @@ test.describe('US3.1 / US3.3 | formulario «Consigne su propiedad»', () => {
     });
   }
 
-  test('AC3.3.3 | 422 CONSENT_REQUIRED: aviso de consentimiento y datos conservados', async ({
+  test('AC3.3.2 | 422 CONSENT_REQUIRED: aviso de consentimiento y datos conservados', async ({
     page,
   }) => {
     await openForm(page, fail(422, 'CONSENT_REQUIRED'));
