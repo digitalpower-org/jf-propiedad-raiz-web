@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ConsignmentForm } from '@/components/consignment/ConsignmentForm';
 import { isLocale } from '@/i18n/config';
-import { getWhatsAppNumber, buildWhatsAppUrl } from '@/lib/whatsapp';
-
+import { routes } from '@/i18n/routes';
+import { getWhatsAppNumber } from '@/lib/whatsapp';
 import styles from './page.module.css';
 
 type ConsignPageProps = {
@@ -15,64 +15,30 @@ export default async function ConsignPage({ params }: ConsignPageProps) {
   if (!isLocale(locale)) notFound();
 
   setRequestLocale(locale);
-  const t = await getTranslations();
-
-  const whatsappNumber = getWhatsAppNumber();
-  const whatsappMessage = t('consign.whatsappMessage', {
-    nombre: '',
-    mensaje: 'Hola, me gustaría consignar mi propiedad.',
-  });
-  const ctaUrl = whatsappNumber
-    ? buildWhatsAppUrl({ number: whatsappNumber, message: whatsappMessage })
-    : null;
+  const t = await getTranslations('consign');
 
   return (
     <div className={styles.page}>
       <div className={styles.content}>
         <header className={styles.header}>
-          <h1 className={styles.title}>{t('consign.title')}</h1>
-          <p className={styles.subtitle}>
-            {locale === 'es'
-              ? 'Publique su inmueble en nuestro catálogo.'
-              : 'List your property in our catalog.'}
-          </p>
+          <h1 className={styles.title}>{t('title')}</h1>
+          <p className={styles.subtitle}>{t('subtitle')}</p>
         </header>
 
         <section className={styles.introSection}>
-          <p className={styles.introText}>
-            {locale === 'es'
-              ? 'Complete el siguiente formulario para consignar su propiedad. Uno de nuestros asesores se pondrá en contacto con usted a la brevedad.'
-              : 'Complete the form below to list your property. One of our advisors will contact you shortly.'}
-          </p>
+          <p className={styles.introText}>{t('intro')}</p>
         </section>
 
-        <div className={styles.ctaRow}>
-          {ctaUrl && (
-            <a
-              href={ctaUrl}
-              className={styles.whatsappBtn}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t('consign.whatsapp')}
-            >
-              <span className={styles.whatsappIcon}>📱</span>
-              {t('consign.whatsapp')}
-            </a>
-          )}
-          <a href={locale === 'es' ? '/es/contacto' : '/en/contact'} className={styles.contactLink}>
-            {locale === 'es' ? 'Contactarnos directamente' : 'Contact us directly'}
-            <span className={styles.arrow}>→</span>
-          </a>
-        </div>
+        <ConsignmentForm
+          locale={locale}
+          whatsappNumber={getWhatsAppNumber()}
+          dataPolicyHref={routes.dataPolicy[locale]}
+        />
 
-        <div className={styles.localeSwitcher}>
-          <a
-            href={locale === 'es' ? '/en/list-your-property' : '/es/consigne-su-propiedad'}
-            className={styles.localeLink}
-          >
-            {locale === 'es' ? 'Ver en inglés' : 'View in Spanish'}
-          </a>
-        </div>
+        <a href={routes.contact[locale]} className={styles.contactLink}>
+          {t('contactLink')}
+          <span aria-hidden="true">→</span>
+        </a>
       </div>
     </div>
   );
