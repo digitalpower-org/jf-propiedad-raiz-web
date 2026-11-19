@@ -48,12 +48,11 @@ export interface paths {
         put?: never;
         /**
          * Crear un inmueble (estado inicial HIDDEN)
-         * @description PENDIENTE: definición pendiente en TASKS. Ruta deducida de US1.7 / AC1.7.1 y US4.1 /
-         *     AC4.1.2 (crear → `HIDDEN` con `codigo` `JF-XXXX` secuencial y
-         *     `createdAt`, D6); TASKS define el caso de uso pero no la ruta HTTP ni el cuerpo exacto
-         *     de la respuesta. `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` son de
-         *     solo lectura y no se envían (AC1.7.2); `enPendiente` solo lo escribe el backend y
-         *     `autoTranslate` se envía por campo traducible (AC0.5.10, D-A).
+         * @description Crea un inmueble en estado `HIDDEN` con `codigo` secuencial `JF-XXXX` asignado por
+         *     el backend (D6, AC1.7.1, AC4.1.2). `codigo`, `fechaPublicacion`, `createdAt` y
+         *     `updatedAt` son de solo lectura y no se envían (AC1.7.2); `enPendiente` solo lo
+         *     escribe el backend y `autoTranslate` se envía por campo traducible (AC0.5.10, D-A).
+         *     Devuelve el `PropertyDetail` creado (US4.1, AC4.1.3).
          */
         post: operations["createProperty"];
         delete?: never;
@@ -93,27 +92,27 @@ export interface paths {
         };
         /**
          * Detalle de un inmueble por id o slug
-         * @description PENDIENTE: definición pendiente en TASKS. Deducido de AC1.7.7 (una ficha `HIDDEN` o
-         *     `DELETED` solicitada por `:idOrSlug` desde la web pública responde 404
-         *     `PROPERTY_NOT_FOUND`) y de US2.4 (la ficha se renderiza con estos datos); TASKS no
-         *     fija la ruta HTTP ni el DTO completo de respuesta.
+         * @description Devuelve la ficha completa de un inmueble `ACTIVE` por `id` o `slug` para la web
+         *     pública (US2.4). Una ficha `HIDDEN` o `DELETED` solicitada desde la web pública
+         *     responde 404 `PROPERTY_NOT_FOUND` (AC1.7.7). El `data` es el DTO completo
+         *     `PropertyDetail`, igual que el devuelto por las mutaciones de administración.
          */
         get: operations["getProperty"];
         /**
          * Actualizar un inmueble (edición del admin)
-         * @description PENDIENTE: definición pendiente en TASKS. Ruta deducida de US4.1 (editor del panel) y
-         *     US1.7; TASKS define el comportamiento pero no la ruta HTTP. Optimismo por concurrencia:
-         *     si el `updatedAt` enviado está desactualizado responde 409 `CONFLICT` (AC1.7.8). Al
-         *     guardar se traducen los campos con `autoTranslate` activo (US0.5) y se dispara la
-         *     revalidación (US0.3). Al guardar completo pasa automáticamente a `ACTIVE` (AC4.1.6).
+         * @description Actualiza un inmueble desde el editor del panel (US4.1, US1.7). El control de
+         *     concurrencia optimista usa `updatedAt`: si está desactualizado responde 409
+         *     `CONFLICT` (AC1.7.8). Los campos con `autoTranslate` activo se traducen al guardar
+         *     (US0.5) y se dispara la revalidación (US0.3). Al guardar completo pasa automáticamente
+         *     a `ACTIVE` (AC4.1.6). Devuelve el `PropertyDetail` resultante.
          */
         put: operations["updateProperty"];
         post?: never;
         /**
          * Eliminar un inmueble (soft delete)
-         * @description PENDIENTE: definición pendiente en TASKS. Ruta deducida de US1.7 (soft delete a
-         *     `DELETED`) y US4.1 / AC4.1.7 («eliminar» pide confirmación y retira el inmueble del
-         *     sitio público); TASKS no fija la ruta HTTP. Tras la escritura se revalida (US0.3).
+         * @description Realiza un soft delete de un inmueble: `status = DELETED`, sin borrado físico
+         *     (US1.7, AC4.1.7). El inmueble deja de ser público y se dispara la revalidación
+         *     (US0.3). Devuelve el `PropertyDetail` resultante.
          */
         delete: operations["deleteProperty"];
         options?: never;
@@ -132,12 +131,11 @@ export interface paths {
         put?: never;
         /**
          * Activar un inmueble (HIDDEN → ACTIVE)
-         * @description PENDIENTE: definición pendiente en TASKS (US1.7 / US4.1 definen la operación «activar»,
-         *     no la ruta HTTP). Validación de activación: si faltan `operacion`, `tipo`, `titulo` (es),
-         *     `departamento`, `municipio`, `precio` o al menos una foto responde 422
-         *     `VALIDATION_ERROR` con los campos faltantes (AC1.7.3); `precio` debe ser entero > 0
-         *     (AC1.7.4). La primera activación fija `fechaPublicacion` (AC1.7.5) y dispara
-         *     revalidación (US0.3).
+         * @description Activa un inmueble (`HIDDEN` → `ACTIVE`). Valida que estén `operacion`, `tipo`,
+         *     `titulo` (es), `departamento`, `municipio`, `precio` y al menos una foto; si falta
+         *     algo responde 422 `VALIDATION_ERROR` con los campos faltantes (AC1.7.3); `precio`
+         *     debe ser entero > 0 (AC1.7.4). La primera activación fija `fechaPublicacion`
+         *     (AC1.7.5) y dispara la revalidación (US0.3). Devuelve el `PropertyDetail` activado.
          */
         post: operations["activateProperty"];
         delete?: never;
@@ -157,9 +155,9 @@ export interface paths {
         put?: never;
         /**
          * Ocultar un inmueble (ACTIVE → HIDDEN)
-         * @description PENDIENTE: definición pendiente en TASKS (US1.7 / US4.1 / AC4.1.7 definen «ocultar»,
-         *     no la ruta HTTP). Ocultar no cambia `fechaPublicacion` (AC1.7.5); el inmueble deja de
-         *     ser público y se revalida (US0.3).
+         * @description Oculta un inmueble (`ACTIVE` → `HIDDEN`). No cambia `fechaPublicacion` (AC1.7.5);
+         *     el inmueble deja de ser público y se revalida (US0.3). Devuelve el `PropertyDetail`
+         *     oculto.
          */
         post: operations["hideProperty"];
         delete?: never;
@@ -564,14 +562,68 @@ export interface components {
             /** @description Cursor `{ createdAt, id }` de la siguiente página; `null` al final (AC1.10.2). */
             nextCursor: string | null;
         };
-        /** @description PENDIENTE: definición pendiente en TASKS. Ficha completa del inmueble (US2.4): los campos del modelo `Property` de `shared-types/src/models`; TASKS no desglosa el DTO de respuesta de esta operación. */
+        /** @description Ficha completa del inmueble devuelta por el detalle público y por las mutaciones de administración; DTO plano `PropertyDto` (US2.4, AC1.7.7, US4.1). */
         PropertyDetail: {
-            id?: string;
-            codigo?: string;
-            slug?: string;
-            status?: components["schemas"]["EstadoPropiedad"];
-        } & {
-            [key: string]: unknown;
+            id: string;
+            /** @description Código secuencial `JF-XXXX` (D6, AC2.2.11). */
+            codigo: string;
+            slug: string;
+            status: components["schemas"]["EstadoPropiedad"];
+            operacion: components["schemas"]["Operacion"];
+            tipo: components["schemas"]["TipoInmueble"];
+            titulo: components["schemas"]["Translatable"];
+            descripcion?: components["schemas"]["Translatable"];
+            /** @description COP entero, sin decimales (D22, AC0.4.8). */
+            precio: number;
+            departamento: string;
+            municipio: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: date-time
+             * @description Se fija solo en la primera activación (AC1.7.5).
+             */
+            fechaPublicacion?: string;
+            destacada: boolean;
+            estrato?: number;
+            predial?: string;
+            administracion?: string;
+            acabados?: components["schemas"]["Translatable"];
+            antiguedad?: string;
+            areaConstruida?: number;
+            areaLote?: number;
+            dormitorios?: number;
+            banos?: number;
+            parqueaderos?: number;
+            /** @description Cuarto útil. */
+            deposito?: number;
+            /** @description Catálogo cerrado definido en `shared-types` (p. ej. `PISCINA`, `CANCHA`, `GIMNASIO`). */
+            amenidades?: string[];
+            /** @description Orden = posición; posición 1 = portada (US4.2.1). */
+            fotos?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            videos?: string[];
+            panoramas?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            /** @description Solo si `operacion = PROYECTO_SOBRE_PLANOS` (D20, AC4.1.5). */
+            proyecto?: {
+                etapa?: components["schemas"]["Translatable"];
+                /** @description Mes y año de entrega en formato `AAAA-MM`. */
+                fechaEntregaEstimada?: string;
+                unidadesDisponibles?: number;
+            };
         };
         /** @description DTO de escritura del editor de inmuebles (AC4.1.3). Excluye los campos de solo lectura `codigo`, `fechaPublicacion`, `createdAt` y `updatedAt` (AC1.7.2), y el campo que solo escribe el backend `enPendiente` (AC0.5.10). `autoTranslate` se envía por campo dentro de cada `TranslatableInput` (D-A). */
         PropertyInput: {
@@ -963,14 +1015,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS (cuerpo de la respuesta de creación no especificado). */
-                        data: {
-                            id?: string;
-                            /** @description Código secuencial `JF-XXXX` (D6). */
-                            codigo?: string;
-                            slug?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                        };
+                        data: components["schemas"]["PropertyDetail"];
                     };
                 };
             };
@@ -1062,20 +1107,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Inmueble actualizado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Inmueble actualizado; devuelve el `PropertyDetail` resultante. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                            /** Format: date-time */
-                            updatedAt?: string;
-                        };
+                        data: components["schemas"]["PropertyDetail"];
                     };
                 };
             };
@@ -1107,18 +1146,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Soft delete confirmado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Soft delete confirmado; devuelve el `PropertyDetail` resultante. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                        };
+                        data: components["schemas"]["PropertyDetail"];
                     };
                 };
             };
@@ -1148,23 +1183,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Inmueble activado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Inmueble activado; devuelve el `PropertyDetail` resultante. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                            /**
-                             * Format: date-time
-                             * @description Se fija solo en la primera activación (AC1.7.5).
-                             */
-                            fechaPublicacion?: string;
-                        };
+                        data: components["schemas"]["PropertyDetail"];
                     };
                 };
             };
@@ -1195,18 +1221,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Soft delete confirmado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Inmueble oculto; devuelve el `PropertyDetail` resultante. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                        };
+                        data: components["schemas"]["PropertyDetail"];
                     };
                 };
             };
@@ -1253,17 +1275,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS (nombres exactos de los campos de respuesta no especificados en US1.8). */
+                        /** @description Datos de la URL PUT presignada devuelta por el backend (AC1.8.1, AC1.8.2). */
                         data: {
                             /** @description URL PUT presignada hacia R2. */
-                            url?: string;
+                            url: string;
                             /** @description Clave generada por el servidor bajo `pending/` (AC1.8.2). */
-                            key?: string;
+                            key: string;
                             /**
                              * @description Validez de la URL presignada en segundos (15 min, AC1.8.1).
                              * @example 900
                              */
-                            expiresInSeconds?: number;
+                            expiresInSeconds: number;
                         };
                     };
                 };
@@ -1311,13 +1333,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS (US1.9 dice «las claves de sus derivados» sin nombrar los campos del cuerpo). */
+                        /** @description Derivados WebP generados por el backend (US1.9, AC1.9.1). */
                         data: {
-                            /** @description Claves de los derivados WebP generados en R2. */
-                            derivados?: {
+                            /** @description Claves y dimensiones de los derivados WebP generados en R2. */
+                            derivados: {
                                 clave: string;
                                 /** @description Lado mayor en px del derivado (320/640/1280/2048 o tamaño completo, US1.9). */
                                 ancho: number;
+                                /** @description Lado menor en px del derivado (US1.9). */
+                                alto: number;
                             }[];
                         };
                     };
