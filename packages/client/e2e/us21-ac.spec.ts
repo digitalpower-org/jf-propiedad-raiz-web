@@ -155,9 +155,16 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
   }) => {
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
     const menuButton = page.locator('nav').getByRole('button', { name: /abrir menú|open menu/i });
+    // El clic puede llegar antes de que React hidrate el botón y se pierde: se reintenta
+    // hasta que aria-expanded sea "true" (sin segundo clic si el menú ya se abrió).
+    const abrirMenu = () =>
+      expect(async () => {
+        if ((await menuButton.getAttribute('aria-expanded')) !== 'true') await menuButton.click();
+        await expect(menuButton).toHaveAttribute('aria-expanded', 'true', { timeout: 1000 });
+      }).toPass({ timeout: 10000 });
 
     // Caso 1: Cerrar al navegar a un acceso
-    await menuButton.click();
+    await abrirMenu();
     await expect(
       page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
     ).toBeVisible();
@@ -172,7 +179,7 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
 
     // Caso 2: Cerrar con botón cerrar
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
-    await menuButton.click();
+    await abrirMenu();
     const closeButton = page
       .locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]')
       .getByRole('button', { name: /cerrar|close/i });
@@ -184,7 +191,7 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
 
     // Caso 3: Cerrar con Escape
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
-    await menuButton.click();
+    await abrirMenu();
     await page.keyboard.press('Escape');
     await expect(
       page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
@@ -192,7 +199,7 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
 
     // Caso 4: Cerrar al tocar fuera
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
-    await menuButton.click();
+    await abrirMenu();
     await page.mouse.click(10, 10);
     await expect(
       page.locator('nav [role="dialog"], nav .mobile-menu-panel, nav [data-mobile-menu]'),
@@ -205,8 +212,15 @@ test.describe('AC2.1.4-2.1.7 | Menú hamburguesa - solo mobile', () => {
   }) => {
     await page.goto('/es/venta', { waitUntil: 'domcontentloaded' });
     const menuButton = page.locator('nav').getByRole('button', { name: /abrir menú|open menu/i });
+    // El clic puede llegar antes de que React hidrate el botón y se pierde: se reintenta
+    // hasta que aria-expanded sea "true" (sin segundo clic si el menú ya se abrió).
+    const abrirMenu = () =>
+      expect(async () => {
+        if ((await menuButton.getAttribute('aria-expanded')) !== 'true') await menuButton.click();
+        await expect(menuButton).toHaveAttribute('aria-expanded', 'true', { timeout: 1000 });
+      }).toPass({ timeout: 10000 });
 
-    await menuButton.click();
+    await abrirMenu();
 
     // Wait for aria-expanded to update
     await expect(menuButton).toHaveAttribute('aria-expanded', 'true', { timeout: 10000 });
