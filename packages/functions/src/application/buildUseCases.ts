@@ -47,28 +47,32 @@ export function buildUseCases(
     logger: ports.logger,
   });
 
+  const translationService = new TranslationService({
+    translator: ports.translator,
+    logger: ports.logger,
+  });
+
   return {
     verifyInternalSession: new VerifyInternalSessionUseCase(
       ports.identityVerifier,
       ports.authorizedUsers,
       ports.logger,
     ),
-    translationService: new TranslationService({
-      translator: ports.translator,
-      logger: ports.logger,
-    }),
+    translationService,
     revalidateContent,
     crearProperty: new CrearPropertyUseCase(
       ports.properties,
       revalidateContent,
       ports.videoValidator,
       ports.logger,
+      translationService,
     ),
     actualizarProperty: new ActualizarPropertyUseCase(
       ports.properties,
       revalidateContent,
       ports.videoValidator,
       ports.logger,
+      translationService,
     ),
     eliminarProperty: new EliminarPropertyUseCase(
       ports.properties,

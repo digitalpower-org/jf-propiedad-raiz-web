@@ -6,6 +6,7 @@ import type {
   TipoInmueble,
   Translatable,
   VideoYouTube,
+  PuntoInteres,
 } from '@jf/shared-types';
 
 /**
@@ -51,6 +52,13 @@ export interface ListadoPublicoResult {
   readonly nextCursor: string | undefined;
 }
 
+/** DTO de entrada para campos traducibles (solo es, en?, autoTranslate?). */
+export interface TranslatableInputDto {
+  readonly es: string;
+  readonly en?: string;
+  readonly autoTranslate?: boolean;
+}
+
 /** Inmueble completo (DTO plano). Coincide con la forma de `Property` de Domain. */
 export interface PropertyDto {
   readonly id: string;
@@ -80,6 +88,7 @@ export interface PropertyDto {
   readonly parqueaderos?: number;
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
+  readonly puntosInteres?: readonly PuntoInteres[];
   readonly fotos?: readonly Foto[];
   readonly videos?: readonly VideoYouTube[];
   readonly panoramas?: readonly Panorama[];
@@ -100,15 +109,15 @@ export interface ObtenerPropertyResult {
 export interface CrearPropertyInputDto {
   readonly operacion: Operacion;
   readonly tipo: TipoInmueble;
-  readonly titulo: Translatable;
-  readonly descripcion?: Translatable;
+  readonly titulo: TranslatableInputDto;
+  readonly descripcion?: TranslatableInputDto;
   readonly precio: number;
   readonly departamento: string;
   readonly municipio: string;
   readonly estrato?: number;
   readonly predial?: string;
   readonly administracion?: string;
-  readonly acabados?: Translatable;
+  readonly acabados?: TranslatableInputDto;
   readonly antiguedad?: string;
   readonly areaConstruida?: number;
   readonly areaLote?: number;
@@ -117,14 +126,14 @@ export interface CrearPropertyInputDto {
   readonly parqueaderos?: number;
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
-  readonly puntosInteres?: readonly unknown[];
+  readonly puntosInteres?: readonly PuntoInteres[];
   readonly fotos?: readonly Foto[];
   readonly videos?: readonly VideoYouTube[];
   readonly panoramas?: readonly Panorama[];
   readonly destacada?: boolean;
   readonly fechaPublicacion?: string;
   readonly proyecto?: {
-    readonly etapa?: Translatable;
+    readonly etapa?: TranslatableInputDto;
     readonly fechaEntregaEstimada?: string;
     readonly unidadesDisponibles?: number;
   };
@@ -134,15 +143,15 @@ export interface CrearPropertyInputDto {
 export interface ActualizarPropertyInputDto {
   readonly operacion?: Operacion;
   readonly tipo?: TipoInmueble;
-  readonly titulo?: Translatable;
-  readonly descripcion?: Translatable;
+  readonly titulo?: TranslatableInputDto;
+  readonly descripcion?: TranslatableInputDto;
   readonly precio?: number;
   readonly departamento?: string;
   readonly municipio?: string;
   readonly estrato?: number;
   readonly predial?: string;
   readonly administracion?: string;
-  readonly acabados?: Translatable;
+  readonly acabados?: TranslatableInputDto;
   readonly antiguedad?: string;
   readonly areaConstruida?: number;
   readonly areaLote?: number;
@@ -151,13 +160,13 @@ export interface ActualizarPropertyInputDto {
   readonly parqueaderos?: number;
   readonly deposito?: number;
   readonly amenidades?: readonly string[];
-  readonly puntosInteres?: readonly unknown[];
+  readonly puntosInteres?: readonly PuntoInteres[];
   readonly fotos?: readonly Foto[];
   readonly videos?: readonly VideoYouTube[];
   readonly panoramas?: readonly Panorama[];
   readonly destacada?: boolean;
   readonly proyecto?: {
-    readonly etapa?: Translatable;
+    readonly etapa?: TranslatableInputDto;
     readonly fechaEntregaEstimada?: string;
     readonly unidadesDisponibles?: number;
   };

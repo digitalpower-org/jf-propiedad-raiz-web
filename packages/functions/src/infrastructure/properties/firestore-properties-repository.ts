@@ -14,8 +14,9 @@ import type {
   PropertyDto,
   ActualizarPropertyInputDto,
   CrearPropertyInputDto,
+  TranslatableInputDto,
 } from '../../application/ports/properties-repository';
-import type { EstadoPropiedad } from '@jf/shared-types';
+import type { EstadoPropiedad, PuntoInteres, Translatable } from '@jf/shared-types';
 
 import { errPropertyNotFound } from '../../domain/errors/error-messages';
 
@@ -44,11 +45,52 @@ function validarMedios(input: { fotos?: unknown; videos?: unknown; panoramas?: u
 }
 
 /**
+ * Mapea un campo traducible del documento a Translatable preservando
+ * autoTranslate y enPendiente. Si enPendiente no está almacenado, lo computa:
+ * enPendiente = autoTranslate === true && !en
+ */
+function mapTranslatable(data: unknown): Translatable {
+  const d = data as Record<string, unknown> | undefined;
+  if (!d) return { es: '' };
+  const autoTranslate = d.autoTranslate as boolean | undefined;
+  const en = d.en as string | undefined;
+  const storedEnPendiente = d.enPendiente as boolean | undefined;
+  return {
+    es: String(d.es ?? ''),
+    en,
+    autoTranslate,
+    enPendiente: storedEnPendiente ?? (autoTranslate === true && !en),
+  };
+}
+
+/**
+ * Mapea un array de puntos de interés preservando la estructura completa.
+ */
+function mapPuntosInteres(data: unknown): readonly PuntoInteres[] | undefined {
+  if (!Array.isArray(data)) return undefined;
+  return data.map((p) => {
+    const pi = p as Record<string, unknown>;
+    return {
+      categoria: pi.categoria as import('@jf/shared-types').PuntoInteresCategoria | undefined,
+      etiqueta: mapTranslatable(pi.etiqueta),
+    };
+  }) as readonly PuntoInteres[];
+}
+
+/**
  * Mapea un documento de Firestore a un `PropertyDto` (tipo plano, sin Domain).
  * Los timestamps de Firestore se convierten a string ISO.
+ * Preserva autoTranslate y enPendiente en todos los campos traducibles.
  */
 function documentoAPropertyDto(snap: { id: string; data(): unknown }): PropertyDto {
-  const data = snap.data() as PropertyDto;
+  const data = snap.data() as Record<string, unknown>;
+  const proyecto = data.proyecto as
+    | {
+        etapa?: unknown;
+        fechaEntregaEstimada?: unknown;
+        unidadesDisponibles?: unknown;
+      }
+    | undefined;
 
   return {
     id: snap.id,
@@ -57,16 +99,8 @@ function documentoAPropertyDto(snap: { id: string; data(): unknown }): PropertyD
     status: (data.status ?? 'HIDDEN') as EstadoPropiedad,
     operacion: data.operacion as import('@jf/shared-types').Operacion,
     tipo: data.tipo as import('@jf/shared-types').TipoInmueble,
-    titulo: {
-      es: String((data.titulo as { es?: string })?.es ?? ''),
-      en: (data.titulo as { en?: string })?.en,
-    },
-    descripcion: data.descripcion
-      ? {
-          es: String((data.descripcion as { es?: string }).es),
-          en: (data.descripcion as { en?: string }).en,
-        }
-      : undefined,
+    titulo: mapTranslatable(data.titulo),
+    descripcion: data.descripcion ? mapTranslatable(data.descripcion) : undefined,
     precio: Number(data.precio ?? 0),
     departamento: String(data.departamento ?? ''),
     municipio: String(data.municipio ?? ''),
@@ -74,22 +108,29 @@ function documentoAPropertyDto(snap: { id: string; data(): unknown }): PropertyD
     updatedAt: data.updatedAt ? toISO(data.updatedAt) : new Date().toISOString(),
     fechaPublicacion: data.fechaPublicacion ? toISO(data.fechaPublicacion) : undefined,
     destacada: !!data.destacada,
-    estrato: data.estrato,
-    predial: data.predial,
-    administracion: data.administracion,
-    acabados: data.acabados,
-    antiguedad: data.antiguedad,
-    areaConstruida: data.areaConstruida,
-    areaLote: data.areaLote,
-    dormitorios: data.dormitorios,
-    banos: data.banos,
-    parqueaderos: data.parqueaderos,
-    deposito: data.deposito,
-    amenidades: data.amenidades,
-    fotos: data.fotos,
-    videos: data.videos,
-    panoramas: data.panoramas,
-    proyecto: data.proyecto,
+    estrato: data.estrato as number | undefined,
+    predial: data.predial as string | undefined,
+    administracion: data.administracion as string | undefined,
+    acabados: data.acabados ? mapTranslatable(data.acabados) : undefined,
+    antiguedad: data.antiguedad as string | undefined,
+    areaConstruida: data.areaConstruida as number | undefined,
+    areaLote: data.areaLote as number | undefined,
+    dormitorios: data.dormitorios as number | undefined,
+    banos: data.banos as number | undefined,
+    parqueaderos: data.parqueaderos as number | undefined,
+    deposito: data.deposito as number | undefined,
+    amenidades: data.amenidades as readonly string[] | undefined,
+    puntosInteres: mapPuntosInteres(data.puntosInteres),
+    fotos: data.fotos as readonly import('@jf/shared-types').Foto[] | undefined,
+    videos: data.videos as readonly import('@jf/shared-types').VideoYouTube[] | undefined,
+    panoramas: data.panoramas as readonly import('@jf/shared-types').Panorama[] | undefined,
+    proyecto: proyecto
+      ? {
+          etapa: proyecto.etapa ? mapTranslatable(proyecto.etapa) : undefined,
+          fechaEntregaEstimada: proyecto.fechaEntregaEstimada as string | undefined,
+          unidadesDisponibles: proyecto.unidadesDisponibles as number | undefined,
+        }
+      : undefined,
   };
 }
 
@@ -138,6 +179,14 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
     return `JF-${String(siguiente).padStart(4, '0')}`;
   }
 
+  /** Convierte TranslatableInputDto a objeto plano para Firestore. */
+  function toFirestoreTranslatable(input: TranslatableInputDto): Record<string, unknown> {
+    const result: Record<string, unknown> = { es: input.es };
+    if (input.en !== undefined) result.en = input.en;
+    if (input.autoTranslate !== undefined) result.autoTranslate = input.autoTranslate;
+    return result;
+  }
+
   async function crear(input: CrearPropertyInputDto): Promise<CrearPropertyResult> {
     const id = crypto.randomUUID();
     const codigo = await generarCodigoSecuencial();
@@ -156,8 +205,8 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       status: 'HIDDEN',
       operacion: input.operacion,
       tipo: input.tipo,
-      titulo: input.titulo,
-      descripcion: input.descripcion,
+      titulo: toFirestoreTranslatable(input.titulo),
+      descripcion: input.descripcion ? toFirestoreTranslatable(input.descripcion) : undefined,
       precio: input.precio,
       departamento: input.departamento,
       municipio: input.municipio,
@@ -168,7 +217,7 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       ...(input.administracion !== undefined && {
         administracion: input.administracion,
       }),
-      ...(input.acabados !== undefined && { acabados: input.acabados }),
+      ...(input.acabados !== undefined && { acabados: toFirestoreTranslatable(input.acabados) }),
       ...(input.antiguedad !== undefined && { antiguedad: input.antiguedad }),
       ...(input.areaConstruida !== undefined && {
         areaConstruida: input.areaConstruida,
@@ -182,24 +231,58 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       ...(input.deposito !== undefined && { deposito: input.deposito }),
       ...(input.amenidades !== undefined && { amenidades: input.amenidades }),
       ...(input.puntosInteres !== undefined && {
-        puntosInteres: input.puntosInteres,
+        puntosInteres: input.puntosInteres
+          ? input.puntosInteres.map((pi) => ({
+              categoria: pi.categoria,
+              etiqueta: {
+                es: pi.etiqueta!.es,
+                en: pi.etiqueta!.en,
+                autoTranslate: pi.etiqueta!.autoTranslate,
+                enPendiente: pi.etiqueta!.autoTranslate === true && !pi.etiqueta!.en,
+              },
+            }))
+          : undefined,
       }),
       ...(input.fotos !== undefined && { fotos: input.fotos }),
       ...(input.videos !== undefined && { videos: input.videos }),
       ...(input.panoramas !== undefined && { panoramas: input.panoramas }),
       ...(input.destacada !== undefined && { destacada: input.destacada }),
-      ...(input.proyecto !== undefined && { proyecto: input.proyecto }),
+      ...(input.proyecto !== undefined && {
+        proyecto: {
+          ...(input.proyecto.etapa !== undefined
+            ? { etapa: toFirestoreTranslatable(input.proyecto.etapa) }
+            : {}),
+          ...(input.proyecto.fechaEntregaEstimada !== undefined
+            ? { fechaEntregaEstimada: input.proyecto.fechaEntregaEstimada }
+            : {}),
+          ...(input.proyecto.unidadesDisponibles !== undefined
+            ? { unidadesDisponibles: input.proyecto.unidadesDisponibles }
+            : {}),
+        },
+      }),
     });
 
-    const property = {
+    const property: PropertyDto = {
       id,
       codigo,
       slug,
       status: 'HIDDEN' as EstadoPropiedad,
       operacion: input.operacion,
       tipo: input.tipo,
-      titulo: input.titulo,
-      descripcion: input.descripcion,
+      titulo: {
+        es: input.titulo.es,
+        en: input.titulo.en,
+        autoTranslate: input.titulo.autoTranslate,
+        enPendiente: input.titulo.autoTranslate === true && !input.titulo.en,
+      },
+      descripcion: input.descripcion
+        ? {
+            es: input.descripcion.es,
+            en: input.descripcion.en,
+            autoTranslate: input.descripcion.autoTranslate,
+            enPendiente: input.descripcion.autoTranslate === true && !input.descripcion.en,
+          }
+        : undefined,
       precio: input.precio,
       departamento: input.departamento,
       municipio: input.municipio,
@@ -209,7 +292,14 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       estrato: input.estrato,
       predial: input.predial,
       administracion: input.administracion,
-      acabados: input.acabados,
+      acabados: input.acabados
+        ? {
+            es: input.acabados.es,
+            en: input.acabados.en,
+            autoTranslate: input.acabados.autoTranslate,
+            enPendiente: input.acabados.autoTranslate === true && !input.acabados.en,
+          }
+        : undefined,
       antiguedad: input.antiguedad,
       areaConstruida: input.areaConstruida,
       areaLote: input.areaLote,
@@ -218,11 +308,35 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       parqueaderos: input.parqueaderos,
       deposito: input.deposito,
       amenidades: input.amenidades,
-      puntosInteres: input.puntosInteres,
+      puntosInteres: input.puntosInteres
+        ? input.puntosInteres.map((pi) => ({
+            categoria: pi.categoria,
+            etiqueta: {
+              es: pi.etiqueta!.es,
+              en: pi.etiqueta!.en,
+              autoTranslate: pi.etiqueta!.autoTranslate,
+              enPendiente: pi.etiqueta!.autoTranslate === true && !pi.etiqueta!.en,
+            },
+          }))
+        : undefined,
       fotos: input.fotos,
       videos: input.videos,
       panoramas: input.panoramas,
-      proyecto: input.proyecto,
+      proyecto: input.proyecto
+        ? {
+            etapa: input.proyecto.etapa
+              ? {
+                  es: input.proyecto.etapa.es,
+                  en: input.proyecto.etapa.en,
+                  autoTranslate: input.proyecto.etapa.autoTranslate,
+                  enPendiente:
+                    input.proyecto.etapa.autoTranslate === true && !input.proyecto.etapa.en,
+                }
+              : undefined,
+            fechaEntregaEstimada: input.proyecto.fechaEntregaEstimada,
+            unidadesDisponibles: input.proyecto.unidadesDisponibles,
+          }
+        : undefined,
     };
 
     return { property };
@@ -382,15 +496,17 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
 
     if (input.operacion !== undefined) actualizaciones.operacion = input.operacion;
     if (input.tipo !== undefined) actualizaciones.tipo = input.tipo;
-    if (input.titulo !== undefined) actualizaciones.titulo = input.titulo;
-    if (input.descripcion !== undefined) actualizaciones.descripcion = input.descripcion;
+    if (input.titulo !== undefined) actualizaciones.titulo = toFirestoreTranslatable(input.titulo);
+    if (input.descripcion !== undefined)
+      actualizaciones.descripcion = toFirestoreTranslatable(input.descripcion);
     if (input.precio !== undefined) actualizaciones.precio = input.precio;
     if (input.departamento !== undefined) actualizaciones.departamento = input.departamento;
     if (input.municipio !== undefined) actualizaciones.municipio = input.municipio;
     if (input.estrato !== undefined) actualizaciones.estrato = input.estrato;
     if (input.predial !== undefined) actualizaciones.predial = input.predial;
     if (input.administracion !== undefined) actualizaciones.administracion = input.administracion;
-    if (input.acabados !== undefined) actualizaciones.acabados = input.acabados;
+    if (input.acabados !== undefined)
+      actualizaciones.acabados = toFirestoreTranslatable(input.acabados);
     if (input.antiguedad !== undefined) actualizaciones.antiguedad = input.antiguedad;
     if (input.areaConstruida !== undefined) actualizaciones.areaConstruida = input.areaConstruida;
     if (input.areaLote !== undefined) actualizaciones.areaLote = input.areaLote;
@@ -404,7 +520,19 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
     if (input.videos !== undefined) actualizaciones.videos = input.videos;
     if (input.panoramas !== undefined) actualizaciones.panoramas = input.panoramas;
     if (input.destacada !== undefined) actualizaciones.destacada = input.destacada;
-    if (input.proyecto !== undefined) actualizaciones.proyecto = input.proyecto;
+    if (input.proyecto !== undefined) {
+      actualizaciones.proyecto = {
+        ...(input.proyecto.etapa !== undefined
+          ? { etapa: toFirestoreTranslatable(input.proyecto.etapa) }
+          : {}),
+        ...(input.proyecto.fechaEntregaEstimada !== undefined
+          ? { fechaEntregaEstimada: input.proyecto.fechaEntregaEstimada }
+          : {}),
+        ...(input.proyecto.unidadesDisponibles !== undefined
+          ? { unidadesDisponibles: input.proyecto.unidadesDisponibles }
+          : {}),
+      };
+    }
 
     await docRef.update(actualizaciones);
 

@@ -27,7 +27,7 @@ function makeReq(params: unknown, body: unknown, headers: unknown) {
 const next = vi.fn();
 
 const validParams = { idOrSlug: 'doc-1' };
-const validBody: ActualizarPropertyInputDto = { precio: 200000000 };
+const validBody = { precio: 200000000 };
 const validHeaders = {
   'x-user-id': 'user-1',
   'x-user-role': 'admin',
@@ -146,5 +146,226 @@ describe('makeUpdatePropertyHandler', () => {
 
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('acepta titulo con en y autoTranslate en actualización', async () => {
+    const received: unknown[] = [];
+    const useCase = {
+      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+        received.push(cmd);
+        return { property: { codigo: 'JF-0001' } };
+      },
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq(
+      validParams,
+      {
+        ...validBody,
+        titulo: { es: 'Casa actualizada', en: 'Updated house', autoTranslate: false },
+      },
+      validHeaders,
+    );
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(received).toHaveLength(1);
+    expect((received[0] as { input: ActualizarPropertyInputDto }).input.titulo).toEqual({
+      es: 'Casa actualizada',
+      en: 'Updated house',
+      autoTranslate: false,
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('acepta descripcion vacia con autoTranslate en actualización', async () => {
+    const received: unknown[] = [];
+    const useCase = {
+      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+        received.push(cmd);
+        return { property: { codigo: 'JF-0001' } };
+      },
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq(
+      validParams,
+      {
+        ...validBody,
+        descripcion: { es: '', autoTranslate: true },
+      },
+      validHeaders,
+    );
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(received).toHaveLength(1);
+    expect((received[0] as { input: ActualizarPropertyInputDto }).input.descripcion).toEqual({
+      es: '',
+      autoTranslate: true,
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('rechaza enPendiente en titulo con 422 en actualización', async () => {
+    const useCase = {
+      execute: async () => ({ property: { codigo: 'JF-0001' } }),
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq(
+      validParams,
+      {
+        ...validBody,
+        titulo: { es: 'Casa actualizada', enPendiente: true },
+      },
+      validHeaders,
+    );
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('rechaza enPendiente en descripcion con 422 en actualización', async () => {
+    const useCase = {
+      execute: async () => ({ property: { codigo: 'JF-0001' } }),
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq(
+      validParams,
+      {
+        ...validBody,
+        descripcion: { es: 'Descripción', enPendiente: true },
+      },
+      validHeaders,
+    );
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('incluye requestId en el command cuando existe en res.locals', async () => {
+    const received: unknown[] = [];
+    const useCase = {
+      execute: async (cmd: {
+        idOrSlug: string;
+        input: ActualizarPropertyInputDto;
+        requestId?: string;
+      }) => {
+        received.push(cmd);
+        return { property: { codigo: 'JF-0001' } };
+      },
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    res.locals.requestId = 'req-456';
+    const req = makeReq(validParams, validBody, validHeaders);
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(received).toHaveLength(1);
+    expect((received[0] as { requestId?: string }).requestId).toBe('req-456');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('acepta acabados con autoTranslate en actualización', async () => {
+    const received: unknown[] = [];
+    const useCase = {
+      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+        received.push(cmd);
+        return { property: { codigo: 'JF-0001' } };
+      },
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq(
+      validParams,
+      {
+        ...validBody,
+        acabados: { es: 'Acabados actualizados', autoTranslate: true },
+      },
+      validHeaders,
+    );
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(received).toHaveLength(1);
+    expect((received[0] as { input: ActualizarPropertyInputDto }).input.acabados).toEqual({
+      es: 'Acabados actualizados',
+      autoTranslate: true,
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('acepta puntosInteres con etiqueta traducible en actualización', async () => {
+    const received: unknown[] = [];
+    const useCase = {
+      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+        received.push(cmd);
+        return { property: { codigo: 'JF-0001' } };
+      },
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq(
+      validParams,
+      {
+        ...validBody,
+        puntosInteres: [
+          { categoria: 'EDUCACION', etiqueta: { es: 'Colegio cercano', autoTranslate: true } },
+          { etiqueta: { es: 'Parque personalizado', en: 'Custom park' } },
+        ],
+      },
+      validHeaders,
+    );
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(received).toHaveLength(1);
+    expect((received[0] as { input: ActualizarPropertyInputDto }).input.puntosInteres).toEqual([
+      { categoria: 'EDUCACION', etiqueta: { es: 'Colegio cercano', autoTranslate: true } },
+      { etiqueta: { es: 'Parque personalizado', en: 'Custom park' } },
+    ]);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('acepta proyecto.etapa con autoTranslate en actualización', async () => {
+    const received: unknown[] = [];
+    const useCase = {
+      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+        received.push(cmd);
+        return { property: { codigo: 'JF-0001' } };
+      },
+    } as unknown as ActualizarPropertyUseCase;
+    const handler = makeUpdatePropertyHandler(useCase);
+    const res = makeRes();
+    const req = makeReq(
+      validParams,
+      {
+        ...validBody,
+        proyecto: { etapa: { es: 'En construcción', autoTranslate: true } },
+      },
+      validHeaders,
+    );
+
+    await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+    expect(received).toHaveLength(1);
+    expect((received[0] as { input: ActualizarPropertyInputDto }).input.proyecto?.etapa).toEqual({
+      es: 'En construcción',
+      autoTranslate: true,
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
   });
 });

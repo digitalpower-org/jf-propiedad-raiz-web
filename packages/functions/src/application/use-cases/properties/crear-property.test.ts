@@ -4,6 +4,9 @@ import type { CrearPropertyInputDto } from '../../ports/properties-repository';
 import type { ContentResource } from '../../revalidation/revalidate-content';
 import { RevalidateContent } from '../../revalidation/revalidate-content';
 import { CrearPropertyUseCase } from './crear-property';
+import { TranslationService } from '../../translation/translation-service';
+import { NoopLogger } from '../../../infrastructure/logging/noop-logger';
+import type { Translator } from '../../ports/translator';
 
 class FakeRevalidateContent extends RevalidateContent {
   override revalidate = vi.fn((_resource: ContentResource) => Promise.resolve({ ok: true }));
@@ -22,6 +25,14 @@ class FakeRevalidateContent extends RevalidateContent {
 }
 
 function makePorts() {
+  const translator: Translator = {
+    translate: vi
+      .fn()
+      .mockImplementation((inputs: readonly { fieldPath: string; text: string }[]) => ({
+        outputs: inputs.map((i) => ({ fieldPath: i.fieldPath, translated: i.text })),
+        hasErrors: false,
+      })),
+  };
   return {
     properties: {
       create: vi.fn(),
@@ -37,6 +48,7 @@ function makePorts() {
     videoValidator: {
       validate: vi.fn().mockResolvedValue(undefined),
     },
+    translationService: new TranslationService({ translator, logger: new NoopLogger() }),
     logger: {
       debug: vi.fn(),
       info: vi.fn(),
@@ -66,11 +78,21 @@ describe('CrearPropertyUseCase', () => {
       ports.revalidateContent,
       ports.videoValidator,
       ports.logger,
+      ports.translationService,
     );
 
     const resultado = await useCase.execute({ input });
 
-    expect(ports.properties.create).toHaveBeenCalledWith(input);
+    expect(ports.properties.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operacion: 'VENTA',
+        tipo: 'CASA',
+        precio: 150000000,
+        departamento: 'Antioquia',
+        municipio: 'Medellín',
+        titulo: expect.objectContaining({ es: 'Casa en venta', en: 'Casa en venta' }),
+      }),
+    );
     expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith('propiedades');
     expect(ports.logger.info).toHaveBeenCalledWith('property_created', {
       codigo: resultado.property.codigo,
@@ -86,6 +108,7 @@ describe('CrearPropertyUseCase', () => {
       ports.revalidateContent,
       ports.videoValidator,
       ports.logger,
+      ports.translationService,
     );
 
     await expect(
@@ -122,6 +145,7 @@ describe('CrearPropertyUseCase', () => {
       ports.revalidateContent,
       ports.videoValidator,
       ports.logger,
+      ports.translationService,
     );
 
     await useCase.execute({ input });
@@ -142,6 +166,7 @@ describe('CrearPropertyUseCase', () => {
       ports.revalidateContent,
       ports.videoValidator,
       ports.logger,
+      ports.translationService,
     );
 
     await expect(
