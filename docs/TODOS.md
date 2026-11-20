@@ -100,7 +100,7 @@
 - [ ] **MT3.1** `[D1+D2]` Consignación end-to-end ← MT1.1, MT1.3, MT3.2, MT0.4, MT0.3
   - [ ] US3.1 `[D1+D2]` Formulario «Consigne su Propiedad»
     - [x] `[D1]` Endpoint BFF/Functions `POST /api/consignments` (integración Resend, validación, límite de envíos)
-    - [ ] `[D2]` UI formulario `app/[locale]/consignar` (campos, consentimiento, manejo 429/422/500)
+    - [x] `[D2]` UI formulario `app/[locale]/consignar` (campos, consentimiento, manejo 429/422/500)
   - [ ] US3.2 `[D1]` Notificación por correo con Resend (BFF/Functions)
   - [x] US3.3 `[D2]` Consentimiento de tratamiento de datos (UI)
   - [x] US3.4 `[D1]` Protección contra bots y límite de envíos (BFF/Functions)
