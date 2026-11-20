@@ -84,11 +84,13 @@ function mapPuntosInteres(data: unknown): readonly PuntoInteres[] | undefined {
  */
 function documentoAPropertyDto(snap: { id: string; data(): unknown }): PropertyDto {
   const data = snap.data() as Record<string, unknown>;
-  const proyecto = data.proyecto as {
-    etapa?: unknown;
-    fechaEntregaEstimada?: unknown;
-    unidadesDisponibles?: unknown;
-  } | undefined;
+  const proyecto = data.proyecto as
+    | {
+        etapa?: unknown;
+        fechaEntregaEstimada?: unknown;
+        unidadesDisponibles?: unknown;
+      }
+    | undefined;
 
   return {
     id: snap.id,
@@ -229,17 +231,17 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       ...(input.deposito !== undefined && { deposito: input.deposito }),
       ...(input.amenidades !== undefined && { amenidades: input.amenidades }),
       ...(input.puntosInteres !== undefined && {
-          puntosInteres: input.puntosInteres
-            ? input.puntosInteres.map((pi) => ({
-                categoria: pi.categoria,
-                etiqueta: {
-                  es: pi.etiqueta!.es,
-                  en: pi.etiqueta!.en,
-                  autoTranslate: pi.etiqueta!.autoTranslate,
-                  enPendiente: pi.etiqueta!.autoTranslate === true && !pi.etiqueta!.en,
-                },
-              }))
-            : undefined,
+        puntosInteres: input.puntosInteres
+          ? input.puntosInteres.map((pi) => ({
+              categoria: pi.categoria,
+              etiqueta: {
+                es: pi.etiqueta!.es,
+                en: pi.etiqueta!.en,
+                autoTranslate: pi.etiqueta!.autoTranslate,
+                enPendiente: pi.etiqueta!.autoTranslate === true && !pi.etiqueta!.en,
+              },
+            }))
+          : undefined,
       }),
       ...(input.fotos !== undefined && { fotos: input.fotos }),
       ...(input.videos !== undefined && { videos: input.videos }),
