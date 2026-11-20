@@ -29,29 +29,85 @@ describe('mergeTranslatable — rama 1: input.en presente y distinto (AC0.5.12)'
     expect(result.status).toBe('Actualizada');
     expect(result.autoTranslate).toBe(true);
   });
+
+  it('persiste el en aunque sea igual al previo y limpia enPendiente (AC0.5.4/AC0.5.12)', async () => {
+    const result = await mergeTranslatable(
+      { ...existing, enPendiente: true },
+      { es: 'Casa en venta', en: 'House for sale', autoTranslate: true },
+      true,
+      translateOk,
+    );
+    expect(result.en).toBe('House for sale');
+    expect(result.enPendiente).toBe(false);
+    expect(result.status).toBe('Actualizada');
+  });
+
+  it('no llama al traductor cuando el admin envía en (manual en skip)', async () => {
+    let called = false;
+    const result = await mergeTranslatable(
+      existing,
+      { es: 'Casa en venta', en: 'Custom English', autoTranslate: true },
+      true,
+      () => {
+        called = true;
+        return Promise.resolve('never');
+      },
+    );
+    expect(called).toBe(false);
+    expect(result.en).toBe('Custom English');
+    expect(result.status).toBe('Actualizada');
+  });
+});
+
+describe('mergeTranslatable — es vacío (AC0.5.3)', () => {
+  it('devuelve en vacío y sin traducir aunque el admin envíe en', async () => {
+    let called = false;
+    const result = await mergeTranslatable(
+      existing,
+      { es: '', en: 'Should be ignored', autoTranslate: true },
+      true,
+      () => {
+        called = true;
+        return Promise.resolve('never');
+      },
+    );
+    expect(called).toBe(false);
+    expect(result).toMatchObject({
+      es: '',
+      en: '',
+      enPendiente: false,
+      status: 'Pendiente',
+    });
+  });
 });
 
 describe('mergeTranslatable — rama 2: es cambió + autoTranslate activo (AC0.5.11)', () => {
-  it('éxito → en=translated, enPendiente=false', async () => {
+  it('éxito → traduce una vez, en=translated, enPendiente=false', async () => {
+    let calls = 0;
+    const translate = async (text: string) => {
+      calls++;
+      return `${text} (EN)`;
+    };
     const result = await mergeTranslatable(
       existing,
       { es: 'Casa nueva', autoTranslate: true },
       true,
-      translateOk,
+      translate,
     );
+    expect(calls).toBe(1);
     expect(result.en).toBe('Casa nueva (EN)');
     expect(result.enPendiente).toBe(false);
     expect(result.status).toBe('Actualizada');
   });
 
-  it('fallo → conservar en anterior, enPendiente=true', async () => {
+  it('fallo → en vacío, enPendiente=true, nunca en previo (AC0.5.5)', async () => {
     const result = await mergeTranslatable(
       existing,
       { es: 'Casa nueva', autoTranslate: true },
       true,
       translateFail,
     );
-    expect(result.en).toBe('House for sale');
+    expect(result.en).toBe('');
     expect(result.enPendiente).toBe(true);
     expect(result.status).toBe('Pendiente');
   });
@@ -121,16 +177,30 @@ describe('mergeTranslatable — rama 5: es no cambió → no traducir (AC0.5.12)
     expect(result.status).toBe('Actualizada');
   });
 
-  it('si en anterior vacío y enPendiente true → queda Pendiente', async () => {
+  it('en previo vacío y autoTranslate activo → traduce y rellena', async () => {
     const result = await mergeTranslatable(
       { es: 'Casa en venta', en: '', autoTranslate: true, enPendiente: true },
       { es: 'Casa en venta', autoTranslate: true },
       true,
       translateOk,
     );
-    expect(result.en).toBe('');
-    expect(result.enPendiente).toBe(true);
-    expect(result.status).toBe('Pendiente');
+    expect(result.en).toBe('Casa en venta (EN)');
+    expect(result.enPendiente).toBe(false);
+    expect(result.status).toBe('Actualizada');
+  });
+});
+
+describe('mergeTranslatable — default autoTranslate = true', () => {
+  it('autoTranslate true → traduce y marca autoTranslate=true', async () => {
+    const result = await mergeTranslatable(
+      existing,
+      { es: 'Casa nueva', autoTranslate: true },
+      true,
+      translateOk,
+    );
+    expect(result.en).toBe('Casa nueva (EN)');
+    expect(result.autoTranslate).toBe(true);
+    expect(result.status).toBe('Actualizada');
   });
 });
 
@@ -165,9 +235,9 @@ describe('mergeTranslatable — batch: varios campos donde uno falla', () => {
     expect(r0.en).toBe('Title');
     expect(r0.status).toBe('Actualizada');
 
-    // descripcion: es cambió + autoTranslate activo + fallo → en undefined, Pendiente
+    // descripcion: es cambió + autoTranslate activo + fallo → en vacío, Pendiente
     const r1 = results[1]!;
-    expect(r1.en).toBeUndefined();
+    expect(r1.en).toBe('');
     expect(r1.enPendiente).toBe(true);
     expect(r1.status).toBe('Pendiente');
 

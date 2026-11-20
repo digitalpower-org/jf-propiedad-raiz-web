@@ -57,9 +57,10 @@
 - [x] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
   - [x] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError` (evidencia: `lib/api-error.ts` + `lib/http-client.ts`; duplicado corregido; `ErrorBoundary` stub creado)
 - [ ] **MT1.4** `[D1]` Revalidación y traducción ← MT1.1, MT0.3
-  **GAP:** `revalidation-client` existe y está testeado, pero `revalidate-content.ts` no está cableado en los flujos de escritura de inmuebles/servicios (MT2.1 pendiente). No hay evidencia de que `POST /api/revalidate` se invoque tras una escritura real.
+  **GAP:** Revalidación está cableada y probada en integración para las 5 escrituras de inmueble (crear, actualizar, activar, ocultar, borrado lógico). Traducción create/update de inmuebles está cableada y probada en integración. Pendientes: escrituras de servicios/Nosotros y UI de reintento de traducción en el editor.
   - [x] US0.3 `[D1]` Revalidación bajo demanda
-  - [x] US0.5 `[D1]` Traducción ES→EN selectiva por campo + edición manual
+  - [ ] US0.5 `[D1]` Traducción ES→EN selectiva por campo + edición manual
+  **Nota:** AC0.5.5 pide bandera global `traduccionPendiente: true` en la respuesta; `docs/openapi.backend.yaml` no tiene ese campo y cambiarlo está fuera de alcance. El equivalente implementado es `enPendiente` por campo (ver `Translatable` en OpenAPI).
 - [x] **MT1.5** `[D1]` Operación base y despliegue temprano ← MT0.5, MT1.1, MT1.4
   - [x] US6.1 `[D1]` (andamiaje) Datos de ejemplo reproducibles ← Paquete: `packages/functions/src/seed/sample-data.ts`
   - [x] US6.2 `[D1]` Costos y presupuesto bajo control ← Paquete: `packages/functions/src/budget-config.ts`
@@ -111,13 +112,13 @@
 
 - [ ] **MT4.1** `[D1+D2]` CMS de inmuebles y media ← MT2.1, MT1.4, MT1.3, MT1.2, MT2.3
   - [ ] US4.1 `[D1+D2]` CRUD de inmuebles
-    - [ ] `[D1]` BFF/Functions CRUD (`/api/properties`, dominio, validación, transiciones)
+    - [x] `[D1]` BFF/Functions CRUD (`/api/properties`, dominio, validación, transiciones) — evidencia `edff459` + tests integración
     - [ ] `[D2]` UI panel `/admin/inmuebles` (listado, formulario, guardar)
   - [ ] US4.2 `[D1+D2]` Uploader de fotos con reordenamiento y portada
-    - [ ] `[D1]` Presigned URL + confirmación R2 (`/api/media/presigned-url`, `/api/media/confirm`)
+    - [x] `[D1]` Presigned URL + confirmación R2 (`/api/media/presigned-url`, `/api/media/confirm`) — evidencia `edff459` + tests integración
     - [ ] `[D2]` Uploader UI (drag&drop, reordenamiento, portada)
   - [ ] US4.3 `[D1+D2]` Videos y panorámicas 360°
-    - [ ] `[D1]` Endpoints/media BFF/Functions
+    - [x] `[D1]` Endpoints/media BFF/Functions — evidencia `edff459` + tests integración
     - [ ] `[D2]` UI panel añadir videos/panorámicas 360°
   - [ ] US7.4 `[D2]` (panel) TanStack Query, debounce, timeouts
   - [ ] US7.5 `[D2]` Panel y subidas con datos móviles

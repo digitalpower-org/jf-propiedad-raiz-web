@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { createFirestorePropertiesRepository } from './firestore-properties-repository';
+import type { CrearPropertyInputDto } from '../../application/ports/properties-repository';
 
 function makeMockDocSnapshot(data: unknown, exists = true, docId = 'doc-1') {
   return {
@@ -27,15 +28,15 @@ function makeMockFirestore() {
   return {
     collection: vi.fn().mockReturnValue(collectionQuery),
     doc: vi.fn().mockImplementation((path: string) => {
-      const existing = docs.get(path);
       return {
-        get: vi
-          .fn()
-          .mockResolvedValue(
+        get: vi.fn().mockImplementation(() => {
+          const existing = docs.get(path);
+          return Promise.resolve(
             existing
               ? makeMockDocSnapshot(existing, true, path.split('/').pop())
               : makeMockDocSnapshot(null, false, path.split('/').pop()),
-          ),
+          );
+        }),
         set: vi.fn().mockImplementation((data: unknown) => {
           docs.set(path, data as Record<string, unknown>);
           return Promise.resolve();
@@ -88,6 +89,97 @@ describe('createFirestorePropertiesRepository', () => {
     expect(db.collection).toHaveBeenCalledWith('properties');
   });
 
+  it('crea una propiedad preservando autoTranslate y enPendiente en titulo', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+
+    const resultado = await repo.create({
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'Casa en venta', en: 'House for sale', autoTranslate: false },
+      precio: 150000000,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+    });
+
+    expect(resultado.property.titulo.es).toBe('Casa en venta');
+    expect(resultado.property.titulo.en).toBe('House for sale');
+    expect(resultado.property.titulo.autoTranslate).toBe(false);
+    expect(resultado.property.titulo.enPendiente).toBe(false);
+  });
+
+  it('crea una propiedad con autoTranslate true y sin en -> enPendiente true', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+
+    const resultado = await repo.create({
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'Casa en venta', autoTranslate: true },
+      precio: 150000000,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+    });
+
+    expect(resultado.property.titulo.es).toBe('Casa en venta');
+    expect(resultado.property.titulo.en).toBeUndefined();
+    expect(resultado.property.titulo.autoTranslate).toBe(true);
+    expect(resultado.property.titulo.enPendiente).toBe(true);
+  });
+
+  it('crea una propiedad con descripcion, acabados, puntosInteres y proyecto.etapa', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+
+    const input: CrearPropertyInputDto = {
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'Casa en venta' },
+      descripcion: { es: 'Descripción', autoTranslate: true },
+      precio: 150000000,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+      acabados: { es: 'Acabados de lujo', autoTranslate: true },
+      puntosInteres: [
+        { categoria: 'EDUCACION', etiqueta: { es: 'Colegio cercano', autoTranslate: true } },
+        { etiqueta: { es: 'Parque personalizado', en: 'Custom park' } },
+      ],
+      proyecto: { etapa: { es: 'En construcción', autoTranslate: true } },
+    };
+
+    const resultado = await repo.create(input);
+
+    expect(resultado.property.descripcion).toEqual({
+      es: 'Descripción',
+      autoTranslate: true,
+      enPendiente: true,
+    });
+    expect(resultado.property.acabados).toEqual({
+      es: 'Acabados de lujo',
+      autoTranslate: true,
+      enPendiente: true,
+    });
+    expect(resultado.property.puntosInteres).toEqual([
+      {
+        categoria: 'EDUCACION',
+        etiqueta: { es: 'Colegio cercano', autoTranslate: true, enPendiente: true },
+      },
+      {
+        etiqueta: {
+          es: 'Parque personalizado',
+          en: 'Custom park',
+          autoTranslate: undefined,
+          enPendiente: false,
+        },
+      },
+    ]);
+    expect(resultado.property.proyecto?.etapa).toEqual({
+      es: 'En construcción',
+      autoTranslate: true,
+      enPendiente: true,
+    });
+  });
+
   it('findByIdOrSlug devuelve null si no existe', async () => {
     const db = makeMockFirestore();
     const repo = createFirestorePropertiesRepository(db);
@@ -117,6 +209,61 @@ describe('createFirestorePropertiesRepository', () => {
     await expect(repo.update('inexistente', { precio: 200000000 })).rejects.toThrow(
       'Inmueble no encontrado: inexistente',
     );
+  });
+
+  it('update preserva autoTranslate y enPendiente en campos traducibles', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+
+    // Primero crear una propiedad
+    const creado = await repo.create({
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'Casa original', autoTranslate: true },
+      precio: 150000000,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+    });
+
+    // Actualizar solo el precio
+    const actualizado = await repo.update(creado.property.id, { precio: 200000000 });
+
+    // Verificar que se preservan los campos traducibles
+    expect(actualizado.property.titulo.es).toBe('Casa original');
+    expect(actualizado.property.titulo.autoTranslate).toBe(true);
+    expect(actualizado.property.titulo.enPendiente).toBe(true);
+  });
+
+  it('update actualiza campos traducibles con nuevos valores', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+
+    const creado = await repo.create({
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'Casa original', autoTranslate: true },
+      descripcion: { es: 'Descripción original', autoTranslate: true },
+      precio: 150000000,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+    });
+
+    const actualizado = await repo.update(creado.property.id, {
+      titulo: { es: 'Casa actualizada', en: 'Updated house', autoTranslate: false },
+      descripcion: { es: 'Nueva descripción', autoTranslate: true },
+    });
+
+    expect(actualizado.property.titulo).toEqual({
+      es: 'Casa actualizada',
+      en: 'Updated house',
+      autoTranslate: false,
+      enPendiente: false,
+    });
+    expect(actualizado.property.descripcion).toEqual({
+      es: 'Nueva descripción',
+      autoTranslate: true,
+      enPendiente: true,
+    });
   });
 
   it('activate, hide y softDelete lanzan error si el documento no existe', async () => {

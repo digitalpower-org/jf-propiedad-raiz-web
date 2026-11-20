@@ -5,9 +5,13 @@ import type {
   CrearPropertyCommand,
 } from '../../../application/use-cases/properties/crear-property';
 import type { CrearPropertyInputDto } from '../../../application/ports/properties-repository';
+import type { PuntoInteresCategoria } from '@jf/shared-types';
 import { OPERACIONES } from '../../../domain/value-objects/operacion';
 import { TIPOS_INMUEBLE } from '../../../domain/value-objects/tipo-propiedad';
-import { translatableSchema, optionalTranslatableSchema } from '../../schemas/translatable';
+import {
+  translatableInputSchema,
+  optionalClearableTranslatableInputSchema,
+} from '../../schemas/translatable';
 import { MSG_PROPERTY_CREATED } from '../../messages';
 import { writeSuccess } from '../../protocol';
 import type { AsyncHandler } from '../types';
@@ -16,15 +20,15 @@ import type { Request, Response, NextFunction } from 'express';
 const bodySchema = z.object({
   operacion: z.enum(OPERACIONES),
   tipo: z.enum(TIPOS_INMUEBLE),
-  titulo: translatableSchema,
-  descripcion: optionalTranslatableSchema,
+  titulo: translatableInputSchema,
+  descripcion: optionalClearableTranslatableInputSchema,
   precio: z.number().int().positive(),
   departamento: z.string().min(1),
   municipio: z.string().min(1),
   estrato: z.number().int().min(1).max(6).optional(),
   predial: z.string().min(1).optional(),
   administracion: z.string().min(1).optional(),
-  acabados: translatableSchema.optional(),
+  acabados: optionalClearableTranslatableInputSchema,
   antiguedad: z.string().min(1).optional(),
   areaConstruida: z.number().positive().optional(),
   areaLote: z.number().positive().optional(),
@@ -37,7 +41,7 @@ const bodySchema = z.object({
     .array(
       z.object({
         categoria: z.string().optional(),
-        etiqueta: translatableSchema,
+        etiqueta: translatableInputSchema,
       }),
     )
     .optional(),
@@ -85,7 +89,7 @@ const bodySchema = z.object({
   destacada: z.boolean().optional(),
   proyecto: z
     .object({
-      etapa: translatableSchema.optional(),
+      etapa: optionalClearableTranslatableInputSchema,
       fechaEntregaEstimada: z.string().optional(),
       unidadesDisponibles: z.number().int().nonnegative().optional(),
     })
@@ -95,22 +99,36 @@ const bodySchema = z.object({
 /**
  * Construye el DTO de entrada para crear un inmueble a partir del
  * cuerpo de petición ya validado por Zod.
+ * Copia `autoTranslate` con spreads condicionales; nunca copia `enPendiente`.
  */
 function buildCreatePropertyInput(body: z.infer<typeof bodySchema>): CrearPropertyInputDto {
   return {
     operacion: body.operacion,
     tipo: body.tipo,
-    titulo:
-      body.titulo.en !== undefined
-        ? { es: body.titulo.es, en: body.titulo.en }
-        : { es: body.titulo.es },
+    titulo: {
+      es: body.titulo.es,
+      ...(body.titulo.en !== undefined ? { en: body.titulo.en } : {}),
+      ...(body.titulo.autoTranslate !== undefined
+        ? { autoTranslate: body.titulo.autoTranslate }
+        : {}),
+    },
     precio: body.precio,
     departamento: body.departamento,
     municipio: body.municipio,
     ...(body.estrato !== undefined ? { estrato: body.estrato } : {}),
     ...(body.predial !== undefined ? { predial: body.predial } : {}),
     ...(body.administracion !== undefined ? { administracion: body.administracion } : {}),
-    ...(body.acabados !== undefined ? { acabados: body.acabados } : {}),
+    ...(body.acabados !== undefined
+      ? {
+          acabados: {
+            es: body.acabados.es,
+            ...(body.acabados.en !== undefined ? { en: body.acabados.en } : {}),
+            ...(body.acabados.autoTranslate !== undefined
+              ? { autoTranslate: body.acabados.autoTranslate }
+              : {}),
+          },
+        }
+      : {}),
     ...(body.antiguedad !== undefined ? { antiguedad: body.antiguedad } : {}),
     ...(body.areaConstruida !== undefined ? { areaConstruida: body.areaConstruida } : {}),
     ...(body.areaLote !== undefined ? { areaLote: body.areaLote } : {}),
@@ -119,20 +137,53 @@ function buildCreatePropertyInput(body: z.infer<typeof bodySchema>): CrearProper
     ...(body.parqueaderos !== undefined ? { parqueaderos: body.parqueaderos } : {}),
     ...(body.deposito !== undefined ? { deposito: body.deposito } : {}),
     ...(body.amenidades !== undefined ? { amenidades: body.amenidades } : {}),
-    ...(body.puntosInteres !== undefined ? { puntosInteres: body.puntosInteres } : {}),
+    ...(body.puntosInteres !== undefined
+      ? {
+          puntosInteres: body.puntosInteres.map((pi) =>
+            pi.categoria !== undefined
+              ? { categoria: pi.categoria as PuntoInteresCategoria, etiqueta: pi.etiqueta }
+              : { etiqueta: pi.etiqueta },
+          ),
+        }
+      : {}),
     ...(body.fotos !== undefined ? { fotos: body.fotos } : {}),
     ...(body.videos !== undefined ? { videos: body.videos } : {}),
     ...(body.panoramas !== undefined ? { panoramas: body.panoramas } : {}),
-    ...(body.descripcion
+    ...(body.descripcion !== undefined
       ? {
-          descripcion:
-            body.descripcion.en !== undefined
-              ? { es: body.descripcion.es, en: body.descripcion.en }
-              : { es: body.descripcion.es },
+          descripcion: {
+            es: body.descripcion.es,
+            ...(body.descripcion.en !== undefined ? { en: body.descripcion.en } : {}),
+            ...(body.descripcion.autoTranslate !== undefined
+              ? { autoTranslate: body.descripcion.autoTranslate }
+              : {}),
+          },
         }
       : {}),
     ...(body.destacada !== undefined ? { destacada: body.destacada } : {}),
-    ...(body.proyecto !== undefined ? { proyecto: body.proyecto } : {}),
+    ...(body.proyecto !== undefined
+      ? {
+          proyecto: {
+            ...(body.proyecto.etapa !== undefined
+              ? {
+                  etapa: {
+                    es: body.proyecto.etapa.es,
+                    ...(body.proyecto.etapa.en !== undefined ? { en: body.proyecto.etapa.en } : {}),
+                    ...(body.proyecto.etapa.autoTranslate !== undefined
+                      ? { autoTranslate: body.proyecto.etapa.autoTranslate }
+                      : {}),
+                  },
+                }
+              : {}),
+            ...(body.proyecto.fechaEntregaEstimada !== undefined
+              ? { fechaEntregaEstimada: body.proyecto.fechaEntregaEstimada }
+              : {}),
+            ...(body.proyecto.unidadesDisponibles !== undefined
+              ? { unidadesDisponibles: body.proyecto.unidadesDisponibles }
+              : {}),
+          },
+        }
+      : {}),
   };
 }
 
@@ -148,7 +199,8 @@ export const makeCreatePropertyHandler =
 
       const input = buildCreatePropertyInput(body);
 
-      const command: CrearPropertyCommand = { input };
+      const requestId = typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined;
+      const command: CrearPropertyCommand = { input, requestId };
       const resultado = await useCase.execute(command);
 
       writeSuccess(res, resultado.property, MSG_PROPERTY_CREATED, 201);
