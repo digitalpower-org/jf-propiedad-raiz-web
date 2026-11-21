@@ -214,14 +214,63 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     {
       method: 'get',
       path: API_PATHS.services,
-      guards: [guardInternal, readGuard('rate-public-services', 120)],
+      guards: [guardInternal, optionalAdmin, readGuard('rate-public-services', 120)],
       handler: handlers.listServices,
+    },
+    {
+      method: 'get',
+      path: API_PATHS.service,
+      guards: [guardInternal, optionalAdmin, readGuard('rate-public-service-detail', 60)],
+      handler: handlers.getService,
+    },
+    // Servicios — escritura (requieren sesión de admin vía X-Internal-Key + X-User-*)
+    {
+      method: 'post',
+      path: API_PATHS.services,
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
+      handler: handlers.createService,
+    },
+    {
+      method: 'put',
+      path: API_PATHS.service,
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
+      handler: handlers.updateService,
+    },
+    {
+      method: 'delete',
+      path: API_PATHS.service,
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
+      handler: handlers.deleteService,
+    },
+    {
+      method: 'post',
+      path: API_PATHS.activateService,
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
+      handler: handlers.activateService,
+    },
+    {
+      method: 'post',
+      path: API_PATHS.hideService,
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
+      handler: handlers.hideService,
+    },
+    {
+      method: 'post',
+      path: API_PATHS.reorderServices,
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
+      handler: handlers.reorderService,
     },
     {
       method: 'get',
       path: API_PATHS.about,
       guards: [guardInternal, readGuard('rate-public-about', 60)],
       handler: handlers.getAbout,
+    },
+    {
+      method: 'put',
+      path: API_PATHS.about,
+      guards: [guardInternal, requireUserIdentityGuard, rateAdminWrite],
+      handler: handlers.updateAbout,
     },
     // Media — presignar y confirmar subida (requieren sesión de admin)
     {
