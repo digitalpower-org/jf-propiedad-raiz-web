@@ -273,7 +273,15 @@
     "clearFilters": "Clear filters",
     "noResults": "No results found",
     "dateFormat": "MM/DD/YYYY",
-    "currency": "COP"
+    "currency": "COP",
+    "loadMore": "Load More",
+    "loadingMore": "Loading more properties...",
+    "endOfList": "End of list",
+    "loadError": "We couldn't load the properties",
+    "loadErrorHint": "Check your connection and try again in a few seconds.",
+    "emptyTitle": "No properties found",
+    "emptyHint": "Try adjusting or clearing the filters.",
+    "loadMoreError": "Couldn't load more properties."
   },
   "contact": {
     "title": "Contact",

@@ -273,7 +273,15 @@
     "clearFilters": "Limpiar filtros",
     "noResults": "No se encontraron resultados",
     "dateFormat": "DD/MM/YYYY",
-    "currency": "COP"
+    "currency": "COP",
+    "loadMore": "Cargar más",
+    "loadingMore": "Cargando más propiedades...",
+    "endOfList": "Fin de la lista",
+    "loadError": "No pudimos cargar las propiedades",
+    "loadErrorHint": "Revisa tu conexión e inténtalo de nuevo en unos segundos.",
+    "emptyTitle": "No encontramos propiedades",
+    "emptyHint": "Prueba a ajustar o limpiar los filtros.",
+    "loadMoreError": "No se pudieron cargar más propiedades."
   },
   "contact": {
     "title": "Contacto",
