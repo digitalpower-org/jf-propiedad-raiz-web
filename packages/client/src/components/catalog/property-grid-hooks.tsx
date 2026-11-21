@@ -1,12 +1,18 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
 import React, { type ReactElement } from 'react';
+import type { useTranslations } from 'next-intl';
 import type { PropertyListParams } from '@/lib/api-catalog';
 import type { IHttpClient } from '@/lib/http-client.types';
 import { fetchPropertiesPage } from '@/lib/api-catalog';
 import styles from './PropertyGrid.module.css';
 
 export const PAGE_SIZE = 12;
+
+/** Tarjetas esqueleto que se muestran al final de la lista mientras llega la página siguiente. */
+const LOAD_MORE_SKELETONS = 4;
+
+type Translator = ReturnType<typeof useTranslations>;
 
 /**
  * Función pura: construye los parámetros de consulta para una página de propiedades.
@@ -32,8 +38,17 @@ export function buildQueryParams(
  * SRP: solo maneja data fetching, no rendering.
  */
 export function usePropertiesQuery(params: PropertyListParams, httpClient?: IHttpClient) {
+  // Clave estable con todos los filtros: si cambian, la consulta se repite desde la primera página.
+  const filterKey = [
+    params.tipo ?? '',
+    params.departamento ?? '',
+    params.municipio ?? '',
+    params.precioMin ?? '',
+    params.precioMax ?? '',
+  ].join('|');
+
   return useInfiniteQuery({
-    queryKey: ['properties', params.operacion, params.destacada, params.cursor],
+    queryKey: ['properties', params.operacion, params.destacada, filterKey, params.cursor],
     queryFn: ({ pageParam }) =>
       fetchPropertiesPage({ ...params, cursor: pageParam as string | undefined }, httpClient),
     getNextPageParam: (lastPage) => {
@@ -71,47 +86,50 @@ export function useDestacadasToggle(
 /**
  * Hook personalizado: detecta scroll infinito vía Intersection Observer.
  * SRP: solo maneja la detección de scroll y el fetch de la siguiente página.
+ * Con `isNextPageError` no reintenta solo: el reintento es explícito (botón «Reintentar»).
  */
 export function useInfiniteScroll(
   hasNextPage: boolean,
   isFetchingNextPage: boolean,
   fetchNextPage: () => void,
+  isNextPageError = false,
 ): { ref: React.RefCallback<HTMLDivElement>; inView: boolean } {
   const { ref: inViewRef, inView } = useInView();
 
   React.useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    if (inView && hasNextPage && !isFetchingNextPage && !isNextPageError) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, isNextPageError]);
 
   return { ref: inViewRef, inView };
 }
 
 /**
- * Función pura de render: esqueleto de carga.
+ * Función pura de render: esqueletos de carga (AC2.3.3: tarjetas Skeleton, sin spinner).
  */
-export function renderSkeletons(): ReactElement {
+export function renderSkeletons(count = PAGE_SIZE): ReactElement {
   return (
     <div className={styles.skeletonGrid}>
-      {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className={styles.skeleton} />
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className={styles.skeleton} data-testid="skeleton-card" />
       ))}
     </div>
   );
 }
 
 /**
- * Función pura de render: estado de error.
+ * Función pura de render: estado de error (carga inicial).
  */
-export function renderError(locale: 'es' | 'en'): ReactElement {
+export function renderError(t: Translator): ReactElement {
   return (
-    <div className={styles.emptyState}>
+    <div className={styles.errorState}>
       <svg
-        className="w-16 h-16 mx-auto text-gray-300 mb-4"
+        className={styles.errorIcon}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -120,14 +138,8 @@ export function renderError(locale: 'es' | 'en'): ReactElement {
           d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
         />
       </svg>
-      <h3 className="text-lg font-medium text-gray-900 mb-1">
-        {locale === 'es' ? 'Error al cargar las propiedades.' : 'Error loading properties.'}
-      </h3>
-      <p className="text-gray-500">
-        {locale === 'es'
-          ? 'Intente recargar la página o ajustar los filtros.'
-          : 'Try reloading the page or adjusting filters.'}
-      </p>
+      <h3 className={styles.errorTitle}>{t('loadError')}</h3>
+      <p className={styles.errorMessage}>{t('loadErrorHint')}</p>
     </div>
   );
 }
@@ -135,14 +147,15 @@ export function renderError(locale: 'es' | 'en'): ReactElement {
 /**
  * Función pura de render: estado vacío.
  */
-export function renderEmpty(locale: 'es' | 'en'): ReactElement {
+export function renderEmpty(t: Translator): ReactElement {
   return (
     <div className={styles.emptyState}>
       <svg
-        className="w-16 h-16 mx-auto text-gray-300 mb-4"
+        className={styles.emptyIcon}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -151,48 +164,54 @@ export function renderEmpty(locale: 'es' | 'en'): ReactElement {
           d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
         />
       </svg>
-      <h3 className="text-lg font-medium text-gray-900 mb-1">
-        {locale === 'es'
-          ? 'No hay inmuebles en este momento.'
-          : 'No properties available at the moment.'}
-      </h3>
-      <p className="text-gray-500">
-        {locale === 'es'
-          ? 'Intente ajustar los filtros o ampliar el rango de búsqueda.'
-          : 'Try adjusting filters or expanding the search range.'}
-      </p>
+      <h3 className={styles.emptyTitle}>{t('emptyTitle')}</h3>
+      <p className={styles.emptyMessage}>{t('emptyHint')}</p>
     </div>
   );
 }
 
 /**
- * Función pura de render: botón/indicador de cargar más.
+ * Función pura de render: disparador de carga al final de la lista.
+ * El contenedor con `ref` (centinela del Intersection Observer) se mantiene en los tres estados.
+ *  - Cargando: tarjetas esqueleto, sin spinner (AC2.3.3).
+ *  - Error de la página siguiente: aviso propio + «Reintentar»; lo ya cargado se conserva (AC2.3.7).
+ *  - Reposo: botón «Cargar más» (AC2.3.4).
  */
 export function renderLoadMore(
   hasNextPage: boolean,
   isFetchingNextPage: boolean,
   fetchNextPage: () => void,
-  locale: 'es' | 'en',
+  t: Translator,
   ref: React.RefCallback<HTMLDivElement>,
+  isNextPageError = false,
 ): ReactElement | null {
   if (!(hasNextPage || isFetchingNextPage)) return null;
 
   return (
     <div className={styles.loadMore}>
-      <div ref={ref} className="flex justify-center py-8">
+      <div ref={ref} className={styles.loadMoreSentinel}>
         {isFetchingNextPage ? (
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-gray-600">
-              {locale === 'es' ? 'Cargando más propiedades...' : 'Loading more properties...'}
-            </span>
+          <div className={styles.loadMoreSkeletons} role="status" aria-label={t('loadingMore')}>
+            {renderSkeletons(LOAD_MORE_SKELETONS)}
+          </div>
+        ) : isNextPageError ? (
+          <div className={styles.loadMoreError} role="alert">
+            <p className={styles.loadMoreErrorText}>{t('loadMoreError')}</p>
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              className={`${styles.loadMoreButton} ${styles.loadMoreRetry}`}
+            >
+              {t('retry')}
+            </button>
           </div>
         ) : (
           <button
+            type="button"
             onClick={() => fetchNextPage()}
-            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            className={`${styles.loadMoreButton} ${styles.loadMorePrimary}`}
           >
-            {locale === 'es' ? 'Cargar más' : 'Load More'}
+            {t('loadMore')}
           </button>
         )}
       </div>
@@ -203,8 +222,6 @@ export function renderLoadMore(
 /**
  * Función pura de render: mensaje de fin de lista.
  */
-export function renderEndOfList(locale: 'es' | 'en'): ReactElement {
-  return (
-    <div className={styles.endOfList}>{locale === 'es' ? 'Fin de la lista' : 'End of list'}</div>
-  );
+export function renderEndOfList(t: Translator): ReactElement {
+  return <div className={styles.endOfList}>{t('endOfList')}</div>;
 }

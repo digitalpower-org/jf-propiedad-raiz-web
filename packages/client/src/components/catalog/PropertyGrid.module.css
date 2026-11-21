@@ -65,6 +65,7 @@
   }
 }
 
+/* Estados de error y vacío (carga inicial) */
 .emptyState,
 .errorState {
   display: flex;
@@ -75,25 +76,105 @@
   padding: var(--spacing-54) var(--spacing-16);
 }
 
-.emptyState h3,
-.errorState h3 {
+.errorIcon,
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-piedra);
+  margin-bottom: var(--spacing-16);
+}
+
+.errorTitle,
+.emptyTitle {
   font-size: var(--text-heading-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-tinta);
   margin: 0 0 var(--spacing-8);
 }
 
-.emptyState p,
-.errorState p {
+.errorMessage,
+.emptyMessage {
   font-size: var(--text-body);
   color: var(--color-grafito);
   margin: 0;
 }
 
+/* Disparador de carga al final de la lista */
 .loadMore {
   display: flex;
   justify-content: center;
   padding: var(--spacing-16) 0;
+}
+
+.loadMoreSentinel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.loadMoreSkeletons {
+  width: 100%;
+}
+
+.loadMoreButton {
+  min-height: 44px;
+  padding: var(--spacing-10) var(--spacing-24);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.loadMorePrimary {
+  background-color: var(--color-piedra-clara);
+  color: var(--color-tinta);
+}
+
+.loadMorePrimary:hover {
+  background-color: var(--color-ceniza);
+}
+
+.loadMorePrimary:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-marfil-elegante),
+    0 0 0 4px var(--color-verde-bosque);
+}
+
+.loadMoreError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-12);
+  text-align: center;
+}
+
+.loadMoreErrorText {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  color: var(--color-error);
+}
+
+.loadMoreRetry {
+  background-color: var(--color-blanco-puro);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.loadMoreRetry:hover {
+  background-color: var(--color-arena-suave);
+}
+
+.loadMoreRetry:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-marfil-elegante),
+    0 0 0 4px var(--color-error);
 }
 
 .endOfList {

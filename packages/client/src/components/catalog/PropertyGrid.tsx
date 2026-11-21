@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { PropertyCardComponent } from './PropertyCard';
 import type { PropertyCard } from '@jf/shared-types';
 import type { PropertyListParams } from '@/lib/api-catalog';
@@ -33,6 +34,7 @@ export function PropertyGrid({
   httpClient,
 }: PropertyGridProps) {
   const [showDestacadas, setShowDestacadas] = React.useState(true);
+  const t = useTranslations('common');
 
   // Highlighted-query params
   const featuredParams = buildQueryParams(operacion, true, undefined, filters);
@@ -40,6 +42,7 @@ export function PropertyGrid({
     data: featuredData,
     hasNextPage: hasFeaturedNextPage,
     isFetchingNextPage: isFetchingFeatured,
+    isLoading: isLoadingFeatured,
   } = usePropertiesQuery(featuredParams, httpClient);
 
   // Combine initialData with fetched data without local state
@@ -54,8 +57,9 @@ export function PropertyGrid({
     return [...initial, ...newItems];
   }, [featuredData, initialData]);
 
-  // Auto-switch to non-destacadas when destacadas are exhausted
-  const shouldSwitch = showDestacadas && !hasFeaturedNextPage && !isFetchingFeatured;
+  // Auto-switch to non-destacadas when destacadas are exhausted (only after initial load completes)
+  const shouldSwitch =
+    showDestacadas && !isLoadingFeatured && !hasFeaturedNextPage && !isFetchingFeatured;
   if (shouldSwitch) {
     setShowDestacadas(false);
   }
@@ -73,18 +77,27 @@ export function PropertyGrid({
     return [...featuredItems, ...newItems];
   }, [data, featuredItems]);
 
-  const { ref } = useInfiniteScroll(hasNextPage, isFetchingNextPage, fetchNextPage);
+  // Next-page fetch error: data exists (initial load succeeded) but latest fetch failed
+  const isNextPageError = data !== undefined && isError;
+
+  const { ref } = useInfiniteScroll(
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    isNextPageError,
+  );
 
   if (isLoading && allItems.length === 0) {
     return renderSkeletons();
   }
 
-  if (isError) {
-    return renderError(locale);
+  // Initial load error (no data yet)
+  if (isError && !data) {
+    return renderError(t);
   }
 
   if (allItems.length === 0) {
-    return renderEmpty(locale);
+    return renderEmpty(t);
   }
 
   return (
@@ -95,9 +108,9 @@ export function PropertyGrid({
         ))}
       </div>
 
-      {renderLoadMore(hasNextPage, isFetchingNextPage, fetchNextPage, locale, ref)}
+      {renderLoadMore(hasNextPage, isFetchingNextPage, fetchNextPage, t, ref, isNextPageError)}
 
-      {!hasNextPage && !isFetchingNextPage && allItems.length > 0 && renderEndOfList(locale)}
+      {!hasNextPage && !isFetchingNextPage && allItems.length > 0 && renderEndOfList(t)}
     </>
   );
 }
