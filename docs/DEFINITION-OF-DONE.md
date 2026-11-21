@@ -58,6 +58,7 @@ Una US está **Done** cuando **todo** lo siguiente se cumple.
 
 ### 2.4 Contrato
 - [ ] Si la US toca la API: `./openapi.backend.yaml` y/o `./openapi.bff.yaml` actualizados y coherentes con el código.
+- [ ] Si la US toca la API: evidencia de cobertura de operación del contrato (entrada en `API_PATHS`, ruta cableada con handler/caso de uso y evidencia HTTP) según `./QA.md` §2.4.
 - [ ] `shared-types` actualizados; el código compila contra ellos.
 
 ### 2.5 i18n y contenido
@@ -102,6 +103,7 @@ Una MT está **Done** cuando:
 - [ ] Existe al menos un **test E2E del flujo completo** de la MT, y pasa.
 - [ ] La **suite completa** del repositorio pasa (sin regresiones).
 - [ ] El **contrato** con las MT vecinas sigue intacto.
+- [ ] Cobertura completa de operaciones del contrato `in-scope` para la MT: cada operación tiene entrada en `API_PATHS`, ruta registrada con handler/caso de uso cableado y evidencia HTTP; las operaciones `out-of-scope` están listadas explícitamente con su MT propietaria o decisión. Una operación `in-scope` sin ruta o sin evidencia HTTP es fallo del plan de esta MT.
 
 ---
 

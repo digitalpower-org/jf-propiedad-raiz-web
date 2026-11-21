@@ -127,7 +127,7 @@ Envelope (D15):
 9. Tests: caso de uso con fakes + integración con `supertest` contra `appBuilder`.
 10. Docs si aplica.
 
-**Se olvidan sistemáticamente:** el wiring en `routes.ts` / `handlers/index.ts` / `buildUseCases.ts` y el test de integración.
+**Se olvidan sistemáticamente:** el wiring en `routes.ts` / `handlers/index.ts` / `buildUseCases.ts`, el test de integración y, para operaciones `in-scope` de la MT, la entrada en `API_PATHS` con evidencia HTTP (ver `./QA.md` §2.4 y `./DEFINITION-OF-DONE.md` §3).
 
 ---
 
@@ -145,6 +145,7 @@ Envelope (D15):
 - Node: **24** (raíz fija `24.22.1`). Usa siempre `npm`.
 - No digas "listo" si falla `typecheck`, `lint`, `test` o la cobertura.
 - CI: `.github/workflows/ci.yml` corre 7 gates; la cobertura aún pasa en vacío hasta activar los umbrales.
+- Verificación de cobertura MT: cada operación `in-scope` tiene entrada en `API_PATHS`, ruta cableada y evidencia HTTP (`curl`/`supertest`); las `out-of-scope` están listadas con su MT propietaria.
 
 ---
 
