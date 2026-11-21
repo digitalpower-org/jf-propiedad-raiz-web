@@ -861,13 +861,31 @@ export interface components {
              */
             updatedAt?: string;
         };
-        /** @description PENDIENTE: definición pendiente en TASKS. Detalle del servicio (US5.1.2); los campos del modelo `Service` de `shared-types/src/models`. */
+        /**
+         * @description Detalle completo del servicio (US5.1.2); campos del modelo `Service` de
+         *     `shared-types/src/models`. Incluye todos los campos traducibles, galería de obras
+         *     (mismo flujo de fotos de inmuebles con portada, orden y derivados — AC4.4.6),
+         *     estado y orden público.
+         */
         ServiceDetail: {
-            id?: string;
-            slug?: string;
-            status?: components["schemas"]["EstadoPropiedad"];
-        } & {
-            [key: string]: unknown;
+            id: string;
+            slug: string;
+            status: components["schemas"]["EstadoPropiedad"];
+            titulo: components["schemas"]["Translatable"];
+            resumen: components["schemas"]["Translatable"];
+            cuerpo: components["schemas"]["Translatable"];
+            /** @description Galería de obras; mismo flujo de fotos de inmuebles (portada, orden, derivados — AC4.4.6). */
+            fotos?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            /** @description Define el orden público (AC4.4.3). */
+            orden: number;
+            /** Format: date-time */
+            updatedAt: string;
         };
         /** @description Documento único `pages/nosotros` tal como se sirve al público (D25, US5.6). `extracto` alimenta el bloque «Nosotros» de la portada (AC2.6.4); `secciones` y `equipo` alimentan `/nosotros` (AC5.6.1). El orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
         AboutDocument: {
