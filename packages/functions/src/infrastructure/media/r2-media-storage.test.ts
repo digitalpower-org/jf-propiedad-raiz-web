@@ -71,4 +71,21 @@ describe('createR2MediaStorage', () => {
     expect(mockR2Storage.del).toHaveBeenCalledWith('pending/abc-123.jpg');
     expect(resultado.derivados).toHaveLength(2);
   });
+
+  it('deleteDerivados borra cada derivado bajo derivados/<recurso>/', async () => {
+    const storage = createR2MediaStorage(mockImageProcessor as unknown as ImageProcessor);
+    await storage.deleteDerivados(['clave-320.webp', 'clave-full.webp'], 'foto');
+
+    expect(mockR2Storage.del).toHaveBeenCalledTimes(2);
+    expect(mockR2Storage.del).toHaveBeenCalledWith('derivados/foto/clave-320.webp');
+    expect(mockR2Storage.del).toHaveBeenCalledWith('derivados/foto/clave-full.webp');
+  });
+
+  it('deleteDerivados borra derivados de panorama', async () => {
+    const storage = createR2MediaStorage(mockImageProcessor as unknown as ImageProcessor);
+    await storage.deleteDerivados(['clave-full.webp'], 'panorama');
+
+    expect(mockR2Storage.del).toHaveBeenCalledTimes(1);
+    expect(mockR2Storage.del).toHaveBeenCalledWith('derivados/panorama/clave-full.webp');
+  });
 });
