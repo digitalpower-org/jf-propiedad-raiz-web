@@ -35,4 +35,10 @@ export interface MediaStorage {
    * genera derivados WebP y elimina el original.
    */
   readonly confirmarSubida: (key: string, recurso: RecursoMedia) => Promise<ConfirmarSubidaResult>;
+
+  /**
+   * Elimina los derivados WebP de un recurso bajo `derivados/<recurso>/`.
+   * No toca el original: solo borra los derivados indicados por `claves`.
+   */
+  readonly deleteDerivados: (claves: readonly string[], recurso: RecursoMedia) => Promise<void>;
 }

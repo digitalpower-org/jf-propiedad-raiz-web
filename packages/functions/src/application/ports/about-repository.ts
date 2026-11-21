@@ -25,6 +25,40 @@ export interface AboutDto {
   readonly updatedAt: string;
 }
 
+export interface AboutDtoInput {
+  readonly titulo: { readonly es: string; readonly en?: string; readonly autoTranslate?: boolean };
+  readonly extracto: {
+    readonly es: string;
+    readonly en?: string;
+    readonly autoTranslate?: boolean;
+  };
+  readonly secciones: readonly {
+    readonly id: string;
+    readonly titulo: {
+      readonly es: string;
+      readonly en?: string;
+      readonly autoTranslate?: boolean;
+    };
+    readonly cuerpo: {
+      readonly es: string;
+      readonly en?: string;
+      readonly autoTranslate?: boolean;
+    };
+  }[];
+  readonly equipo: readonly {
+    readonly id: string;
+    readonly nombre: string;
+    readonly cargo: { readonly es: string; readonly en?: string; readonly autoTranslate?: boolean };
+    readonly descripcion?: {
+      readonly es: string;
+      readonly en?: string;
+      readonly autoTranslate?: boolean;
+    };
+    readonly foto?: string;
+  }[];
+}
+
 export interface AboutRepository {
   readonly obtener: () => Promise<AboutDto | null>;
+  readonly guardar: (input: AboutDtoInput, expectedUpdatedAt: string) => Promise<AboutDto>;
 }
