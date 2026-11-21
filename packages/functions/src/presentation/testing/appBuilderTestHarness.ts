@@ -9,6 +9,7 @@
 import { vi } from 'vitest';
 
 import type { ApplicationPorts } from '../../application/ports';
+import type { AboutDto } from '../../application/ports/about-repository';
 import type { AuthorizedUsersRepository } from '../../application/ports/authorized-users-repository';
 import type { IdentityVerifier } from '../../application/ports/identity-verifier';
 import type { Logger } from '../../application/ports/logger';
@@ -19,6 +20,14 @@ import { buildUseCases } from '../../application/buildUseCases';
 import { appBuilder } from '../appBuilder';
 
 export const INTERNAL_KEY = 'k'.repeat(32);
+
+const aboutSeed: AboutDto = {
+  titulo: { es: 'Nosotros' },
+  extracto: { es: 'Somos una inmobiliaria' },
+  secciones: [],
+  equipo: [],
+  updatedAt: '2026-01-01T00:00:00Z',
+};
 
 export function makePorts(overrides: Partial<ApplicationPorts> = {}) {
   const logger: Logger = {
@@ -50,14 +59,23 @@ export function makePorts(overrides: Partial<ApplicationPorts> = {}) {
       softDelete: vi.fn(),
     },
     services: {
-      listar: vi.fn(),
+      crear: vi.fn(),
+      actualizar: vi.fn(),
+      eliminar: vi.fn(),
+      activar: vi.fn(),
+      ocultar: vi.fn(),
+      reordenar: vi.fn(),
+      obtenerPorIdOSlug: vi.fn(),
+      listarPaginado: vi.fn(),
     },
     about: {
       obtener: vi.fn(),
+      guardar: vi.fn(),
     },
     mediaStorage: {
       presignPut: vi.fn(),
       confirmarSubida: vi.fn(),
+      deleteDerivados: vi.fn(),
     },
     imageProcessor: {
       validarImagen: vi.fn(),
@@ -72,11 +90,14 @@ export function makePorts(overrides: Partial<ApplicationPorts> = {}) {
 
 export function setup(overrides: Partial<ApplicationPorts> = {}) {
   const deps = makePorts(overrides);
-  const app = appBuilder(buildUseCases(deps, { consignmentToEmail: 'test@example.com' }), {
-    internalKey: INTERNAL_KEY,
-    logger: deps.logger,
-    secretComparator: deps.secretComparator,
-  });
+  const app = appBuilder(
+    buildUseCases(deps, { consignmentToEmail: 'test@example.com', aboutSeed }),
+    {
+      internalKey: INTERNAL_KEY,
+      logger: deps.logger,
+      secretComparator: deps.secretComparator,
+    },
+  );
   return { app, ...deps };
 }
 
