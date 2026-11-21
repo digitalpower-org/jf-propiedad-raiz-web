@@ -124,10 +124,10 @@
   - [ ] US7.5 `[D2]` Panel y subidas con datos móviles
 - [ ] **MT4.2** `[D1+D2]` CMS de contenido ← MT1.4, MT1.3, MT1.2, MT4.1
   - [ ] US4.4 `[D1+D2]` Gestión de Servicios
-    - [ ] `[D1]` CRUD BFF/Functions Servicios
+    - [x] `[D1]` CRUD BFF/Functions Servicios
     - [ ] `[D2]` UI panel `/admin/servicios`
   - [ ] US4.5 `[D1+D2]` Gestión de la página «Nosotros»
-    - [ ] `[D1]` CRUD BFF/Functions Nosotros
+    - [x] `[D1]` CRUD BFF/Functions Nosotros
     - [ ] `[D2]` UI panel `/admin/nosotros`
   - [ ] US7.1 `[D2]` (panel) Mobile First
   - [ ] US7.5 `[D2]` (listas y borradores)

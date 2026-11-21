@@ -131,6 +131,24 @@ npm run lint -w @jf/functions
 | integración (emuladores) | CRUD + consulta pública con índices, cursor `{createdAt,id}` (AC1.10.2), rate-limit (US3.4), tarea «Nuevo» idempotente (AC1.11.3) | integración |
 | contrato | requests contra `openapi.backend.yaml` y `openapi.bff.yaml` (tipos generados en `@jf/shared-types`) | integración |
 
+### 2.4 Cobertura de operaciones del contrato por MT
+
+**Definición:** `in-scope para esta MT` significa una operación de `docs/openapi.backend.yaml` referenciada por los criterios de éxito (`IS`), gaps (`GAP`), todos o ACs del plan de la MT. Operaciones declaradas en el contrato pero asignadas a MTs futuras son `out-of-scope` para esta MT.
+
+**Matriz requerida por operación in-scope:**
+- `operationId` → `METHOD /path` en `openapi.backend.yaml`
+- Entrada correspondiente en `API_PATHS` de `presentation/paths.ts`
+- Ruta registrada en `presentation/routes.ts` con handler/caso de uso cableado
+- Evidencia HTTP (curl contra emuladores o salida de integración `supertest`) cubriendo camino feliz y caminos de error relevantes
+
+**Regla dura:** toda operación in-scope sin ruta registrada o sin evidencia HTTP es un `fallo del plan de esta MT`. El éxito del typecheck o la mera presencia de la operación en OpenAPI **no** cuentan como evidencia de implementación.
+
+**Manejo de out-of-scope:** cada operación del contrato excluida de esta MT debe listarse explícitamente en el plan de la MT con su MT propietaria o decisión; una operación no clasificada como in-scope ni out-of-scope es ambigüedad que debe resolverse antes de cerrar la MT.
+
+**Consecuencia:** un ítem faltante se convierte en un nuevo todo de implementación numerado, nunca en una nota de seguimiento.
+
+**Referencias cruzadas:** `./DEFINITION-OF-DONE.md` §2.4 y §3; `./BACKEND-ARCHITECTURE.md` §6.9.
+
 ---
 
 ## 3. Frontend QA (`packages/client`)
