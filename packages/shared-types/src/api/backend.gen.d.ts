@@ -255,7 +255,8 @@ export interface paths {
          * @description US5.1 / AC5.1.1: Devuelve una tarjeta por cada servicio `ACTIVE`, ordenados por `orden`
          *     ascendente. Sin servicios activos, devuelve lista vacía (no error). Paginación por cursor
          *     opaco `{ orden, id }` (D17, D19); límite por defecto 12, máximo 50 (AC1.10.1, D19).
-         *     AC5.1.3: slug inexistente, `HIDDEN` o `DELETED` → 404 `SERVICE_NOT_FOUND` en el detalle.
+         *     `includeHidden=true` solo tiene efecto con identidad de administrador válida; sin ella
+         *     responde 401 `UNAUTHORIZED`.
          */
         get: operations["listServices"];
         put?: never;
@@ -1445,7 +1446,14 @@ export interface operations {
     };
     listServices: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Cursor opaco `{ orden, id }` de la página anterior (D17, AC1.10.2). */
+                cursor?: string;
+                /** @description Tamaño de página: 12 por defecto, máx. 50 (AC1.10.1, D19). */
+                limit?: number;
+                /** @description Si es `true`, incluye servicios `HIDDEN` en la respuesta. Solo tiene efecto cuando la petición incluye identidad de sesión de administrador válida (`X-User-Id`, `X-User-Role: admin`, `X-User-Email`); sin ella o con identidad parcial/inválida responde 401 `UNAUTHORIZED`. Si no se recibe, se considera `false`. */
+                includeHidden?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
