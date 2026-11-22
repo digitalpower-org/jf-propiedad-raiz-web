@@ -813,7 +813,7 @@ export interface components {
             }[];
             /**
              * Format: date-time
-             * @description Control de concurrencia optimista (AC4.5.5) → 409 `CONFLICT`.
+             * @description Control de concurrencia optimista (AC4.5.5). Si se envía y coincide con el `updatedAt` actual del documento, la actualización procede. Si se envía y no coincide (versión desactualizada/stale), la actualización se rechaza con 409 `CONFLICT`. Si se omite, el backend resuelve la versión desde el documento actual y la actualización procede, pero el request pierde protección ante ediciones concurrentes (last-write-wins sobre la versión vigente al momento de guardar).
              */
             updatedAt?: string;
         };

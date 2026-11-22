@@ -123,6 +123,29 @@ describe('ActualizarAboutUseCase', () => {
     expect(revalidateContent.revalidate).not.toHaveBeenCalled();
   });
 
+  it('resuelve la versión esperada desde el documento actual cuando no se envía', async () => {
+    const actualizado: AboutDto = { ...seed, updatedAt: 'v2' };
+    const about = {
+      obtener: vi.fn().mockResolvedValue(seed),
+      guardar: vi.fn().mockResolvedValue(actualizado),
+    };
+    const revalidateContent = new FakeRevalidateContent();
+    const mediaStorage = makeMediaStorage();
+    const logger = makeLogger();
+    const useCase = new ActualizarAboutUseCase({
+      about,
+      revalidateContent,
+      mediaStorage,
+      translationService: new TranslationService({ translator: makeTranslator(), logger }),
+      logger,
+    });
+
+    const resultado = await useCase.execute({ input: baseInput(), requestId: 'req-1' });
+
+    expect(about.guardar).toHaveBeenCalledWith(expect.anything(), seed.updatedAt);
+    expect(resultado).toBe(actualizado);
+  });
+
   it('purgar derivados de foto removida o reemplazada con recurso foto', async () => {
     // Given: documento existente con foto, input reemplaza la foto
     const existente: AboutDto = {

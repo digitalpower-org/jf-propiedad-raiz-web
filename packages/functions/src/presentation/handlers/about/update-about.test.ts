@@ -122,6 +122,39 @@ describe('PUT /api/v1/about', () => {
     expect(about.guardar).toHaveBeenCalledTimes(1);
   });
 
+  it('acepta la actualización sin updatedAt y usa la versión del documento actual', async () => {
+    const actualizado: AboutDto = { ...aboutDto, updatedAt: '2026-01-02T00:00:00Z' };
+    const { app, about } = setup({
+      translator: makeTranslator([
+        { fieldPath: 'titulo', translated: 'Nosotros actualizado' },
+        { fieldPath: 'extracto', translated: 'Somos una inmobiliaria actualizada' },
+        { fieldPath: 'secciones[0].titulo', translated: 'Sección 1' },
+        { fieldPath: 'secciones[0].cuerpo', translated: 'Cuerpo 1' },
+        { fieldPath: 'equipo[0].cargo', translated: 'Cargo 1' },
+        { fieldPath: 'equipo[0].descripcion', translated: 'Desc 1' },
+      ]),
+      revalidationGateway: makeRevalidationGateway(),
+      about: makeAbout({
+        obtener: vi.fn().mockResolvedValue(aboutDto),
+        guardar: vi.fn().mockResolvedValue(actualizado),
+      }),
+    });
+
+    const bodySinUpdatedAt = {
+      titulo: validBody.titulo,
+      extracto: validBody.extracto,
+      secciones: validBody.secciones,
+      equipo: validBody.equipo,
+    };
+    const response = await request(app)
+      .put(API_PATHS.about)
+      .set(authHeaders())
+      .send(bodySinUpdatedAt);
+
+    expect(response.status).toBe(200);
+    expect(about.guardar).toHaveBeenCalledWith(expect.anything(), aboutDto.updatedAt);
+  });
+
   it('rechaza extracto.es mayor a 500 caracteres con 422', async () => {
     const { app, about } = setup();
 

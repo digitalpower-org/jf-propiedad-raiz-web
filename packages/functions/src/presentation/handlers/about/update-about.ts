@@ -37,13 +37,14 @@ const bodySchema = z
     }),
     secciones: z.array(seccionSchema),
     equipo: z.array(integranteSchema),
-    updatedAt: z.string().min(1),
+    updatedAt: z.string().min(1).optional(),
   })
   .strict();
 
 /**
  * Construye el `AboutDtoInput` a partir del cuerpo ya validado por Zod.
- * `updatedAt` se excluye: viaja como `expectedUpdatedAt` del comando de concurrencia.
+ * `updatedAt` se excluye: viaja como `expectedUpdatedAt` del comando de concurrencia;
+ * si el cliente lo omite, el caso de uso resuelve la versión del documento actual.
  */
 function buildActualizarAboutInput(body: z.infer<typeof bodySchema>): AboutDtoInput {
   const translatable = (field: {
@@ -89,7 +90,7 @@ export const makeUpdateAboutHandler =
       const requestId = typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined;
       const command: ActualizarAboutCommand = {
         input: buildActualizarAboutInput(body),
-        expectedUpdatedAt: body.updatedAt,
+        ...(body.updatedAt !== undefined ? { expectedUpdatedAt: body.updatedAt } : {}),
         requestId,
       };
       const resultado = await useCase.execute(command);
