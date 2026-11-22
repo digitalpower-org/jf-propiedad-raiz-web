@@ -723,7 +723,8 @@ export const API_PATHS = {
 
 Reglas:
 
-- Toda ruta del contrato se declara aquí. Si se escribe mal, falla el `tsc`.
+- Toda ruta del contrato **in-scope para la MT actual** se declara aquí. Si se escribe mal, falla el `tsc`. Las operaciones declaradas en el contrato pero asignadas a MTs futuras se documentan como `out-of-scope` en el plan de la MT y no se añaden a `API_PATHS` hasta su MT.
+- `satisfies ExpressPath` no prueba cobertura: una operación `in-scope` sin entrada en `API_PATHS`, ruta registrada en `presentation/routes.ts`, handler cableado y evidencia HTTP es fallo del plan de la MT (ver `./QA.md` §2.4 y `./DEFINITION-OF-DONE.md` §3).
 - `/health` es operativa y **no** está en `openapi.backend.yaml`; vive en `OPS_PATHS` y no se valida contra el contrato. Si se quiere tipar, primero se añade a la spec.
 
 ### 6.10. Guards

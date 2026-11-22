@@ -14,6 +14,9 @@ const useCases = {
   ocultarProperty: { execute: vi.fn() },
   listarProperties: { execute: vi.fn() },
   obtenerProperty: { execute: vi.fn() },
+  obtenerService: { execute: vi.fn() },
+  obtenerAbout: { execute: vi.fn() },
+  actualizarAbout: { execute: vi.fn() },
   presignMediaUpload: { execute: vi.fn() },
   confirmarMediaUpload: { execute: vi.fn() },
 } as unknown as UseCases;
@@ -54,8 +57,36 @@ const expectedGuards: Record<string, readonly string[]> = {
     'optional-admin-identity',
     'rate-public-property-detail',
   ],
-  [`get:${API_PATHS.services}`]: ['guard-internal', 'rate-public-services'],
+  [`get:${API_PATHS.services}`]: [
+    'guard-internal',
+    'optional-admin-identity',
+    'rate-public-services',
+  ],
+  [`get:${API_PATHS.service}`]: [
+    'guard-internal',
+    'optional-admin-identity',
+    'rate-public-service-detail',
+  ],
+  [`post:${API_PATHS.services}`]: ['guard-internal', 'require-user-identity', 'rate-admin-write'],
+  [`put:${API_PATHS.service}`]: ['guard-internal', 'require-user-identity', 'rate-admin-write'],
+  [`delete:${API_PATHS.service}`]: ['guard-internal', 'require-user-identity', 'rate-admin-write'],
+  [`post:${API_PATHS.activateService}`]: [
+    'guard-internal',
+    'require-user-identity',
+    'rate-admin-write',
+  ],
+  [`post:${API_PATHS.hideService}`]: [
+    'guard-internal',
+    'require-user-identity',
+    'rate-admin-write',
+  ],
+  [`post:${API_PATHS.reorderServices}`]: [
+    'guard-internal',
+    'require-user-identity',
+    'rate-admin-write',
+  ],
   [`get:${API_PATHS.about}`]: ['guard-internal', 'rate-public-about'],
+  [`put:${API_PATHS.about}`]: ['guard-internal', 'require-user-identity', 'rate-admin-write'],
   [`post:${API_PATHS.presignedMediaUrl}`]: [
     'guard-internal',
     'require-user-identity',
@@ -85,7 +116,7 @@ describe('apiRouter', () => {
     expect(paths.length).toBeGreaterThan(0);
   });
 
-  it('registra el número y orden de guards por nombre en las 15 rutas', () => {
+  it('registra el número y orden de guards por nombre en las 23 rutas', () => {
     const router = apiRouter(useCases, deps);
 
     const actual: Record<string, string[]> = {};
@@ -104,7 +135,7 @@ describe('apiRouter', () => {
     for (const [key, expected] of Object.entries(expectedGuards)) {
       expect(actual[key], `ruta ${key}`).toEqual(expected);
     }
-    // Ninguna ruta de más ni de menos: exactamente las 15 esperadas.
+    // Ninguna ruta de más ni de menos: exactamente las 23 esperadas.
     expect(Object.keys(actual).sort()).toEqual(Object.keys(expectedGuards).sort());
   });
 });

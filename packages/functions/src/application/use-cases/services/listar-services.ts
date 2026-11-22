@@ -1,18 +1,24 @@
-// Use case US6.2 — Listado público de servicios.
-// Solo devuelve servicios `ACTIVE`, ordenados por `orden`.
+// Use case US6.2 — Listado público paginado de servicios.
+// Por defecto solo devuelve `ACTIVE`; con `includeHidden` incluye `HIDDEN`.
 
 import type { UseCase } from '../../use-case';
 import type { Logger } from '../../ports/logger';
-import type { ServiciosRepository, ListarServicesResult } from '../../ports/services-repository';
+import type { ServiciosRepository, ListarPaginadoResult } from '../../ports/services-repository';
 
-export class ListarServicesUseCase implements UseCase<void, ListarServicesResult> {
+export interface ListarServicesCommand {
+  readonly cursor?: string;
+  readonly limit?: number;
+  readonly includeHidden?: boolean;
+}
+
+export class ListarServicesUseCase implements UseCase<ListarServicesCommand, ListarPaginadoResult> {
   constructor(
     private readonly services: ServiciosRepository,
     private readonly logger: Logger,
   ) {}
 
-  async execute(): Promise<ListarServicesResult> {
-    const resultado = await this.services.listar();
+  async execute(command: ListarServicesCommand): Promise<ListarPaginadoResult> {
+    const resultado = await this.services.listarPaginado(command);
 
     this.logger.debug('services_listed', { items: resultado.items.length });
 

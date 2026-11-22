@@ -7,6 +7,7 @@ function makePorts() {
     mediaStorage: {
       presignPut: vi.fn(),
       confirmarSubida: vi.fn(),
+      deleteDerivados: vi.fn(),
     },
     logger: {
       debug: vi.fn(),

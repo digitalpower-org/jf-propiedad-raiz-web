@@ -4,12 +4,14 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { buildUseCases } from './application/buildUseCases';
 import { createInfrastructure } from './infrastructure/composition';
 import { appBuilder } from './presentation/appBuilder';
+import { aboutCatalogo } from './seed/catalog-data';
 
 setGlobalOptions({ region: 'us-central1', maxInstances: 10 });
 
 const infrastructure = createInfrastructure();
 const useCases = buildUseCases(infrastructure, {
   consignmentToEmail: infrastructure.config.consignmentToEmail,
+  aboutSeed: aboutCatalogo,
 });
 const app = appBuilder(useCases, {
   internalKey: infrastructure.config.internalKey,
