@@ -168,6 +168,22 @@ describe('PUT /api/v1/about', () => {
     expect(about.guardar).not.toHaveBeenCalled();
   });
 
+  it('rechaza extracto.en manual mayor a 500 caracteres con 422', async () => {
+    const { app, about } = setup();
+
+    const response = await request(app)
+      .put(API_PATHS.about)
+      .set(authHeaders())
+      .send({
+        ...validBody,
+        extracto: { es: 'Extracto corto', en: 'x'.repeat(501), autoTranslate: false },
+      });
+
+    expect(response.status).toBe(422);
+    expect(response.body.data.code).toBe('VALIDATION_ERROR');
+    expect(about.guardar).not.toHaveBeenCalled();
+  });
+
   it('mapea conflicto de concurrencia a 409 cuando updatedAt está desactualizado', async () => {
     const { app } = setup({
       translator: makeTranslator([], false),

@@ -45,8 +45,8 @@ export class ActualizarAboutUseCase implements UseCase<ActualizarAboutCommand, A
   async execute(command: ActualizarAboutCommand): Promise<AboutDto> {
     const { input, expectedUpdatedAt, requestId } = command;
 
-    // Validación: extracto.es ≤ 500 caracteres
-    if (input.extracto.es.length > 500) {
+    // Validación: extracto.es/en ≤ 500 caracteres (defensa en profundidad)
+    if (input.extracto.es.length > 500 || (input.extracto.en?.length ?? 0) > 500) {
       throw new ApiError(errorCode.validationError, 'El extracto no puede exceder 500 caracteres');
     }
 
@@ -69,12 +69,13 @@ export class ActualizarAboutUseCase implements UseCase<ActualizarAboutCommand, A
 
     // Aplicar traducciones al input de forma inmutable
     const inputTraducido = this.applyTranslations(input, traducidos);
+    const inputFinal = this.degradarExtractoAutoTraducido(input, inputTraducido, requestId);
 
     // Purgar derivados de fotos removidas o reemplazadas
-    await this.purgarFotos(actual, inputTraducido);
+    await this.purgarFotos(actual, inputFinal);
 
     // Guardar (propaga CONFLICT si la versión esperada está desactualizada)
-    const resultado = await this.about.guardar(inputTraducido, versionEsperada);
+    const resultado = await this.about.guardar(inputFinal, versionEsperada);
 
     // Revalidar contenido tras escritura exitosa
     await this.revalidateContent.revalidate('nosotros');
@@ -200,6 +201,33 @@ export class ActualizarAboutUseCase implements UseCase<ActualizarAboutCommand, A
       es: field.es,
       ...(field.en !== undefined ? { en: field.en } : {}),
       ...(field.autoTranslate !== undefined ? { autoTranslate: field.autoTranslate } : {}),
+    };
+  }
+
+  private degradarExtractoAutoTraducido(
+    input: AboutDtoInput,
+    traducido: AboutDtoInput,
+    requestId?: string,
+  ): AboutDtoInput {
+    const enManual = input.extracto.en !== undefined && input.extracto.en !== '';
+    const enTraducido = traducido.extracto.en;
+    if (enManual || enTraducido === undefined || enTraducido.length <= 500) {
+      return traducido;
+    }
+
+    this.logger.warn('translation_field_degraded', {
+      requestId,
+      fieldPath: 'extracto',
+      reason: 'max_length_exceeded',
+      maxLength: 500,
+    });
+
+    return {
+      ...traducido,
+      extracto: {
+        es: traducido.extracto.es,
+        autoTranslate: traducido.extracto.autoTranslate ?? true,
+      },
     };
   }
 

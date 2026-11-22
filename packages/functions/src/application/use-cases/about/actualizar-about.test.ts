@@ -97,6 +97,73 @@ describe('ActualizarAboutUseCase', () => {
     expect(revalidateContent.revalidate).not.toHaveBeenCalled();
   });
 
+  it('valida extracto.en manual ≤ 500 y lanza VALIDATION_ERROR al exceder', async () => {
+    const about = { obtener: vi.fn().mockResolvedValue(null), guardar: vi.fn() };
+    const revalidateContent = new FakeRevalidateContent();
+    const mediaStorage = makeMediaStorage();
+    const logger = makeLogger();
+    const useCase = new ActualizarAboutUseCase({
+      about,
+      revalidateContent,
+      mediaStorage,
+      translationService: new TranslationService({ translator: makeTranslator(), logger }),
+      logger,
+    });
+
+    const input = {
+      ...baseInput(),
+      extracto: { es: 'Extracto corto', en: 'x'.repeat(501), autoTranslate: false },
+    };
+
+    await expect(
+      useCase.execute({ input, expectedUpdatedAt: 'v1', requestId: 'req-1' }),
+    ).rejects.toMatchObject({ code: errorCode.validationError });
+
+    expect(about.guardar).not.toHaveBeenCalled();
+    expect(revalidateContent.revalidate).not.toHaveBeenCalled();
+  });
+
+  it('degrada extracto.en auto-traducido > 500 sin bloquear el guardado', async () => {
+    const about = {
+      obtener: vi.fn().mockResolvedValue(null),
+      guardar: vi.fn().mockResolvedValue({ ...seed, updatedAt: 'v2' }),
+    };
+    const revalidateContent = new FakeRevalidateContent();
+    const mediaStorage = makeMediaStorage();
+    const logger = makeLogger();
+    const enLargo = 'x'.repeat(501);
+    const translator = makeTranslator([
+      { fieldPath: 'titulo', translated: 'Título (EN)' },
+      { fieldPath: 'extracto', translated: enLargo },
+      { fieldPath: 'secciones[0].titulo', translated: 'Sección 1 (EN)' },
+      { fieldPath: 'secciones[0].cuerpo', translated: 'Cuerpo 1 (EN)' },
+      { fieldPath: 'equipo[0].cargo', translated: 'Cargo (EN)' },
+      { fieldPath: 'equipo[0].descripcion', translated: 'Desc (EN)' },
+    ]);
+    const useCase = new ActualizarAboutUseCase({
+      about,
+      revalidateContent,
+      mediaStorage,
+      translationService: new TranslationService({ translator, logger }),
+      logger,
+    });
+
+    await useCase.execute({ input: baseInput(), expectedUpdatedAt: 'v1', requestId: 'req-1' });
+
+    expect(about.guardar).toHaveBeenCalledTimes(1);
+    const [inputGuardado] = about.guardar.mock.calls[0];
+    expect(inputGuardado.extracto.en).toBeUndefined();
+    expect(inputGuardado.extracto.autoTranslate).toBe(true);
+    expect(inputGuardado.titulo.en).toBe('Título (EN)');
+    expect(logger.warn).toHaveBeenCalledWith('translation_field_degraded', {
+      requestId: 'req-1',
+      fieldPath: 'extracto',
+      reason: 'max_length_exceeded',
+      maxLength: 500,
+    });
+    expect(revalidateContent.revalidate).toHaveBeenCalledWith('nosotros');
+  });
+
   it('propaga CONFLICT del repositorio cuando expectedUpdatedAt está desactualizado', async () => {
     // Given: repositorio rechaza con CONFLICT
     const conflicto = new ApiError(errorCode.conflict, 'Documento desactualizado');

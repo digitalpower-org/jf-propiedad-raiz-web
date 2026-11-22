@@ -31,9 +31,21 @@ const integranteSchema = z
 const bodySchema = z
   .object({
     titulo: translatableInputSchema,
-    extracto: translatableInputSchema.refine((data) => data.es.length <= 500, {
-      message: 'El extracto no puede exceder 500 caracteres',
-      path: ['es'],
+    extracto: translatableInputSchema.superRefine((data, ctx) => {
+      if (data.es.length > 500) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'El extracto no puede exceder 500 caracteres',
+          path: ['es'],
+        });
+      }
+      if (data.en !== undefined && data.en.length > 500) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'El extracto no puede exceder 500 caracteres',
+          path: ['en'],
+        });
+      }
     }),
     secciones: z.array(seccionSchema),
     equipo: z.array(integranteSchema),
