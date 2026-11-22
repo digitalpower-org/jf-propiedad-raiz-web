@@ -15,7 +15,7 @@ import { errorCode } from '../../../domain/errors/errorCatalog';
 
 export interface ActualizarAboutCommand {
   readonly input: AboutDtoInput;
-  readonly expectedUpdatedAt?: string;
+  readonly expectedUpdatedAt: string;
   readonly requestId?: string;
 }
 
@@ -53,9 +53,6 @@ export class ActualizarAboutUseCase implements UseCase<ActualizarAboutCommand, A
     // Obtener documento actual para comparar fotos antes de guardar
     const actual = await this.about.obtener();
 
-    // Si el cliente no envía versión, se resuelve en servidor desde el documento actual
-    const versionEsperada = expectedUpdatedAt ?? actual?.updatedAt ?? '';
-
     // Construir candidatos y traducir campos traducibles
     const candidatos = this.buildCandidates(input, actual);
     const traducidos = await translateContentFields(
@@ -74,8 +71,8 @@ export class ActualizarAboutUseCase implements UseCase<ActualizarAboutCommand, A
     // Purgar derivados de fotos removidas o reemplazadas
     await this.purgarFotos(actual, inputFinal);
 
-    // Guardar (propaga CONFLICT si la versión esperada está desactualizada)
-    const resultado = await this.about.guardar(inputFinal, versionEsperada);
+    // Guardar (Política OCC estricta: expectedUpdatedAt obligatorio)
+    const resultado = await this.about.guardar(inputFinal, expectedUpdatedAt);
 
     // Revalidar contenido tras escritura exitosa
     await this.revalidateContent.revalidate('nosotros');

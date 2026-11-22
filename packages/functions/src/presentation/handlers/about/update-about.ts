@@ -49,14 +49,14 @@ const bodySchema = z
     }),
     secciones: z.array(seccionSchema),
     equipo: z.array(integranteSchema),
-    updatedAt: z.string().min(1).optional(),
+    updatedAt: z.string().min(1),
   })
   .strict();
 
 /**
  * Construye el `AboutDtoInput` a partir del cuerpo ya validado por Zod.
- * `updatedAt` se excluye: viaja como `expectedUpdatedAt` del comando de concurrencia;
- * si el cliente lo omite, el caso de uso resuelve la versión del documento actual.
+ * `updatedAt` se excluye: viaja como `expectedUpdatedAt` del comando de concurrencia
+ * (Política OCC estricta, obligatorio en body).
  */
 function buildActualizarAboutInput(body: z.infer<typeof bodySchema>): AboutDtoInput {
   const translatable = (field: {
@@ -91,8 +91,8 @@ function buildActualizarAboutInput(body: z.infer<typeof bodySchema>): AboutDtoIn
 
 /**
  * PUT /api/v1/about — Actualizar documento Nosotros.
- * Requiere sesión de admin. Valida extracto.es ≤ 500 (422), concurrencia optimista por
- * updatedAt (409 si stale). Tras guardar se dispara la revalidación (US0.3).
+ * Requiere sesión de admin. Valida extracto.es/en ≤ 500 (422). Política OCC estricta:
+ * `updatedAt` es obligatorio (409 si stale). Tras guardar se dispara la revalidación (US0.3).
  */
 export const makeUpdateAboutHandler =
   (useCase: ActualizarAboutUseCase): AsyncHandler =>
@@ -102,7 +102,7 @@ export const makeUpdateAboutHandler =
       const requestId = typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined;
       const command: ActualizarAboutCommand = {
         input: buildActualizarAboutInput(body),
-        ...(body.updatedAt !== undefined ? { expectedUpdatedAt: body.updatedAt } : {}),
+        expectedUpdatedAt: body.updatedAt,
         requestId,
       };
       const resultado = await useCase.execute(command);

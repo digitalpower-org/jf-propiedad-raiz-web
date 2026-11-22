@@ -190,7 +190,7 @@ describe('ActualizarAboutUseCase', () => {
     expect(revalidateContent.revalidate).not.toHaveBeenCalled();
   });
 
-  it('resuelve la versión esperada desde el documento actual cuando no se envía', async () => {
+  it('requiere expectedUpdatedAt (Política OCC estricta) y lo pasa al repositorio', async () => {
     const actualizado: AboutDto = { ...seed, updatedAt: 'v2' };
     const about = {
       obtener: vi.fn().mockResolvedValue(seed),
@@ -207,7 +207,11 @@ describe('ActualizarAboutUseCase', () => {
       logger,
     });
 
-    const resultado = await useCase.execute({ input: baseInput(), requestId: 'req-1' });
+    const resultado = await useCase.execute({
+      input: baseInput(),
+      expectedUpdatedAt: seed.updatedAt,
+      requestId: 'req-1',
+    });
 
     expect(about.guardar).toHaveBeenCalledWith(expect.anything(), seed.updatedAt);
     expect(resultado).toBe(actualizado);

@@ -803,7 +803,7 @@ export interface components {
              */
             updatedAt: string;
         };
-        /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
+        /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). Política OCC estricta: `updatedAt` es obligatorio. */
         AboutInput: {
             titulo: components["schemas"]["TranslatableInput"];
             /** @description Extracto mostrado en la portada (AC2.6.4). Es un `Translatable` (MODELO DE DATOS, TASKS): cualquier idioma con más de 500 caracteres → 422 `VALIDATION_ERROR` (AC4.5.3). */
@@ -829,9 +829,9 @@ export interface components {
             }[];
             /**
              * Format: date-time
-             * @description Control de concurrencia optimista (AC4.5.5). Si se envía y coincide con el `updatedAt` actual del documento, la actualización procede. Si se envía y no coincide (versión desactualizada/stale), la actualización se rechaza con 409 `CONFLICT`. Si se omite, el backend resuelve la versión desde el documento actual y la actualización procede, pero el request pierde protección ante ediciones concurrentes (last-write-wins sobre la versión vigente al momento de guardar).
+             * @description Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.
              */
-            updatedAt?: string;
+            updatedAt: string;
         };
         /** @description Documento único `pages/nosotros` tal como se sirve al público (D25, US5.6). `extracto` alimenta el bloque «Nosotros» de la portada (AC2.6.4); `secciones` y `equipo` alimentan `/nosotros` (AC5.6.1). El orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
         AboutDocument: {
