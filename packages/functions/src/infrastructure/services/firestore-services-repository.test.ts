@@ -205,10 +205,15 @@ function makeMockFirestore(): MockFirestore {
     collection: vi.fn().mockReturnValue(collectionRef),
     doc: vi.fn().mockImplementation((path: string) => createRef(path)),
     batch: vi.fn().mockReturnValue(mockBatch),
-    runTransaction: vi.fn().mockImplementation(async (fn: (tx: any) => Promise<unknown>) => {
-      let txCount = 0;
+    runTransaction: vi.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+      type MockRef = {
+        path?: string;
+        get?: () => Promise<unknown>;
+        set?: (data: unknown, opts?: unknown) => Promise<unknown>;
+        update?: (data: Record<string, unknown>) => Promise<unknown>;
+      };
       const tx = {
-        get: vi.fn().mockImplementation(async (ref: any) => {
+        get: vi.fn().mockImplementation(async (ref: MockRef) => {
           // Counter transaction: first get in tx may be for counters/property
           if (typeof ref?.path === 'string' && ref.path.startsWith('counters/')) {
             const existing = docs.get(ref.path);
@@ -220,15 +225,14 @@ function makeMockFirestore(): MockFirestore {
           if (typeof ref?.get === 'function') {
             return ref.get();
           }
-          txCount += 1;
           return makeMockDocSnapshot(null, false);
         }),
-        set: vi.fn().mockImplementation(async (ref: any, data: unknown, _opts?: unknown) => {
+        set: vi.fn().mockImplementation(async (ref: MockRef, data: unknown, _opts?: unknown) => {
           if (typeof ref?.set === 'function') return ref.set(data, _opts);
           if (typeof ref?.path === 'string') docs.set(ref.path, data as Record<string, unknown>);
           return undefined;
         }),
-        update: vi.fn().mockImplementation(async (ref: any, data: Record<string, unknown>) => {
+        update: vi.fn().mockImplementation(async (ref: MockRef, data: Record<string, unknown>) => {
           if (typeof ref?.update === 'function') return ref.update(data);
           if (typeof ref?.path === 'string') {
             const current = (docs.get(ref.path) ?? {}) as Record<string, unknown>;
@@ -359,7 +363,11 @@ describe('createFirestoreServicesRepository', () => {
       cuerpo: { es: 'Cuerpo', autoTranslate: true },
     });
 
-    const actualizado = await repo.actualizar(creado.service.id, { orden: 3 }, creado.service.updatedAt);
+    const actualizado = await repo.actualizar(
+      creado.service.id,
+      { orden: 3 },
+      creado.service.updatedAt,
+    );
 
     expect(actualizado.service.titulo.es).toBe('Original');
     expect(actualizado.service.titulo.autoTranslate).toBe(true);
