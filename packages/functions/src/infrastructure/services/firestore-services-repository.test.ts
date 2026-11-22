@@ -120,6 +120,8 @@ function makeMockFirestore(): MockFirestore {
                 return val >= fval;
               case '<=':
                 return val <= fval;
+              case 'in':
+                return Array.isArray(fval) ? fval.includes(val) : false;
               default:
                 return true;
             }
@@ -842,6 +844,41 @@ describe('createFirestoreServicesRepository', () => {
     expect(conOcultos.items.length).toBe(2);
     const ids = conOcultos.items.map((i) => i.id).sort();
     expect(ids).toEqual([s1.service.id, s2.service.id].sort());
+  });
+
+  it('listarPaginado includeHidden:true excluye estado fuera del catálogo (ARCHIVED)', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestoreServicesRepository(db);
+
+    const s1 = await repo.crear({
+      titulo: { es: 'Activo' },
+      resumen: { es: 'R' },
+      cuerpo: { es: 'C' },
+    });
+    const s2 = await repo.crear({
+      titulo: { es: 'Hidden' },
+      resumen: { es: 'R' },
+      cuerpo: { es: 'C' },
+    });
+
+    await repo.activar(s1.service.id);
+
+    const ahora = new Date().toISOString();
+    db._docs.set(`services/archivado-id`, {
+      slug: 'archivado',
+      status: 'ARCHIVED',
+      titulo: { es: 'Archivado' },
+      resumen: { es: 'R' },
+      cuerpo: { es: 'C' },
+      orden: 0,
+      updatedAt: ahora,
+    });
+
+    const conOcultos = await repo.listarPaginado({ includeHidden: true });
+    expect(conOcultos.items.length).toBe(2);
+    const ids = conOcultos.items.map((i) => i.id).sort();
+    expect(ids).toEqual([s1.service.id, s2.service.id].sort());
+    expect(conOcultos.items.some((i) => i.id === 'archivado-id')).toBe(false);
   });
 
   it('listarPaginado ordena por orden ascendente y desempata por id', async () => {

@@ -328,7 +328,7 @@ export function createFirestoreServicesRepository(db: Firestore): ServiciosRepos
     if (includeHidden !== true) {
       consulta = consulta.where('status', '==', 'ACTIVE');
     } else {
-      consulta = consulta.where('status', '!=', 'DELETED');
+      consulta = consulta.where('status', 'in', ['ACTIVE', 'HIDDEN']);
     }
 
     if (cursor) {
