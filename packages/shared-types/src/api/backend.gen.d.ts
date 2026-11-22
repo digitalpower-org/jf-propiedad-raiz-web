@@ -944,7 +944,7 @@ export interface components {
     parameters: {
         /** @description UID de la sesión del BFF, propagado al backend (AC1.3.2). El BFF siempre lo sobrescribe con su propia sesión (AC1.3.5). */
         XUserId: string;
-        /** @description Email de la sesión del BFF (AC1.3.2). */
+        /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
         XUserEmail: string;
         /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
         XUserRole: components["schemas"]["Rol"];
@@ -1046,8 +1046,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1143,8 +1143,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1186,8 +1186,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1223,8 +1223,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1261,8 +1261,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1298,8 +1298,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1356,8 +1356,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1489,8 +1489,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1558,8 +1558,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1600,8 +1600,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1636,8 +1636,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1672,8 +1672,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1708,8 +1708,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1778,8 +1778,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
