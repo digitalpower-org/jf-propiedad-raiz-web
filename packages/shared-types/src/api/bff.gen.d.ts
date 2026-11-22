@@ -841,7 +841,7 @@ export interface components {
                 };
             };
         };
-        /** @description DTO de escritura de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
+        /** @description DTO de creación de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
         ServiceInput: {
             titulo: components["schemas"]["TranslatableInput"];
             resumen: components["schemas"]["TranslatableInput"];
@@ -851,15 +851,10 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
                 }[];
             }[];
-            status?: components["schemas"]["EstadoPropiedad"];
             orden?: number;
-            /**
-             * Format: date-time
-             * @description Control de concurrencia optimista (patrón AC1.7.8 / AC4.5.5) → 409 `CONFLICT`.
-             */
-            updatedAt?: string;
         };
         /**
          * @description Detalle completo del servicio (US5.1.2); campos del modelo `Service` de

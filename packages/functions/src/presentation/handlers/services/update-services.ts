@@ -15,26 +15,33 @@ const paramsSchema = z.object({
   idOrSlug: z.string().min(1),
 });
 
-const fotoSchema = z.object({
-  derivados: z
-    .array(
-      z.object({
-        clave: z.string().min(1),
-        ancho: z.number().int().positive(),
-        alto: z.number().int().positive(),
-      }),
-    )
-    .nonempty(),
-});
+const fotoSchema = z
+  .object({
+    derivados: z
+      .array(
+        z
+          .object({
+            clave: z.string().min(1),
+            ancho: z.number().int().positive(),
+            alto: z.number().int().positive(),
+          })
+          .strict(),
+      )
+      .nonempty(),
+  })
+  .strict();
 
-const bodySchema = z.object({
-  titulo: translatableInputSchema.optional(),
-  resumen: translatableInputSchema.optional(),
-  cuerpo: translatableInputSchema.optional(),
-  fotos: z.array(fotoSchema).optional(),
-  orden: z.number().int().nonnegative().optional(),
-  status: z.enum(['ACTIVE', 'HIDDEN', 'DELETED'] as const).optional(),
-});
+const bodySchema = z
+  .object({
+    titulo: translatableInputSchema.optional(),
+    resumen: translatableInputSchema.optional(),
+    cuerpo: translatableInputSchema.optional(),
+    fotos: z.array(fotoSchema).optional(),
+    orden: z.number().int().nonnegative().optional(),
+    status: z.enum(['ACTIVE', 'HIDDEN', 'DELETED'] as const).optional(),
+    updatedAt: z.string().min(1),
+  })
+  .strict();
 
 /**
  * Construye el DTO de entrada para actualizar un servicio a partir del
@@ -83,8 +90,8 @@ function buildActualizarServiceInput(body: z.infer<typeof bodySchema>): Actualiz
 }
 
 /**
- * PUT /api/v1/services/{idOrSlug} — Actualizar un servicio.
- * Requiere sesión de admin. Concurrencia optimista por `updatedAt` (409 si stale).
+ * PUT /api/v1/services/{idOrSlug} — Actualizar parcialmente un servicio.
+ * Requiere sesión de admin. Política OCC estricta: `updatedAt` es obligatorio (409 si stale).
  * Tras guardar se dispara la revalidación (US0.3).
  */
 export const makeUpdateServiceHandler =
@@ -99,6 +106,7 @@ export const makeUpdateServiceHandler =
       const command: ActualizarServiceCommand = {
         idOrSlug: params.idOrSlug,
         input,
+        expectedUpdatedAt: body.updatedAt,
         requestId,
       };
       const resultado = await useCase.execute(command);

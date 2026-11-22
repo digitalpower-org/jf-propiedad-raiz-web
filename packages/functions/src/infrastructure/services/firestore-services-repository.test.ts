@@ -205,22 +205,40 @@ function makeMockFirestore(): MockFirestore {
     collection: vi.fn().mockReturnValue(collectionRef),
     doc: vi.fn().mockImplementation((path: string) => createRef(path)),
     batch: vi.fn().mockReturnValue(mockBatch),
-    runTransaction: vi
-      .fn()
-      .mockImplementation(
-        async (
-          fn: (tx: {
-            get: () => Promise<{ secuencial: number }>;
-            set: () => Promise<void>;
-          }) => Promise<unknown>,
-        ) => {
-          const tx = {
-            get: vi.fn().mockResolvedValue(makeMockDocSnapshot({ secuencial: 0 }, true)),
-            set: vi.fn().mockResolvedValue(undefined),
-          };
-          return fn(tx);
-        },
-      ),
+    runTransaction: vi.fn().mockImplementation(async (fn: (tx: any) => Promise<unknown>) => {
+      let txCount = 0;
+      const tx = {
+        get: vi.fn().mockImplementation(async (ref: any) => {
+          // Counter transaction: first get in tx may be for counters/property
+          if (typeof ref?.path === 'string' && ref.path.startsWith('counters/')) {
+            const existing = docs.get(ref.path);
+            return existing
+              ? makeMockDocSnapshot(existing, true, ref.path.split('/').pop())
+              : makeMockDocSnapshot({ secuencial: 0 }, true, ref.path.split('/').pop());
+          }
+          // Document ref
+          if (typeof ref?.get === 'function') {
+            return ref.get();
+          }
+          txCount += 1;
+          return makeMockDocSnapshot(null, false);
+        }),
+        set: vi.fn().mockImplementation(async (ref: any, data: unknown, _opts?: unknown) => {
+          if (typeof ref?.set === 'function') return ref.set(data, _opts);
+          if (typeof ref?.path === 'string') docs.set(ref.path, data as Record<string, unknown>);
+          return undefined;
+        }),
+        update: vi.fn().mockImplementation(async (ref: any, data: Record<string, unknown>) => {
+          if (typeof ref?.update === 'function') return ref.update(data);
+          if (typeof ref?.path === 'string') {
+            const current = (docs.get(ref.path) ?? {}) as Record<string, unknown>;
+            docs.set(ref.path, { ...current, ...data });
+          }
+          return undefined;
+        }),
+      };
+      return fn(tx);
+    }),
     _docs: docs,
     _batchOps: batchOps,
     _mockBatch: mockBatch,
@@ -303,8 +321,8 @@ describe('createFirestoreServicesRepository', () => {
     const repo = createFirestoreServicesRepository(db);
 
     await expect(
-      repo.actualizar('inexistente', { titulo: { es: 'Nuevo título' } }),
-    ).rejects.toThrow('Servicio no encontrado: inexistente');
+      repo.actualizar('inexistente', { titulo: { es: 'Nuevo título' } }, '2026-01-01T00:00:00Z'),
+    ).rejects.toMatchObject({ code: errorCode.serviceNotFound });
   });
 
   it('actualizar por slug encuentra y actualiza el documento', async () => {
@@ -317,10 +335,14 @@ describe('createFirestoreServicesRepository', () => {
       cuerpo: { es: 'Cuerpo original' },
     });
 
-    const actualizado = await repo.actualizar(creado.service.slug, {
-      titulo: { es: 'Servicio Actualizado' },
-      orden: 10,
-    });
+    const actualizado = await repo.actualizar(
+      creado.service.slug,
+      {
+        titulo: { es: 'Servicio Actualizado' },
+        orden: 10,
+      },
+      creado.service.updatedAt,
+    );
 
     expect(actualizado.service.titulo.es).toBe('Servicio Actualizado');
     expect(actualizado.service.orden).toBe(10);
@@ -337,7 +359,7 @@ describe('createFirestoreServicesRepository', () => {
       cuerpo: { es: 'Cuerpo', autoTranslate: true },
     });
 
-    const actualizado = await repo.actualizar(creado.service.id, { orden: 3 });
+    const actualizado = await repo.actualizar(creado.service.id, { orden: 3 }, creado.service.updatedAt);
 
     expect(actualizado.service.titulo.es).toBe('Original');
     expect(actualizado.service.titulo.autoTranslate).toBe(true);
@@ -358,10 +380,14 @@ describe('createFirestoreServicesRepository', () => {
       cuerpo: { es: 'Cuerpo original', autoTranslate: true },
     });
 
-    const actualizado = await repo.actualizar(creado.service.id, {
-      titulo: { es: 'Actualizado', en: 'Updated', autoTranslate: false },
-      resumen: { es: 'Nuevo resumen', autoTranslate: true },
-    });
+    const actualizado = await repo.actualizar(
+      creado.service.id,
+      {
+        titulo: { es: 'Actualizado', en: 'Updated', autoTranslate: false },
+        resumen: { es: 'Nuevo resumen', autoTranslate: true },
+      },
+      creado.service.updatedAt,
+    );
 
     expect(actualizado.service.titulo).toEqual({
       es: 'Actualizado',
@@ -378,6 +404,24 @@ describe('createFirestoreServicesRepository', () => {
     expect(actualizado.service.cuerpo.es).toBe('Cuerpo original');
     expect(actualizado.service.cuerpo.autoTranslate).toBe(true);
     expect(actualizado.service.cuerpo.enPendiente).toBe(true);
+  });
+
+  it('actualizar rechaza con CONFLICT cuando updatedAt está desactualizado', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestoreServicesRepository(db);
+
+    const creado = await repo.crear({
+      titulo: { es: 'Original' },
+      resumen: { es: 'Resumen' },
+      cuerpo: { es: 'Cuerpo' },
+    });
+
+    await expect(
+      repo.actualizar(creado.service.id, { titulo: { es: 'Nuevo' } }, '2020-01-01T00:00:00.000Z'),
+    ).rejects.toMatchObject({ code: errorCode.conflict });
+
+    const actual = await repo.obtenerPorIdOSlug(creado.service.id, false);
+    expect(actual?.service.titulo.es).toBe('Original');
   });
 
   it('eliminar hace soft delete (status DELETED)', async () => {

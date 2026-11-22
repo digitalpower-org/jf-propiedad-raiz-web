@@ -86,6 +86,7 @@ export interface ServiciosRepository {
   readonly actualizar: (
     idOrSlug: string,
     input: ActualizarServiceInputDto,
+    expectedUpdatedAt: string,
   ) => Promise<ActualizarServiceResult>;
   readonly eliminar: (idOrSlug: string) => Promise<{ service: ServiceDto }>;
   readonly activar: (idOrSlug: string) => Promise<{ service: ServiceDto }>;

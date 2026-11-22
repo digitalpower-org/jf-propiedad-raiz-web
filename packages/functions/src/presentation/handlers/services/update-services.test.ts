@@ -22,6 +22,7 @@ const validBody = {
   titulo: { es: 'Servicio 1 actualizado', autoTranslate: true },
   resumen: { es: 'Resumen 1 actualizado', autoTranslate: true },
   cuerpo: { es: 'Cuerpo 1 actualizado', autoTranslate: true },
+  updatedAt: '2026-01-01T00:00:00Z',
 };
 
 function authHeaders() {
@@ -151,5 +152,55 @@ describe('PUT /api/v1/services/{idOrSlug}', () => {
 
     expect(response.status).toBe(409);
     expect(response.body.data.code).toBe('CONFLICT');
+  });
+
+  it('rechaza body sin updatedAt con 422 (Política OCC estricta)', async () => {
+    const { app, services } = setup();
+
+    const { updatedAt: _updatedAt, ...sinUpdatedAt } = validBody;
+    const response = await request(app)
+      .put(API_PATHS.service.replace(':idOrSlug', 'svc-1'))
+      .set(authHeaders())
+      .send(sinUpdatedAt);
+
+    expect(response.status).toBe(422);
+    expect(response.body.data.code).toBe('VALIDATION_ERROR');
+    expect(services.actualizar).not.toHaveBeenCalled();
+  });
+
+  it('rechaza campos extra con 422 por body strict', async () => {
+    const { app, services } = setup();
+
+    const response = await request(app)
+      .put(API_PATHS.service.replace(':idOrSlug', 'svc-1'))
+      .set(authHeaders())
+      .send({ ...validBody, campoExtra: 'no' });
+
+    expect(response.status).toBe(422);
+    expect(response.body.data.code).toBe('VALIDATION_ERROR');
+    expect(services.actualizar).not.toHaveBeenCalled();
+  });
+
+  it('acepta PUT parcial con solo updatedAt y un campo', async () => {
+    const { app, services } = setup({
+      translator: makeTranslator([], false),
+      revalidationGateway: makeRevalidationGateway(),
+      services: makeServices({
+        obtenerPorIdOSlug: vi.fn().mockResolvedValue({ service: serviceDto, esPublico: false }),
+        actualizar: vi.fn().mockResolvedValue({ service: serviceDto }),
+      }),
+    });
+
+    const response = await request(app)
+      .put(API_PATHS.service.replace(':idOrSlug', 'svc-1'))
+      .set(authHeaders())
+      .send({ orden: 3, updatedAt: '2026-01-01T00:00:00Z' });
+
+    expect(response.status).toBe(200);
+    expect(services.actualizar).toHaveBeenCalledWith(
+      'svc-1',
+      expect.objectContaining({ orden: 3 }),
+      '2026-01-01T00:00:00Z',
+    );
   });
 });

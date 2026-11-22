@@ -198,37 +198,53 @@ export function createFirestoreServicesRepository(db: Firestore): ServiciosRepos
   async function actualizar(
     idOrSlug: string,
     input: ActualizarServiceInputDto,
+    expectedUpdatedAt: string,
   ): Promise<ActualizarServiceResult> {
-    // Buscar el documento existente
-    const snap = await db.doc(`${COLECCION_SERVICIOS}/${idOrSlug}`).get();
-    let docRef = db.doc(`${COLECCION_SERVICIOS}/${idOrSlug}`);
-
-    if (!snap.exists) {
-      const porSlugSnap = await servicios.where('slug', '==', idOrSlug).limit(1).get();
-      if (porSlugSnap.empty) {
-        throw new Error(errServiceNotFound(idOrSlug));
-      }
-      docRef = porSlugSnap.docs[0].ref;
-    }
-
     const ahora = new Date().toISOString();
 
     validarFotos(input.fotos);
 
-    const actualizaciones: Record<string, unknown> = { updatedAt: ahora };
+    // Resolver referencia por id o slug antes de la transacción (slug es estable en update).
+    let docRef = db.doc(`${COLECCION_SERVICIOS}/${idOrSlug}`);
+    const porIdSnap = await docRef.get();
+    if (!porIdSnap.exists) {
+      const porSlugSnap = await servicios.where('slug', '==', idOrSlug).limit(1).get();
+      if (porSlugSnap.empty) {
+        throw new ApiError(errorCode.serviceNotFound, errServiceNotFound(idOrSlug));
+      }
+      docRef = porSlugSnap.docs[0].ref;
+    }
 
-    if (input.titulo !== undefined) actualizaciones.titulo = toFirestoreTranslatable(input.titulo);
-    if (input.resumen !== undefined)
-      actualizaciones.resumen = toFirestoreTranslatable(input.resumen);
-    if (input.cuerpo !== undefined) actualizaciones.cuerpo = toFirestoreTranslatable(input.cuerpo);
-    if (input.fotos !== undefined) actualizaciones.fotos = input.fotos;
-    if (input.orden !== undefined) actualizaciones.orden = input.orden;
-    if (input.status !== undefined) actualizaciones.status = input.status;
+    const service = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(docRef);
+      if (!snap.exists) {
+        throw new ApiError(errorCode.serviceNotFound, errServiceNotFound(idOrSlug));
+      }
 
-    await docRef.update(actualizaciones);
+      const actual = snap.data() as Record<string, unknown>;
+      if (String(actual.updatedAt ?? '') !== expectedUpdatedAt) {
+        throw new ApiError(errorCode.conflict, 'updatedAt desactualizado');
+      }
 
-    const snapActualizado = await docRef.get();
-    const service = documentoAServiceDto(snapActualizado);
+      const actualizaciones: Record<string, unknown> = { updatedAt: ahora };
+
+      if (input.titulo !== undefined)
+        actualizaciones.titulo = toFirestoreTranslatable(input.titulo);
+      if (input.resumen !== undefined)
+        actualizaciones.resumen = toFirestoreTranslatable(input.resumen);
+      if (input.cuerpo !== undefined)
+        actualizaciones.cuerpo = toFirestoreTranslatable(input.cuerpo);
+      if (input.fotos !== undefined) actualizaciones.fotos = input.fotos;
+      if (input.orden !== undefined) actualizaciones.orden = input.orden;
+      if (input.status !== undefined) actualizaciones.status = input.status;
+
+      tx.update(docRef, actualizaciones);
+
+      return documentoAServiceDto({
+        id: snap.id,
+        data: () => ({ ...actual, ...actualizaciones }),
+      });
+    });
 
     return { service };
   }

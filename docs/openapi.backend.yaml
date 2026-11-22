@@ -836,12 +836,12 @@ paths:
       operationId: updateService
       summary: Editar un servicio
       description: |
-        US4.4 / AC4.4.2: Edita título, resumen, cuerpo, fotos o estado de un servicio existente.
-        El cambio se refleja en el sitio público tras la revalidación (US0.3). `cuerpo` es texto
-        plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Concurrencia optimista por `updatedAt`:
-        si está desactualizado responde 409 `CONFLICT` (patrón AC1.7.8 / AC4.5.5). Los campos
-        traducibles usan `autoTranslate` por campo (D-A); `enPendiente` solo lo escribe el
-        backend (AC0.5.10).
+        US4.4 / AC4.4.2: Edita parcialmente título, resumen, cuerpo, fotos, orden o estado de un
+        servicio existente. El cambio se refleja en el sitio público tras la revalidación (US0.3).
+        `cuerpo` es texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Política OCC estricta:
+        `updatedAt` es obligatorio; si está desactualizado responde 409 `CONFLICT` (patrón
+        AC1.7.8 / AC4.5.5). Los campos traducibles usan `autoTranslate` por campo (D-A);
+        `enPendiente` solo lo escribe el backend (AC0.5.10).
       parameters:
         - name: idOrSlug
           in: path
@@ -856,7 +856,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServiceInput'
+              $ref: '#/components/schemas/ServiceUpdateInput'
       responses:
         '200':
           description: 'Servicio actualizado; devuelve el `ServiceDetail` resultante.'
@@ -1833,8 +1833,9 @@ components:
           format: date-time
     ServiceInput:
       type: object
+      additionalProperties: false
       description: >-
-        DTO de escritura de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles
+        DTO de creación de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles
         (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7).
       required: [titulo, resumen, cuerpo]
       properties:
@@ -1849,17 +1850,59 @@ components:
           description: Misma galería que las fotos de inmuebles (portada, orden, derivados — AC4.4.6).
           items:
             type: object
+            additionalProperties: false
             required: [derivados]
             properties:
               derivados:
                 type: array
                 items:
                   type: object
-                  required: [clave, ancho]
+                  additionalProperties: false
+                  required: [clave, ancho, alto]
                   properties:
                     clave:
                       type: string
                     ancho:
+                      type: integer
+                    alto:
+                      type: integer
+        orden:
+          type: integer
+    ServiceUpdateInput:
+      type: object
+      additionalProperties: false
+      description: >-
+        DTO de actualización parcial de servicios (US4.4): todos los campos de contenido son
+        opcionales, pero `updatedAt` es obligatorio (Política OCC estricta). Si `updatedAt` está
+        desactualizado responde 409 `CONFLICT`. `cuerpo` es texto plano con párrafos, sin HTML.
+      required: [updatedAt]
+      properties:
+        titulo:
+          $ref: '#/components/schemas/TranslatableInput'
+        resumen:
+          $ref: '#/components/schemas/TranslatableInput'
+        cuerpo:
+          $ref: '#/components/schemas/TranslatableInput'
+        fotos:
+          type: array
+          description: Misma galería que las fotos de inmuebles (portada, orden, derivados — AC4.4.6).
+          items:
+            type: object
+            additionalProperties: false
+            required: [derivados]
+            properties:
+              derivados:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required: [clave, ancho, alto]
+                  properties:
+                    clave:
+                      type: string
+                    ancho:
+                      type: integer
+                    alto:
                       type: integer
         status:
           $ref: '#/components/schemas/EstadoPropiedad'
@@ -1868,7 +1911,7 @@ components:
         updatedAt:
           type: string
           format: date-time
-          description: 'Control de concurrencia optimista (patrón AC1.7.8 / AC4.5.5) → 409 `CONFLICT`.'
+          description: 'Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.'
     AboutInput:
       type: object
       description: >-

@@ -296,12 +296,12 @@ export interface paths {
         get: operations["getService"];
         /**
          * Editar un servicio
-         * @description US4.4 / AC4.4.2: Edita título, resumen, cuerpo, fotos o estado de un servicio existente.
-         *     El cambio se refleja en el sitio público tras la revalidación (US0.3). `cuerpo` es texto
-         *     plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Concurrencia optimista por `updatedAt`:
-         *     si está desactualizado responde 409 `CONFLICT` (patrón AC1.7.8 / AC4.5.5). Los campos
-         *     traducibles usan `autoTranslate` por campo (D-A); `enPendiente` solo lo escribe el
-         *     backend (AC0.5.10).
+         * @description US4.4 / AC4.4.2: Edita parcialmente título, resumen, cuerpo, fotos, orden o estado de un
+         *     servicio existente. El cambio se refleja en el sitio público tras la revalidación (US0.3).
+         *     `cuerpo` es texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Política OCC estricta:
+         *     `updatedAt` es obligatorio; si está desactualizado responde 409 `CONFLICT` (patrón
+         *     AC1.7.8 / AC4.5.5). Los campos traducibles usan `autoTranslate` por campo (D-A);
+         *     `enPendiente` solo lo escribe el backend (AC0.5.10).
          */
         put: operations["updateService"];
         post?: never;
@@ -767,7 +767,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        /** @description DTO de escritura de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
+        /** @description DTO de creación de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
         ServiceInput: {
             titulo: components["schemas"]["TranslatableInput"];
             resumen: components["schemas"]["TranslatableInput"];
@@ -777,15 +777,31 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            orden?: number;
+        };
+        /** @description DTO de actualización parcial de servicios (US4.4): todos los campos de contenido son opcionales, pero `updatedAt` es obligatorio (Política OCC estricta). Si `updatedAt` está desactualizado responde 409 `CONFLICT`. `cuerpo` es texto plano con párrafos, sin HTML. */
+        ServiceUpdateInput: {
+            titulo?: components["schemas"]["TranslatableInput"];
+            resumen?: components["schemas"]["TranslatableInput"];
+            cuerpo?: components["schemas"]["TranslatableInput"];
+            /** @description Misma galería que las fotos de inmuebles (portada, orden, derivados — AC4.4.6). */
+            fotos?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
                 }[];
             }[];
             status?: components["schemas"]["EstadoPropiedad"];
             orden?: number;
             /**
              * Format: date-time
-             * @description Control de concurrencia optimista (patrón AC1.7.8 / AC4.5.5) → 409 `CONFLICT`.
+             * @description Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.
              */
-            updatedAt?: string;
+            updatedAt: string;
         };
         /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
         AboutInput: {
@@ -1544,7 +1560,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ServiceInput"];
+                "application/json": components["schemas"]["ServiceUpdateInput"];
             };
         };
         responses: {

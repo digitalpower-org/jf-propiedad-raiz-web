@@ -22,6 +22,7 @@ import { slugDesdeTitulo } from './service-slug';
 export interface ActualizarServiceCommand {
   readonly idOrSlug: string;
   readonly input: ActualizarServiceInputDto;
+  readonly expectedUpdatedAt: string;
   readonly requestId?: string;
 }
 
@@ -52,7 +53,7 @@ export class ActualizarServiceUseCase implements UseCase<
   }
 
   async execute(command: ActualizarServiceCommand): Promise<ActualizarServiceResult> {
-    const { idOrSlug, input, requestId } = command;
+    const { idOrSlug, input, expectedUpdatedAt, requestId } = command;
 
     // Obtener servicio actual para validar existencia y comparar fotos
     const existente = await this.services.obtenerPorIdOSlug(idOrSlug, false);
@@ -88,7 +89,7 @@ export class ActualizarServiceUseCase implements UseCase<
     // Purgar derivados de fotos removidas o reemplazadas
     await this.purgarFotos(existente.service.fotos, inputTraducido.fotos);
 
-    const resultado = await this.services.actualizar(idOrSlug, inputTraducido);
+    const resultado = await this.services.actualizar(idOrSlug, inputTraducido, expectedUpdatedAt);
 
     await this.revalidateContent.revalidate('servicios');
 

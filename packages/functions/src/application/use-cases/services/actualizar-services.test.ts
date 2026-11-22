@@ -111,7 +111,12 @@ describe('ActualizarServiceUseCase', () => {
 
     const input = { ...baseInput(), fotos: [] };
 
-    await useCase.execute({ idOrSlug: 'servicio-de-arquitectura', input, requestId: 'req-1' });
+    await useCase.execute({
+      idOrSlug: 'servicio-de-arquitectura',
+      input,
+      expectedUpdatedAt: '2026-01-01T00:00:00Z',
+      requestId: 'req-1',
+    });
 
     expect(services.obtenerPorIdOSlug).toHaveBeenCalledWith('servicio-de-arquitectura', false);
     expect(services.actualizar).toHaveBeenCalledWith(
@@ -120,11 +125,15 @@ describe('ActualizarServiceUseCase', () => {
         titulo: expect.objectContaining({ en: 'Architecture service', autoTranslate: true }),
         resumen: expect.objectContaining({ en: 'Service summary', autoTranslate: true }),
         cuerpo: expect.objectContaining({ en: 'Service body', autoTranslate: true }),
-        fotos: [],
       }),
+      '2026-01-01T00:00:00Z',
     );
     expect(mediaStorage.deleteDerivados).toHaveBeenCalledWith(['foto-vieja'], 'foto');
     expect(revalidateContent.revalidate).toHaveBeenCalledWith('servicios');
+    expect(logger.info).toHaveBeenCalledWith('service_updated', {
+      idOrSlug: 'servicio-de-arquitectura',
+      requestId: 'req-1',
+    });
   });
 
   it('rechaza slug duplicado de otro servicio con VALIDATION_ERROR', async () => {
@@ -152,7 +161,12 @@ describe('ActualizarServiceUseCase', () => {
     const input = { ...baseInput(), titulo: { es: 'Otro servicio' } };
 
     await expect(
-      useCase.execute({ idOrSlug: 'servicio-de-arquitectura', input, requestId: 'req-1' }),
+      useCase.execute({
+        idOrSlug: 'servicio-de-arquitectura',
+        input,
+        expectedUpdatedAt: '2026-01-01T00:00:00Z',
+        requestId: 'req-1',
+      }),
     ).rejects.toMatchObject({ code: errorCode.validationError });
 
     expect(services.actualizar).not.toHaveBeenCalled();
@@ -179,7 +193,12 @@ describe('ActualizarServiceUseCase', () => {
     });
 
     await expect(
-      useCase.execute({ idOrSlug: 'no-existe', input: baseInput(), requestId: 'req-1' }),
+      useCase.execute({
+        idOrSlug: 'no-existe',
+        input: baseInput(),
+        expectedUpdatedAt: '2026-01-01T00:00:00Z',
+        requestId: 'req-1',
+      }),
     ).rejects.toMatchObject({ code: errorCode.serviceNotFound });
 
     expect(services.actualizar).not.toHaveBeenCalled();
@@ -222,6 +241,7 @@ describe('ActualizarServiceUseCase', () => {
     await useCase.execute({
       idOrSlug: 'servicio-de-arquitectura',
       input: baseInput(),
+      expectedUpdatedAt: '2026-01-01T00:00:00Z',
       requestId: 'req-1',
     });
 
