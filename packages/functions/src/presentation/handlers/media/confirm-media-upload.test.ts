@@ -4,6 +4,8 @@ import type { ConfirmarMediaUploadUseCase } from '../../../application/use-cases
 import { makeConfirmarMediaUploadHandler } from './confirm-media-upload';
 import type { AsyncHandler } from '../types';
 import type { Request, Response, NextFunction } from 'express';
+import { ApiError } from '../../../domain/errors/api-error';
+import { errorCode } from '../../../domain/errors/errorCatalog';
 
 function makeRes() {
   return {
@@ -57,6 +59,64 @@ describe('makeConfirmarMediaUploadHandler', () => {
     await (handler as AsyncHandler)(req, res, next);
 
     expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('pasa VALIDATION_ERROR a next cuando la clave no tiene prefijo pending/', async () => {
+    const useCase = { execute: vi.fn() } as unknown as ConfirmarMediaUploadUseCase;
+    const handler = makeConfirmarMediaUploadHandler(useCase);
+    const res = makeRes();
+    const req = makeReq({ key: 'otra/ruta.jpg', recurso: 'foto' });
+
+    await (handler as AsyncHandler)(req, res, next);
+
+    expect(useCase.execute).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: errorCode.validationError,
+        message: 'Clave inválida: debe comenzar con pending/',
+        details: [{ field: 'key', issue: 'La clave debe estar en pending/' }],
+      }),
+    );
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('pasa VALIDATION_ERROR a next cuando la clave está vacía', async () => {
+    const useCase = { execute: vi.fn() } as unknown as ConfirmarMediaUploadUseCase;
+    const handler = makeConfirmarMediaUploadHandler(useCase);
+    const res = makeRes();
+    const req = makeReq({ key: '', recurso: 'foto' });
+
+    await (handler as AsyncHandler)(req, res, next);
+
+    expect(useCase.execute).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: errorCode.validationError,
+      }),
+    );
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('propaga ApiError del use case a next con el código correcto', async () => {
+    const apiError = new ApiError(errorCode.unsupportedMedia, 'Tipo de contenido no soportado', [
+      { field: 'mimeType', issue: 'Tipo no permitido: image/gif' },
+    ]);
+    const useCase = { execute: vi.fn() } as unknown as ConfirmarMediaUploadUseCase;
+    (useCase.execute as ReturnType<typeof vi.fn>).mockRejectedValue(apiError);
+    const handler = makeConfirmarMediaUploadHandler(useCase);
+    const res = makeRes();
+    const req = makeReq({ key: 'pending/abc-123.jpg', recurso: 'foto' });
+
+    await (handler as AsyncHandler)(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: errorCode.unsupportedMedia,
+        message: 'Tipo de contenido no soportado',
+        details: [{ field: 'mimeType', issue: 'Tipo no permitido: image/gif' }],
+      }),
+    );
     expect(res.status).not.toHaveBeenCalled();
   });
 });

@@ -8,6 +8,8 @@ import { writeSuccess } from '../../protocol';
 import { MSG_MEDIA_CONFIRMED } from '../../messages';
 import type { AsyncHandler } from '../types';
 import type { Request, Response, NextFunction } from 'express';
+import { ApiError } from '../../../domain/errors/api-error';
+import { errorCode } from '../../../domain/errors/errorCatalog';
 
 const bodySchema = z.object({
   key: z.string().min(1),
@@ -24,6 +26,15 @@ export const makeConfirmarMediaUploadHandler =
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = bodySchema.parse(req.body);
+
+      // Validar prefijo pending/ antes de cualquier llamada a HEAD/GET o procesamiento
+      if (!body.key.startsWith('pending/')) {
+        throw new ApiError(
+          errorCode.validationError,
+          'Clave inválida: debe comenzar con pending/',
+          [{ field: 'key', issue: 'La clave debe estar en pending/' }],
+        );
+      }
 
       const command: ConfirmarMediaUploadCommand = {
         key: body.key,
