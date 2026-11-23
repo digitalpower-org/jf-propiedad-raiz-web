@@ -117,6 +117,7 @@ describe('Properties translation update integration (MT1.4, Wave 2, task 6)', ()
         .put(API_PATHS.property.replace(':idOrSlug', 'prop-123'))
         .set(authHeaders('req-case-a'))
         .send({
+          updatedAt: existingProperty.updatedAt,
           titulo: { es: 'Casa en venta', en: 'House for sale', autoTranslate: true },
           descripcion: {
             es: 'Bonita casa en Medellín',
@@ -153,6 +154,7 @@ describe('Properties translation update integration (MT1.4, Wave 2, task 6)', ()
         .put(API_PATHS.property.replace(':idOrSlug', 'prop-123'))
         .set(authHeaders('req-case-b'))
         .send({
+          updatedAt: existingProperty.updatedAt,
           titulo: { es: 'Casa en venta modificada', autoTranslate: false },
           descripcion: { es: 'Nueva descripción', autoTranslate: false },
         });
@@ -193,6 +195,7 @@ describe('Properties translation update integration (MT1.4, Wave 2, task 6)', ()
         .put(API_PATHS.property.replace(':idOrSlug', 'prop-123'))
         .set(authHeaders('req-case-c'))
         .send({
+          updatedAt: existingProperty.updatedAt,
           titulo: { es: 'Casa en venta modificada', autoTranslate: true },
           descripcion: { es: 'Nueva descripción', autoTranslate: true },
         });

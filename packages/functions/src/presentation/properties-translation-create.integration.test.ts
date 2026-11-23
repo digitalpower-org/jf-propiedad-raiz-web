@@ -18,7 +18,7 @@ const validCreateBody = {
   acabados: { es: 'Acabados de lujo', autoTranslate: true },
   puntosInteres: [
     { categoria: 'EDUCACION', etiqueta: { es: 'Colegio cercano', autoTranslate: true } },
-    { categoria: 'PARQUES', etiqueta: { es: 'Parque central', autoTranslate: true } },
+    { categoria: 'ZONA_COMERCIAL', etiqueta: { es: 'Parque central', autoTranslate: true } },
   ],
 };
 
