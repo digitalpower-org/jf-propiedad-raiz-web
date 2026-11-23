@@ -841,7 +841,7 @@ export interface components {
                 };
             };
         };
-        /** @description DTO de escritura de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
+        /** @description DTO de creación de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
         ServiceInput: {
             titulo: components["schemas"]["TranslatableInput"];
             resumen: components["schemas"]["TranslatableInput"];
@@ -851,23 +851,36 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
                 }[];
             }[];
-            status?: components["schemas"]["EstadoPropiedad"];
             orden?: number;
-            /**
-             * Format: date-time
-             * @description Control de concurrencia optimista (patrón AC1.7.8 / AC4.5.5) → 409 `CONFLICT`.
-             */
-            updatedAt?: string;
         };
-        /** @description PENDIENTE: definición pendiente en TASKS. Detalle del servicio (US5.1.2); los campos del modelo `Service` de `shared-types/src/models`. */
+        /**
+         * @description Detalle completo del servicio (US5.1.2); campos del modelo `Service` de
+         *     `shared-types/src/models`. Incluye todos los campos traducibles, galería de obras
+         *     (mismo flujo de fotos de inmuebles con portada, orden y derivados — AC4.4.6),
+         *     estado y orden público.
+         */
         ServiceDetail: {
-            id?: string;
-            slug?: string;
-            status?: components["schemas"]["EstadoPropiedad"];
-        } & {
-            [key: string]: unknown;
+            id: string;
+            slug: string;
+            status: components["schemas"]["EstadoPropiedad"];
+            titulo: components["schemas"]["Translatable"];
+            resumen: components["schemas"]["Translatable"];
+            cuerpo: components["schemas"]["Translatable"];
+            /** @description Galería de obras; mismo flujo de fotos de inmuebles (portada, orden, derivados — AC4.4.6). */
+            fotos?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            /** @description Define el orden público (AC4.4.3). */
+            orden: number;
+            /** Format: date-time */
+            updatedAt: string;
         };
         /** @description Documento único `pages/nosotros` tal como se sirve al público (D25, US5.6). `extracto` alimenta el bloque «Nosotros» de la portada (AC2.6.4); `secciones` y `equipo` alimentan `/nosotros` (AC5.6.1). El orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
         AboutDocument: {
@@ -892,7 +905,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
+        /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). Política OCC estricta: `updatedAt` es obligatorio. */
         AboutInput: {
             titulo: components["schemas"]["TranslatableInput"];
             /** @description Extracto mostrado en la portada (AC2.6.4). Es un `Translatable` (MODELO DE DATOS, TASKS): cualquier idioma con más de 500 caracteres → 422 `VALIDATION_ERROR` (AC4.5.3). */
@@ -918,9 +931,9 @@ export interface components {
             }[];
             /**
              * Format: date-time
-             * @description Control de concurrencia optimista (AC4.5.5) → 409 `CONFLICT`.
+             * @description Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.
              */
-            updatedAt?: string;
+            updatedAt: string;
         };
     };
     responses: {

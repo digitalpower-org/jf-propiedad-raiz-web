@@ -2,11 +2,14 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 
+import { ApiError } from '../../domain/errors/api-error';
+import { errorCode } from '../../domain/errors/errorCatalog';
 import type {
-  AboutRepository,
   AboutDto,
-  SeccionAbout,
+  AboutDtoInput,
+  AboutRepository,
   IntegranteEquipo,
+  SeccionAbout,
 } from '../../application/ports/about-repository';
 
 const DOCUMENTO_NOSOTROS = 'pages/nosotros';
@@ -75,6 +78,37 @@ function toISO(value: unknown): string {
   return new Date(value as number).toISOString();
 }
 
+function toFirestoreTranslatable(input: {
+  readonly es: string;
+  readonly en?: string;
+  readonly autoTranslate?: boolean;
+}): Record<string, unknown> {
+  const result: Record<string, unknown> = { es: input.es };
+  if (input.en !== undefined) result.en = input.en;
+  if (input.autoTranslate !== undefined) result.autoTranslate = input.autoTranslate;
+  return result;
+}
+
+function aboutDtoDesdeInput(input: AboutDtoInput, updatedAt: string): AboutDto {
+  return {
+    titulo: { es: input.titulo.es, en: input.titulo.en },
+    extracto: { es: input.extracto.es, en: input.extracto.en },
+    secciones: input.secciones.map((s) => ({
+      id: s.id,
+      titulo: { es: s.titulo.es, en: s.titulo.en },
+      cuerpo: { es: s.cuerpo.es, en: s.cuerpo.en },
+    })),
+    equipo: input.equipo.map((e) => ({
+      id: e.id,
+      nombre: e.nombre,
+      cargo: { es: e.cargo.es, en: e.cargo.en },
+      descripcion: e.descripcion ? { es: e.descripcion.es, en: e.descripcion.en } : undefined,
+      foto: e.foto,
+    })),
+    updatedAt,
+  };
+}
+
 export function createFirestoreAboutRepository(db: Firestore): AboutRepository {
   async function obtener(): Promise<AboutDto | null> {
     const snap = await db.doc(DOCUMENTO_NOSOTROS).get();
@@ -82,5 +116,42 @@ export function createFirestoreAboutRepository(db: Firestore): AboutRepository {
     return documentoAAboutDto(snap);
   }
 
-  return { obtener };
+  async function guardar(input: AboutDtoInput, expectedUpdatedAt: string): Promise<AboutDto> {
+    const ahora = new Date().toISOString();
+
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(db.doc(DOCUMENTO_NOSOTROS));
+      if (!snap.exists) {
+        throw new ApiError(errorCode.conflict, 'Documento Nosotros no existe');
+      }
+      const actual = snap.data() as Record<string, unknown>;
+      if (String(actual.updatedAt ?? '') !== expectedUpdatedAt) {
+        throw new ApiError(errorCode.conflict, 'updatedAt desactualizado');
+      }
+
+      tx.set(db.doc(DOCUMENTO_NOSOTROS), {
+        titulo: toFirestoreTranslatable(input.titulo),
+        extracto: toFirestoreTranslatable(input.extracto),
+        secciones: input.secciones.map((s) => ({
+          id: s.id,
+          titulo: toFirestoreTranslatable(s.titulo),
+          cuerpo: toFirestoreTranslatable(s.cuerpo),
+        })),
+        equipo: input.equipo.map((e) => ({
+          id: e.id,
+          nombre: e.nombre,
+          cargo: toFirestoreTranslatable(e.cargo),
+          ...(e.descripcion !== undefined && {
+            descripcion: toFirestoreTranslatable(e.descripcion),
+          }),
+          ...(e.foto !== undefined && { foto: e.foto }),
+        })),
+        updatedAt: ahora,
+      });
+    });
+
+    return aboutDtoDesdeInput(input, ahora);
+  }
+
+  return { obtener, guardar };
 }

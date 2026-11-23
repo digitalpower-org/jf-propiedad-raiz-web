@@ -92,7 +92,13 @@ export function createR2MediaStorage(imageProcessor: ImageProcessor): MediaStora
     };
   }
 
-  return { presignPut, confirmarSubida };
+  async function deleteDerivados(claves: readonly string[], recurso: RecursoMedia): Promise<void> {
+    for (const clave of claves) {
+      await r2Del(`${R2_PREFIX_DERIVADOS}${recurso}/${clave}`);
+    }
+  }
+
+  return { presignPut, confirmarSubida, deleteDerivados };
 }
 
 /** Extrae la extensión de un nombre de archivo. */

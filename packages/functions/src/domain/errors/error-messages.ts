@@ -17,3 +17,8 @@ export const ERR_MISSING_FIELDS_TO_ACTIVATE = 'Campos obligatorios para activar'
 export function errPropertyNotFound(idOrSlug: string): string {
   return `Inmueble no encontrado: ${idOrSlug}`;
 }
+
+// ServicesRepository (Infrastructure)
+export function errServiceNotFound(idOrSlug: string): string {
+  return `Servicio no encontrado: ${idOrSlug}`;
+}

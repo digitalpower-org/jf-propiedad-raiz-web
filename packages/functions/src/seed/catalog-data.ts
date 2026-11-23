@@ -532,14 +532,16 @@ export const serviciosCatalogo: readonly {
   {
     slug: 'asesoria-legal',
     status: 'ACTIVE',
-    titulo: { es: 'Asesoría Legal', en: 'Legal Advisory' },
+    titulo: { es: 'Asesoría Legal', en: 'Legal Advisory', autoTranslate: true },
     resumen: {
       es: 'Asesoría legal integral para operaciones inmobiliarias',
       en: 'Comprehensive legal advisory for real estate operations',
+      autoTranslate: true,
     },
     cuerpo: {
       es: 'Nuestro equipo de abogados especializados en derecho inmobiliario le acompaña en cada etapa de la compraventa o arrendamiento.',
       en: 'Our team of real estate law specialists accompanies you at every stage of purchase or lease.',
+      autoTranslate: true,
     },
     orden: 1,
     fotos: [],
@@ -548,14 +550,16 @@ export const serviciosCatalogo: readonly {
   {
     slug: 'administracion',
     status: 'ACTIVE',
-    titulo: { es: 'Administración de Propiedades', en: 'Property Management' },
+    titulo: { es: 'Administración de Propiedades', en: 'Property Management', autoTranslate: true },
     resumen: {
       es: 'Servicios de administración y mantenimiento de propiedades',
       en: 'Property administration and maintenance services',
+      autoTranslate: true,
     },
     cuerpo: {
       es: 'Gestionamos su propiedad con transparencia y velocidad, desde el alquiler hasta el mantenimiento.',
       en: 'We manage your property with transparency and speed, from lease to maintenance.',
+      autoTranslate: true,
     },
     orden: 2,
     fotos: [],
@@ -564,14 +568,16 @@ export const serviciosCatalogo: readonly {
   {
     slug: 'tasacion-inmobiliaria',
     status: 'HIDDEN',
-    titulo: { es: 'Tasación Inmobiliaria', en: 'Real Estate Appraisal' },
+    titulo: { es: 'Tasación Inmobiliaria', en: 'Real Estate Appraisal', autoTranslate: true },
     resumen: {
       es: 'Valoración profesional de inmuebles para compra, venta o garantía',
       en: 'Professional valuation of real estate for purchase, sale or collateral',
+      autoTranslate: true,
     },
     cuerpo: {
       es: 'Determinamos el valor comercial de su inmueble con criterios técnicos y de mercado actualizado.',
       en: 'We determine the commercial value of your property with technical and current market criteria.',
+      autoTranslate: true,
     },
     orden: 3,
     fotos: [],
@@ -581,26 +587,29 @@ export const serviciosCatalogo: readonly {
 
 /** Documento Nosotros de ejemplo. */
 export const aboutCatalogo = {
-  titulo: { es: 'JF Propiedad Raíz', en: 'JF Real Estate' },
+  titulo: { es: 'JF Propiedad Raíz', en: 'JF Real Estate', autoTranslate: true },
   extracto: {
     es: 'Tu socio de confianza en transacciones inmobiliarias',
     en: 'Your trusted partner in real estate transactions',
+    autoTranslate: true,
   },
   secciones: [
     {
       id: 'seccion-vision',
-      titulo: { es: 'Nuestra Visión', en: 'Our Vision' },
+      titulo: { es: 'Nuestra Visión', en: 'Our Vision', autoTranslate: true },
       cuerpo: {
         es: 'Ser la plataforma más confiable para la transacción de propiedades en Colombia',
         en: 'To be the most trusted platform for property transactions in Colombia',
+        autoTranslate: true,
       },
     },
     {
       id: 'seccion-mision',
-      titulo: { es: 'Nuestra Misión', en: 'Our Mission' },
+      titulo: { es: 'Nuestra Misión', en: 'Our Mission', autoTranslate: true },
       cuerpo: {
         es: 'Facilitar la compra, venta y administración de propiedades con transparencia y velocidad',
         en: 'Facilitate the purchase, sale and administration of properties with transparency and speed',
+        autoTranslate: true,
       },
     },
   ],
@@ -608,19 +617,21 @@ export const aboutCatalogo = {
     {
       id: 'integrante-1',
       nombre: 'Santiago González',
-      cargo: { es: 'Fundador y CEO', en: 'Founder and CEO' },
+      cargo: { es: 'Fundador y CEO', en: 'Founder and CEO', autoTranslate: true },
       descripcion: {
         es: 'Experto en inmobiliaria con 15 años de experiencia',
         en: 'Real estate expert with 15 years of experience',
+        autoTranslate: true,
       },
     },
     {
       id: 'integrante-2',
       nombre: 'María Rodríguez',
-      cargo: { es: 'Gerente Comercial', en: 'Commercial Manager' },
+      cargo: { es: 'Gerente Comercial', en: 'Commercial Manager', autoTranslate: true },
       descripcion: {
         es: 'Especialista en atención al cliente y negociación',
         en: 'Customer service and negotiation specialist',
+        autoTranslate: true,
       },
     },
   ],

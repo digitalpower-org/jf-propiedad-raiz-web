@@ -252,17 +252,22 @@ export interface paths {
         };
         /**
          * Listado de servicios (público: solo ACTIVE, orden `orden`)
-         * @description PENDIENTE: definición pendiente en TASKS. Deducido de US5.1 / AC5.1.1 (el índice muestra
-         *     una tarjeta por servicio `ACTIVE`, ordenados por `orden`) y AC5.1.3 (slug inexistente,
-         *     `HIDDEN` o `DELETED` → 404); TASKS no fija la ruta HTTP de lectura.
+         * @description US5.1 / AC5.1.1: Devuelve una tarjeta por cada servicio `ACTIVE`, ordenados por `orden`
+         *     ascendente. Sin servicios activos, devuelve lista vacía (no error). Paginación por cursor
+         *     opaco `{ orden, id }` (D17, D19); límite por defecto 12, máximo 50 (AC1.10.1, D19).
+         *     `includeHidden=true` solo tiene efecto con identidad de administrador válida; sin ella
+         *     responde 401 `UNAUTHORIZED`.
          */
         get: operations["listServices"];
         put?: never;
         /**
          * Crear un servicio (estado inicial HIDDEN)
-         * @description PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.1 definen «crear un servicio con
-         *     título, resumen, cuerpo y fotos», con `slug` único y estado inicial `HIDDEN`, pero no la
-         *     ruta HTTP). Tras guardarlo se revalida (US0.3).
+         * @description US4.4 / AC4.4.1: Crea un servicio con título, resumen, cuerpo y fotos. El `slug` único
+         *     se genera automáticamente del título (AC0.4.7). El estado inicial es `HIDDEN`; el
+         *     servicio solo aparece en el sitio público cuando se activa (AC4.4.1). `cuerpo` es
+         *     texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Tras guardarlo se dispara la
+         *     revalidación (US0.3). Los campos traducibles usan `autoTranslate` por campo (D-A);
+         *     `enPendiente` solo lo escribe el backend (AC0.5.10).
          */
         post: operations["createService"];
         delete?: never;
@@ -280,24 +285,32 @@ export interface paths {
         };
         /**
          * Detalle de un servicio por id o slug
-         * @description PENDIENTE: definición pendiente en TASKS (US5.1 / AC5.1.3: slug inexistente, `HIDDEN` o
-         *     `DELETED` → 404 `SERVICE_NOT_FOUND`; TASKS no fija la ruta HTTP de lectura).
+         * @description US5.1 / AC5.1.2-AC5.1.3: Devuelve el detalle completo de un servicio `ACTIVE` por `id` o
+         *     `slug` para la web pública. Para el público, un servicio `HIDDEN`, `DELETED` o inexistente
+         *     responde 404 `SERVICE_NOT_FOUND` (AC5.1.3). Un administrador con identidad válida
+         *     (`X-User-Id`, `X-User-Role: admin`, `X-User-Email`) y `includeHidden=true` puede ver un
+         *     servicio `HIDDEN` con 200; `DELETED` sigue respondiendo 404 `SERVICE_NOT_FOUND`. Sin
+         *     identidad de administrador válida o con identidad parcial/inválida responde 401
+         *     `UNAUTHORIZED`. El `data` es el DTO completo `ServiceDetail`, igual que el devuelto por
+         *     las mutaciones de administración.
          */
         get: operations["getService"];
         /**
          * Editar un servicio
-         * @description PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.2: editar título, resumen,
-         *     cuerpo, fotos o estado; el cambio se refleja público tras la revalidación). El campo
-         *     `cuerpo` es texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). La optimista por
-         *     `updatedAt` sigue el mismo patrón de AC1.7.8 / AC4.5.5 → 409 `CONFLICT`.
+         * @description US4.4 / AC4.4.2: Edita parcialmente título, resumen, cuerpo, fotos, orden o estado de un
+         *     servicio existente. El cambio se refleja en el sitio público tras la revalidación (US0.3).
+         *     `cuerpo` es texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Política OCC estricta:
+         *     `updatedAt` es obligatorio; si está desactualizado responde 409 `CONFLICT` (patrón
+         *     AC1.7.8 / AC4.5.5). Los campos traducibles usan `autoTranslate` por campo (D-A);
+         *     `enPendiente` solo lo escribe el backend (AC0.5.10).
          */
         put: operations["updateService"];
         post?: never;
         /**
          * Eliminar un servicio (soft delete)
-         * @description PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.4: «eliminar» pide confirmación,
-         *     cambia el estado y el servicio deja de existir en el sitio público → 404
-         *     `SERVICE_NOT_FOUND`); TASKS no fija la ruta HTTP.
+         * @description US4.4 / AC4.4.4: Realiza un soft delete del servicio: `status = DELETED`, sin borrado
+         *     físico. El servicio deja de ser público y responde 404 `SERVICE_NOT_FOUND` en el sitio
+         *     público. Se dispara la revalidación (US0.3). Devuelve el `ServiceDetail` resultante.
          */
         delete: operations["deleteService"];
         options?: never;
@@ -316,8 +329,8 @@ export interface paths {
         put?: never;
         /**
          * Activar un servicio (HIDDEN → ACTIVE)
-         * @description PENDIENTE: definición pendiente en TASKS (US4.4 describe activar servicios, no la ruta
-         *     HTTP). El servicio pasa a ser público y se dispara la revalidación (US0.3).
+         * @description US4.4: Activa un servicio (`HIDDEN` → `ACTIVE`). El servicio pasa a ser público y se
+         *     dispara la revalidación (US0.3). Devuelve el `ServiceDetail` activado.
          */
         post: operations["activateService"];
         delete?: never;
@@ -337,8 +350,8 @@ export interface paths {
         put?: never;
         /**
          * Ocultar un servicio (ACTIVE → HIDDEN)
-         * @description PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.4: «ocultar» deja de publicar el
-         *     servicio; TASKS no fija la ruta HTTP).
+         * @description US4.4 / AC4.4.4: Oculta un servicio (`ACTIVE` → `HIDDEN`). El servicio deja de ser
+         *     público y se dispara la revalidación (US0.3). Devuelve el `ServiceDetail` oculto.
          */
         post: operations["hideService"];
         delete?: never;
@@ -358,8 +371,9 @@ export interface paths {
         put?: never;
         /**
          * Reordenar el listado de servicios
-         * @description PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.3: el campo `orden` persiste y
-         *     define el orden público; TASKS no fija la ruta HTTP).
+         * @description US4.4 / AC4.4.3: Reordena el listado de servicios. El campo `orden` persiste y define
+         *     el orden público del índice (AC5.1.1). El body contiene el array de IDs en su nuevo
+         *     orden. Devuelve confirmación con el array de IDs ordenados.
          */
         post: operations["reorderServices"];
         delete?: never;
@@ -377,21 +391,23 @@ export interface paths {
         };
         /**
          * Documento de la página Nosotros (lectura pública)
-         * @description US2.6 / US5.6 / D25. Lectura del documento único `pages/nosotros`. Alimenta el bloque
+         * @description US2.6 / US5.6 / D25: Lectura del documento único `pages/nosotros`. Alimenta el bloque
          *     «Nosotros» de la portada (AC2.6.4, solo el `extracto`) y la página `/nosotros`
          *     (AC5.6.1). Sin sesión: el BFF la consume en el servidor al construir o revalidar la
          *     página (AC7.4.5), de modo que la visita normal no ejecuta Functions. Si el documento
-         *     todavía no existe se sirve el seed (US4.5); PENDIENTE: el comportamiento ante documento
-         *     ausente no está fijado en TASKS.
+         *     todavía no existe, se sirve un seed por defecto con estructura vacía (US4.5): título
+         *     vacío, extracto vacío, secciones y equipo vacíos, `updatedAt` actual; código 200.
          */
         get: operations["getAbout"];
         /**
          * Guardar la página Nosotros (documento único `pages/nosotros`)
-         * @description PENDIENTE: definición pendiente en TASKS (US4.5 define el guardado del documento único
-         *     — título, extracto ≤ 500 caracteres, secciones y equipo, con reordenamiento — pero no la
-         *     ruta HTTP). Al guardar: traducción selectiva (US0.5), escritura y revalidación (US0.3);
-         *     `extracto` > 500 caracteres → 422 `VALIDATION_ERROR` (AC4.5.3); `updatedAt`
-         *     desactualizado → 409 `CONFLICT` (AC4.5.5).
+         * @description US4.5: Guarda el documento único `pages/nosotros` — título, extracto (≤ 500 caracteres
+         *     por idioma), secciones y equipo, con reordenamiento (orden = posición del array).
+         *     Al guardar: traducción selectiva por campo con `autoTranslate` (US0.5, D-A), escritura
+         *     y revalidación (US0.3); `extracto` > 500 caracteres en cualquier idioma → 422
+         *     `VALIDATION_ERROR` (AC4.5.3); `updatedAt` desactualizado → 409 `CONFLICT` (AC4.5.5).
+         *     `enPendiente` solo lo escribe el backend (AC0.5.10). Devuelve el `AboutDocument`
+         *     resultante.
          */
         put: operations["updateAbout"];
         post?: never;
@@ -726,15 +742,33 @@ export interface components {
                 };
             };
         };
-        /** @description PENDIENTE: definición pendiente en TASKS. Detalle del servicio (US5.1.2); los campos del modelo `Service` de `shared-types/src/models`. */
+        /**
+         * @description Detalle completo del servicio (US5.1.2); campos del modelo `Service` de
+         *     `shared-types/src/models`. Incluye todos los campos traducibles, galería de obras
+         *     (mismo flujo de fotos de inmuebles con portada, orden y derivados — AC4.4.6),
+         *     estado y orden público.
+         */
         ServiceDetail: {
-            id?: string;
-            slug?: string;
-            status?: components["schemas"]["EstadoPropiedad"];
-        } & {
-            [key: string]: unknown;
+            id: string;
+            slug: string;
+            status: components["schemas"]["EstadoPropiedad"];
+            titulo: components["schemas"]["Translatable"];
+            resumen: components["schemas"]["Translatable"];
+            cuerpo: components["schemas"]["Translatable"];
+            /** @description Galería de obras; mismo flujo de fotos de inmuebles (portada, orden, derivados — AC4.4.6). */
+            fotos?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            /** @description Define el orden público (AC4.4.3). */
+            orden: number;
+            /** Format: date-time */
+            updatedAt: string;
         };
-        /** @description DTO de escritura de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
+        /** @description DTO de creación de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7). */
         ServiceInput: {
             titulo: components["schemas"]["TranslatableInput"];
             resumen: components["schemas"]["TranslatableInput"];
@@ -744,17 +778,33 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
+                }[];
+            }[];
+            orden?: number;
+        };
+        /** @description DTO de actualización parcial de servicios (US4.4): todos los campos de contenido son opcionales, pero `updatedAt` es obligatorio (Política OCC estricta). Si `updatedAt` está desactualizado responde 409 `CONFLICT`. `cuerpo` es texto plano con párrafos, sin HTML. */
+        ServiceUpdateInput: {
+            titulo?: components["schemas"]["TranslatableInput"];
+            resumen?: components["schemas"]["TranslatableInput"];
+            cuerpo?: components["schemas"]["TranslatableInput"];
+            /** @description Misma galería que las fotos de inmuebles (portada, orden, derivados — AC4.4.6). */
+            fotos?: {
+                derivados: {
+                    clave: string;
+                    ancho: number;
+                    alto: number;
                 }[];
             }[];
             status?: components["schemas"]["EstadoPropiedad"];
             orden?: number;
             /**
              * Format: date-time
-             * @description Control de concurrencia optimista (patrón AC1.7.8 / AC4.5.5) → 409 `CONFLICT`.
+             * @description Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.
              */
-            updatedAt?: string;
+            updatedAt: string;
         };
-        /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
+        /** @description Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500 caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). Política OCC estricta: `updatedAt` es obligatorio. */
         AboutInput: {
             titulo: components["schemas"]["TranslatableInput"];
             /** @description Extracto mostrado en la portada (AC2.6.4). Es un `Translatable` (MODELO DE DATOS, TASKS): cualquier idioma con más de 500 caracteres → 422 `VALIDATION_ERROR` (AC4.5.3). */
@@ -780,9 +830,9 @@ export interface components {
             }[];
             /**
              * Format: date-time
-             * @description Control de concurrencia optimista (AC4.5.5) → 409 `CONFLICT`.
+             * @description Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.
              */
-            updatedAt?: string;
+            updatedAt: string;
         };
         /** @description Documento único `pages/nosotros` tal como se sirve al público (D25, US5.6). `extracto` alimenta el bloque «Nosotros» de la portada (AC2.6.4); `secciones` y `equipo` alimentan `/nosotros` (AC5.6.1). El orden de `secciones` y `equipo` es la posición del arreglo (MODELO DE DATOS, TASKS). */
         AboutDocument: {
@@ -894,7 +944,7 @@ export interface components {
     parameters: {
         /** @description UID de la sesión del BFF, propagado al backend (AC1.3.2). El BFF siempre lo sobrescribe con su propia sesión (AC1.3.5). */
         XUserId: string;
-        /** @description Email de la sesión del BFF (AC1.3.2). */
+        /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
         XUserEmail: string;
         /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
         XUserRole: components["schemas"]["Rol"];
@@ -996,8 +1046,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1093,8 +1143,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1136,8 +1186,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1173,8 +1223,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1211,8 +1261,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1248,8 +1298,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1306,8 +1356,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1396,14 +1446,21 @@ export interface operations {
     };
     listServices: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Cursor opaco `{ orden, id }` de la página anterior (D17, AC1.10.2). */
+                cursor?: string;
+                /** @description Tamaño de página: 12 por defecto, máx. 50 (AC1.10.1, D19). */
+                limit?: number;
+                /** @description Si es `true`, incluye servicios `HIDDEN` en la respuesta. Solo tiene efecto cuando la petición incluye identidad de sesión de administrador válida (`X-User-Id`, `X-User-Role: admin`, `X-User-Email`); sin ella o con identidad parcial/inválida responde 401 `UNAUTHORIZED`. Si no se recibe, se considera `false`. */
+                includeHidden?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Servicios ordenados por `orden`. */
+            /** @description Servicios ordenados por `orden` con paginación por cursor. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1412,6 +1469,8 @@ export interface operations {
                     "application/json": components["schemas"]["ApiSuccess"] & {
                         data: {
                             items: components["schemas"]["ServiceCard"][];
+                            /** @description Cursor opaco `{ orden, id }` de la siguiente página; `null` al final (D17, AC1.10.2). */
+                            nextCursor: string | null;
                         };
                     };
                 };
@@ -1430,8 +1489,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1449,12 +1508,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            slug?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                        };
+                        data: components["schemas"]["ServiceDetail"];
                     };
                 };
             };
@@ -1467,7 +1521,10 @@ export interface operations {
     };
     getService: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Si es `true`, incluye servicios `HIDDEN` en la respuesta. Solo tiene efecto si la petición propaga identidad válida de administrador (`X-User-Id`, `X-User-Role: admin`, `X-User-Email`); sin esa identidad o con identidad parcial/inválida responde 401 `UNAUTHORIZED`. Con `includeHidden=true` un servicio `HIDDEN` puede devolverse con 200; `DELETED` sigue respondiendo 404 `SERVICE_NOT_FOUND`. Si no se recibe, se considera `false`. */
+                includeHidden?: boolean;
+            };
             header?: never;
             path: {
                 idOrSlug: string;
@@ -1501,8 +1558,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1511,24 +1568,18 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ServiceInput"];
+                "application/json": components["schemas"]["ServiceUpdateInput"];
             };
         };
         responses: {
-            /** @description Servicio actualizado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Servicio actualizado; devuelve el `ServiceDetail` resultante. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                            /** Format: date-time */
-                            updatedAt?: string;
-                        };
+                        data: components["schemas"]["ServiceDetail"];
                     };
                 };
             };
@@ -1549,8 +1600,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1559,18 +1610,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Soft delete confirmado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Soft delete confirmado; devuelve el `ServiceDetail` resultante con `status = DELETED`. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                        };
+                        data: components["schemas"]["ServiceDetail"];
                     };
                 };
             };
@@ -1589,8 +1636,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1599,18 +1646,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Servicio activado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Servicio activado; devuelve el `ServiceDetail` resultante con `status = ACTIVE`. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                        };
+                        data: components["schemas"]["ServiceDetail"];
                     };
                 };
             };
@@ -1629,8 +1672,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path: {
                 idOrSlug: string;
@@ -1639,18 +1682,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Servicio oculto (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Servicio oculto; devuelve el `ServiceDetail` resultante con `status = HIDDEN`. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            id?: string;
-                            status?: components["schemas"]["EstadoPropiedad"];
-                        };
+                        data: components["schemas"]["ServiceDetail"];
                     };
                 };
             };
@@ -1669,8 +1708,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1684,15 +1723,17 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Orden persistido (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Orden persistido; devuelve el array de IDs en su nuevo orden. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: Record<string, never>;
+                        data: {
+                            /** @description Ids de los servicios en su nuevo orden público. */
+                            orden: string[];
+                        };
                     };
                 };
             };
@@ -1712,7 +1753,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Documento único `pages/nosotros`. */
+            /** @description Documento único `pages/nosotros` (o seed por defecto si no existe). */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -1737,8 +1778,8 @@ export interface operations {
                 "X-User-Id": components["parameters"]["XUserId"];
                 /** @description Rol de la sesión; el backend autoriza las rutas de administrador con este valor (AC1.3.3, D27). Ausente en una ruta de escritura → 401 (AC0.2.4). */
                 "X-User-Role": components["parameters"]["XUserRole"];
-                /** @description Email de la sesión del BFF (AC1.3.2). */
-                "X-User-Email"?: components["parameters"]["XUserEmail"];
+                /** @description Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401. */
+                "X-User-Email": components["parameters"]["XUserEmail"];
             };
             path?: never;
             cookie?: never;
@@ -1749,18 +1790,14 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Documento guardado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado). */
+            /** @description Documento guardado; devuelve el `AboutDocument` resultante con `updatedAt` actualizado. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS. */
-                        data: {
-                            /** Format: date-time */
-                            updatedAt?: string;
-                        };
+                        data: components["schemas"]["AboutDocument"];
                     };
                 };
             };

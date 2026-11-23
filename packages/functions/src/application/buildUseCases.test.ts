@@ -1,10 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { ApplicationPorts } from './ports';
+import type { AboutDto } from './ports/about-repository';
 import { RevalidateContent } from './revalidation/revalidate-content';
 import { TranslationService } from './translation/translation-service';
 import { buildUseCases } from './buildUseCases';
 import { VerifyInternalSessionUseCase } from './use-cases/auth/verify-internal-session';
+import { CrearServiceUseCase } from './use-cases/services/crear-services';
+import { ActualizarServiceUseCase } from './use-cases/services/actualizar-services';
+import { EliminarServiceUseCase } from './use-cases/services/eliminar-services';
+import { ActivarServiceUseCase } from './use-cases/services/activar-services';
+import { OcultarServiceUseCase } from './use-cases/services/ocultar-services';
+import { ReordenarServiceUseCase } from './use-cases/services/reordenar-services';
+import { ObtenerServiceUseCase } from './use-cases/services/obtener-services';
+import { ListarServicesUseCase } from './use-cases/services/listar-services';
+
+const aboutSeed: AboutDto = {
+  titulo: { es: 'Nosotros' },
+  extracto: { es: 'Somos una inmobiliaria' },
+  secciones: [],
+  equipo: [],
+  updatedAt: '2026-01-01T00:00:00Z',
+};
 
 function makePorts(): ApplicationPorts {
   return {
@@ -30,14 +47,23 @@ function makePorts(): ApplicationPorts {
       softDelete: vi.fn(),
     },
     services: {
-      listar: vi.fn(),
+      crear: vi.fn(),
+      actualizar: vi.fn(),
+      eliminar: vi.fn(),
+      activar: vi.fn(),
+      ocultar: vi.fn(),
+      reordenar: vi.fn(),
+      obtenerPorIdOSlug: vi.fn(),
+      listarPaginado: vi.fn(),
     },
     about: {
       obtener: vi.fn(),
+      guardar: vi.fn(),
     },
     mediaStorage: {
       presignPut: vi.fn(),
       confirmarSubida: vi.fn(),
+      deleteDerivados: vi.fn(),
     },
     imageProcessor: {
       validarImagen: vi.fn(),
@@ -51,10 +77,21 @@ function makePorts(): ApplicationPorts {
 
 describe('buildUseCases', () => {
   it('construye los casos de uso con los puertos inyectados', () => {
-    const useCases = buildUseCases(makePorts(), { consignmentToEmail: 'test@example.com' });
+    const useCases = buildUseCases(makePorts(), {
+      consignmentToEmail: 'test@example.com',
+      aboutSeed,
+    });
 
     expect(useCases.verifyInternalSession).toBeInstanceOf(VerifyInternalSessionUseCase);
     expect(useCases.translationService).toBeInstanceOf(TranslationService);
     expect(useCases.revalidateContent).toBeInstanceOf(RevalidateContent);
+    expect(useCases.listarServices).toBeInstanceOf(ListarServicesUseCase);
+    expect(useCases.crearService).toBeInstanceOf(CrearServiceUseCase);
+    expect(useCases.actualizarService).toBeInstanceOf(ActualizarServiceUseCase);
+    expect(useCases.eliminarService).toBeInstanceOf(EliminarServiceUseCase);
+    expect(useCases.activarService).toBeInstanceOf(ActivarServiceUseCase);
+    expect(useCases.ocultarService).toBeInstanceOf(OcultarServiceUseCase);
+    expect(useCases.reordenarService).toBeInstanceOf(ReordenarServiceUseCase);
+    expect(useCases.obtenerService).toBeInstanceOf(ObtenerServiceUseCase);
   });
 });

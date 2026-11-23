@@ -698,12 +698,41 @@ paths:
       operationId: listServices
       summary: 'Listado de servicios (público: solo ACTIVE, orden `orden`)'
       description: |
-        PENDIENTE: definición pendiente en TASKS. Deducido de US5.1 / AC5.1.1 (el índice muestra
-        una tarjeta por servicio `ACTIVE`, ordenados por `orden`) y AC5.1.3 (slug inexistente,
-        `HIDDEN` o `DELETED` → 404); TASKS no fija la ruta HTTP de lectura.
+        US5.1 / AC5.1.1: Devuelve una tarjeta por cada servicio `ACTIVE`, ordenados por `orden`
+        ascendente. Sin servicios activos, devuelve lista vacía (no error). Paginación por cursor
+        opaco `{ orden, id }` (D17, D19); límite por defecto 12, máximo 50 (AC1.10.1, D19).
+        `includeHidden=true` solo tiene efecto con identidad de administrador válida; sin ella
+        responde 401 `UNAUTHORIZED`.
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 'Cursor opaco `{ orden, id }` de la página anterior (D17, AC1.10.2).'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+            minimum: 1
+            maximum: 50
+          description: 'Tamaño de página: 12 por defecto, máx. 50 (AC1.10.1, D19).'
+        - name: includeHidden
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: >-
+            Si es `true`, incluye servicios `HIDDEN` en la respuesta. Solo tiene efecto cuando
+            la petición incluye identidad de sesión de administrador válida
+            (`X-User-Id`, `X-User-Role: admin`, `X-User-Email`); sin ella o con identidad
+            parcial/inválida responde 401 `UNAUTHORIZED`. Si no se recibe, se considera `false`.
       responses:
         '200':
-          description: Servicios ordenados por `orden`.
+          description: Servicios ordenados por `orden` con paginación por cursor.
           content:
             application/json:
               schema:
@@ -714,12 +743,16 @@ paths:
                     properties:
                       data:
                         type: object
-                        required: [items]
+                        required: [items, nextCursor]
                         properties:
                           items:
                             type: array
                             items:
                               $ref: '#/components/schemas/ServiceCard'
+                          nextCursor:
+                            type: string
+                            nullable: true
+                            description: 'Cursor opaco `{ orden, id }` de la siguiente página; `null` al final (D17, AC1.10.2).'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -733,9 +766,12 @@ paths:
       operationId: createService
       summary: Crear un servicio (estado inicial HIDDEN)
       description: |
-        PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.1 definen «crear un servicio con
-        título, resumen, cuerpo y fotos», con `slug` único y estado inicial `HIDDEN`, pero no la
-        ruta HTTP). Tras guardarlo se revalida (US0.3).
+        US4.4 / AC4.4.1: Crea un servicio con título, resumen, cuerpo y fotos. El `slug` único
+        se genera automáticamente del título (AC0.4.7). El estado inicial es `HIDDEN`; el
+        servicio solo aparece en el sitio público cuando se activa (AC4.4.1). `cuerpo` es
+        texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Tras guardarlo se dispara la
+        revalidación (US0.3). Los campos traducibles usan `autoTranslate` por campo (D-A);
+        `enPendiente` solo lo escribe el backend (AC0.5.10).
       parameters:
         - $ref: '#/components/parameters/XUserId'
         - $ref: '#/components/parameters/XUserRole'
@@ -758,15 +794,7 @@ paths:
                     required: [data]
                     properties:
                       data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
-                        properties:
-                          id:
-                            type: string
-                          slug:
-                            type: string
-                          status:
-                            $ref: '#/components/schemas/EstadoPropiedad'
+                        $ref: '#/components/schemas/ServiceDetail'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -783,14 +811,33 @@ paths:
       operationId: getService
       summary: Detalle de un servicio por id o slug
       description: |
-        PENDIENTE: definición pendiente en TASKS (US5.1 / AC5.1.3: slug inexistente, `HIDDEN` o
-        `DELETED` → 404 `SERVICE_NOT_FOUND`; TASKS no fija la ruta HTTP de lectura).
+        US5.1 / AC5.1.2-AC5.1.3: Devuelve el detalle completo de un servicio `ACTIVE` por `id` o
+        `slug` para la web pública. Para el público, un servicio `HIDDEN`, `DELETED` o inexistente
+        responde 404 `SERVICE_NOT_FOUND` (AC5.1.3). Un administrador con identidad válida
+        (`X-User-Id`, `X-User-Role: admin`, `X-User-Email`) y `includeHidden=true` puede ver un
+        servicio `HIDDEN` con 200; `DELETED` sigue respondiendo 404 `SERVICE_NOT_FOUND`. Sin
+        identidad de administrador válida o con identidad parcial/inválida responde 401
+        `UNAUTHORIZED`. El `data` es el DTO completo `ServiceDetail`, igual que el devuelto por
+        las mutaciones de administración.
       parameters:
         - name: idOrSlug
           in: path
           required: true
           schema:
             type: string
+        - name: includeHidden
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: >-
+            Si es `true`, incluye servicios `HIDDEN` en la respuesta. Solo tiene efecto si la
+            petición propaga identidad válida de administrador (`X-User-Id`, `X-User-Role: admin`,
+            `X-User-Email`); sin esa identidad o con identidad parcial/inválida responde 401
+            `UNAUTHORIZED`. Con `includeHidden=true` un servicio `HIDDEN` puede devolverse con 200;
+            `DELETED` sigue respondiendo 404 `SERVICE_NOT_FOUND`. Si no se recibe, se considera
+            `false`.
       responses:
         '200':
           description: Servicio completo.
@@ -817,10 +864,12 @@ paths:
       operationId: updateService
       summary: Editar un servicio
       description: |
-        PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.2: editar título, resumen,
-        cuerpo, fotos o estado; el cambio se refleja público tras la revalidación). El campo
-        `cuerpo` es texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). La optimista por
-        `updatedAt` sigue el mismo patrón de AC1.7.8 / AC4.5.5 → 409 `CONFLICT`.
+        US4.4 / AC4.4.2: Edita parcialmente título, resumen, cuerpo, fotos, orden o estado de un
+        servicio existente. El cambio se refleja en el sitio público tras la revalidación (US0.3).
+        `cuerpo` es texto plano con párrafos, sin HTML (AC4.4.7, AC4.5.7). Política OCC estricta:
+        `updatedAt` es obligatorio; si está desactualizado responde 409 `CONFLICT` (patrón
+        AC1.7.8 / AC4.5.5). Los campos traducibles usan `autoTranslate` por campo (D-A);
+        `enPendiente` solo lo escribe el backend (AC0.5.10).
       parameters:
         - name: idOrSlug
           in: path
@@ -835,10 +884,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServiceInput'
+              $ref: '#/components/schemas/ServiceUpdateInput'
       responses:
         '200':
-          description: 'Servicio actualizado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          description: 'Servicio actualizado; devuelve el `ServiceDetail` resultante.'
           content:
             application/json:
               schema:
@@ -848,16 +897,7 @@ paths:
                     required: [data]
                     properties:
                       data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
-                        properties:
-                          id:
-                            type: string
-                          status:
-                            $ref: '#/components/schemas/EstadoPropiedad'
-                          updatedAt:
-                            type: string
-                            format: date-time
+                        $ref: '#/components/schemas/ServiceDetail'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -877,9 +917,9 @@ paths:
       operationId: deleteService
       summary: Eliminar un servicio (soft delete)
       description: |
-        PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.4: «eliminar» pide confirmación,
-        cambia el estado y el servicio deja de existir en el sitio público → 404
-        `SERVICE_NOT_FOUND`); TASKS no fija la ruta HTTP.
+        US4.4 / AC4.4.4: Realiza un soft delete del servicio: `status = DELETED`, sin borrado
+        físico. El servicio deja de ser público y responde 404 `SERVICE_NOT_FOUND` en el sitio
+        público. Se dispara la revalidación (US0.3). Devuelve el `ServiceDetail` resultante.
       parameters:
         - name: idOrSlug
           in: path
@@ -891,7 +931,7 @@ paths:
         - $ref: '#/components/parameters/XUserEmail'
       responses:
         '200':
-          description: 'Soft delete confirmado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          description: 'Soft delete confirmado; devuelve el `ServiceDetail` resultante con `status = DELETED`.'
           content:
             application/json:
               schema:
@@ -901,13 +941,7 @@ paths:
                     required: [data]
                     properties:
                       data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
-                        properties:
-                          id:
-                            type: string
-                          status:
-                            $ref: '#/components/schemas/EstadoPropiedad'
+                        $ref: '#/components/schemas/ServiceDetail'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -924,8 +958,8 @@ paths:
       operationId: activateService
       summary: Activar un servicio (HIDDEN → ACTIVE)
       description: |
-        PENDIENTE: definición pendiente en TASKS (US4.4 describe activar servicios, no la ruta
-        HTTP). El servicio pasa a ser público y se dispara la revalidación (US0.3).
+        US4.4: Activa un servicio (`HIDDEN` → `ACTIVE`). El servicio pasa a ser público y se
+        dispara la revalidación (US0.3). Devuelve el `ServiceDetail` activado.
       parameters:
         - name: idOrSlug
           in: path
@@ -937,7 +971,7 @@ paths:
         - $ref: '#/components/parameters/XUserEmail'
       responses:
         '200':
-          description: 'Servicio activado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          description: 'Servicio activado; devuelve el `ServiceDetail` resultante con `status = ACTIVE`.'
           content:
             application/json:
               schema:
@@ -947,13 +981,7 @@ paths:
                     required: [data]
                     properties:
                       data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
-                        properties:
-                          id:
-                            type: string
-                          status:
-                            $ref: '#/components/schemas/EstadoPropiedad'
+                        $ref: '#/components/schemas/ServiceDetail'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -970,8 +998,8 @@ paths:
       operationId: hideService
       summary: Ocultar un servicio (ACTIVE → HIDDEN)
       description: |
-        PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.4: «ocultar» deja de publicar el
-        servicio; TASKS no fija la ruta HTTP).
+        US4.4 / AC4.4.4: Oculta un servicio (`ACTIVE` → `HIDDEN`). El servicio deja de ser
+        público y se dispara la revalidación (US0.3). Devuelve el `ServiceDetail` oculto.
       parameters:
         - name: idOrSlug
           in: path
@@ -983,7 +1011,7 @@ paths:
         - $ref: '#/components/parameters/XUserEmail'
       responses:
         '200':
-          description: 'Servicio oculto (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          description: 'Servicio oculto; devuelve el `ServiceDetail` resultante con `status = HIDDEN`.'
           content:
             application/json:
               schema:
@@ -993,13 +1021,7 @@ paths:
                     required: [data]
                     properties:
                       data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
-                        properties:
-                          id:
-                            type: string
-                          status:
-                            $ref: '#/components/schemas/EstadoPropiedad'
+                        $ref: '#/components/schemas/ServiceDetail'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1016,8 +1038,9 @@ paths:
       operationId: reorderServices
       summary: Reordenar el listado de servicios
       description: |
-        PENDIENTE: definición pendiente en TASKS (US4.4 / AC4.4.3: el campo `orden` persiste y
-        define el orden público; TASKS no fija la ruta HTTP).
+        US4.4 / AC4.4.3: Reordena el listado de servicios. El campo `orden` persiste y define
+        el orden público del índice (AC5.1.1). El body contiene el array de IDs en su nuevo
+        orden. Devuelve confirmación con el array de IDs ordenados.
       parameters:
         - $ref: '#/components/parameters/XUserId'
         - $ref: '#/components/parameters/XUserRole'
@@ -1037,7 +1060,7 @@ paths:
                     type: string
       responses:
         '200':
-          description: 'Orden persistido (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          description: 'Orden persistido; devuelve el array de IDs en su nuevo orden.'
           content:
             application/json:
               schema:
@@ -1048,7 +1071,13 @@ paths:
                     properties:
                       data:
                         type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
+                        required: [orden]
+                        properties:
+                          orden:
+                            type: array
+                            items:
+                              type: string
+                            description: 'Ids de los servicios en su nuevo orden público.'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1065,15 +1094,15 @@ paths:
       operationId: getAbout
       summary: Documento de la página Nosotros (lectura pública)
       description: |
-        US2.6 / US5.6 / D25. Lectura del documento único `pages/nosotros`. Alimenta el bloque
+        US2.6 / US5.6 / D25: Lectura del documento único `pages/nosotros`. Alimenta el bloque
         «Nosotros» de la portada (AC2.6.4, solo el `extracto`) y la página `/nosotros`
         (AC5.6.1). Sin sesión: el BFF la consume en el servidor al construir o revalidar la
         página (AC7.4.5), de modo que la visita normal no ejecuta Functions. Si el documento
-        todavía no existe se sirve el seed (US4.5); PENDIENTE: el comportamiento ante documento
-        ausente no está fijado en TASKS.
+        todavía no existe, se sirve un seed por defecto con estructura vacía (US4.5): título
+        vacío, extracto vacío, secciones y equipo vacíos, `updatedAt` actual; código 200.
       responses:
         '200':
-          description: Documento único `pages/nosotros`.
+          description: Documento único `pages/nosotros` (o seed por defecto si no existe).
           content:
             application/json:
               schema:
@@ -1097,11 +1126,13 @@ paths:
       operationId: updateAbout
       summary: Guardar la página Nosotros (documento único `pages/nosotros`)
       description: |
-        PENDIENTE: definición pendiente en TASKS (US4.5 define el guardado del documento único
-        — título, extracto ≤ 500 caracteres, secciones y equipo, con reordenamiento — pero no la
-        ruta HTTP). Al guardar: traducción selectiva (US0.5), escritura y revalidación (US0.3);
-        `extracto` > 500 caracteres → 422 `VALIDATION_ERROR` (AC4.5.3); `updatedAt`
-        desactualizado → 409 `CONFLICT` (AC4.5.5).
+        US4.5: Guarda el documento único `pages/nosotros` — título, extracto (≤ 500 caracteres
+        por idioma), secciones y equipo, con reordenamiento (orden = posición del array).
+        Al guardar: traducción selectiva por campo con `autoTranslate` (US0.5, D-A), escritura
+        y revalidación (US0.3); `extracto` > 500 caracteres en cualquier idioma → 422
+        `VALIDATION_ERROR` (AC4.5.3); `updatedAt` desactualizado → 409 `CONFLICT` (AC4.5.5).
+        `enPendiente` solo lo escribe el backend (AC0.5.10). Devuelve el `AboutDocument`
+        resultante.
       parameters:
         - $ref: '#/components/parameters/XUserId'
         - $ref: '#/components/parameters/XUserRole'
@@ -1114,7 +1145,7 @@ paths:
               $ref: '#/components/schemas/AboutInput'
       responses:
         '200':
-          description: 'Documento guardado (PENDIENTE: definición pendiente en TASKS — cuerpo de respuesta no especificado).'
+          description: 'Documento guardado; devuelve el `AboutDocument` resultante con `updatedAt` actualizado.'
           content:
             application/json:
               schema:
@@ -1124,12 +1155,7 @@ paths:
                     required: [data]
                     properties:
                       data:
-                        type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS.'
-                        properties:
-                          updatedAt:
-                            type: string
-                            format: date-time
+                        $ref: '#/components/schemas/AboutDocument'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1187,10 +1213,10 @@ components:
     XUserEmail:
       name: X-User-Email
       in: header
-      required: false
+      required: true
       schema:
         type: string
-      description: Email de la sesión del BFF (AC1.3.2).
+      description: Email de la sesión del BFF (AC1.3.2). Obligatorio en rutas de administración; el guard rechaza identidad parcial o inválida con 401.
     XUserRole:
       name: X-User-Role
       in: header
@@ -1789,10 +1815,12 @@ components:
                 type: string
     ServiceDetail:
       type: object
-      description: >-
-        PENDIENTE: definición pendiente en TASKS. Detalle del servicio (US5.1.2); los campos
-        del modelo `Service` de `shared-types/src/models`.
-      additionalProperties: true
+      description: |
+        Detalle completo del servicio (US5.1.2); campos del modelo `Service` de
+        `shared-types/src/models`. Incluye todos los campos traducibles, galería de obras
+        (mismo flujo de fotos de inmuebles con portada, orden y derivados — AC4.4.6),
+        estado y orden público.
+      required: [id, slug, status, titulo, resumen, cuerpo, orden, updatedAt]
       properties:
         id:
           type: string
@@ -1800,10 +1828,42 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/EstadoPropiedad'
+        titulo:
+          $ref: '#/components/schemas/Translatable'
+        resumen:
+          $ref: '#/components/schemas/Translatable'
+        cuerpo:
+          $ref: '#/components/schemas/Translatable'
+        fotos:
+          type: array
+          description: 'Galería de obras; mismo flujo de fotos de inmuebles (portada, orden, derivados — AC4.4.6).'
+          items:
+            type: object
+            required: [derivados]
+            properties:
+              derivados:
+                type: array
+                items:
+                  type: object
+                  required: [clave, ancho, alto]
+                  properties:
+                    clave:
+                      type: string
+                    ancho:
+                      type: integer
+                    alto:
+                      type: integer
+        orden:
+          type: integer
+          description: 'Define el orden público (AC4.4.3).'
+        updatedAt:
+          type: string
+          format: date-time
     ServiceInput:
       type: object
+      additionalProperties: false
       description: >-
-        DTO de escritura de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles
+        DTO de creación de servicios (US4.4): título, resumen, cuerpo y fotos son traducibles
         (T1, AC4.4.7); `cuerpo` es texto plano con párrafos, sin HTML (AC4.5.7).
       required: [titulo, resumen, cuerpo]
       properties:
@@ -1818,17 +1878,59 @@ components:
           description: Misma galería que las fotos de inmuebles (portada, orden, derivados — AC4.4.6).
           items:
             type: object
+            additionalProperties: false
             required: [derivados]
             properties:
               derivados:
                 type: array
                 items:
                   type: object
-                  required: [clave, ancho]
+                  additionalProperties: false
+                  required: [clave, ancho, alto]
                   properties:
                     clave:
                       type: string
                     ancho:
+                      type: integer
+                    alto:
+                      type: integer
+        orden:
+          type: integer
+    ServiceUpdateInput:
+      type: object
+      additionalProperties: false
+      description: >-
+        DTO de actualización parcial de servicios (US4.4): todos los campos de contenido son
+        opcionales, pero `updatedAt` es obligatorio (Política OCC estricta). Si `updatedAt` está
+        desactualizado responde 409 `CONFLICT`. `cuerpo` es texto plano con párrafos, sin HTML.
+      required: [updatedAt]
+      properties:
+        titulo:
+          $ref: '#/components/schemas/TranslatableInput'
+        resumen:
+          $ref: '#/components/schemas/TranslatableInput'
+        cuerpo:
+          $ref: '#/components/schemas/TranslatableInput'
+        fotos:
+          type: array
+          description: Misma galería que las fotos de inmuebles (portada, orden, derivados — AC4.4.6).
+          items:
+            type: object
+            additionalProperties: false
+            required: [derivados]
+            properties:
+              derivados:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required: [clave, ancho, alto]
+                  properties:
+                    clave:
+                      type: string
+                    ancho:
+                      type: integer
+                    alto:
                       type: integer
         status:
           $ref: '#/components/schemas/EstadoPropiedad'
@@ -1837,14 +1939,15 @@ components:
         updatedAt:
           type: string
           format: date-time
-          description: 'Control de concurrencia optimista (patrón AC1.7.8 / AC4.5.5) → 409 `CONFLICT`.'
+          description: 'Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.'
     AboutInput:
       type: object
+      additionalProperties: false
       description: >-
         Documento único `pages/nosotros` (D25, US4.5). El `extracto` tiene máximo 500
         caracteres (AC4.5.3); el orden de `secciones` y `equipo` es la posición del arreglo
-        (MODELO DE DATOS, TASKS).
-      required: [titulo, extracto, secciones, equipo]
+        (MODELO DE DATOS, TASKS). Política OCC estricta: `updatedAt` es obligatorio.
+      required: [titulo, extracto, secciones, equipo, updatedAt]
       properties:
         titulo:
           $ref: '#/components/schemas/TranslatableInput'
@@ -1898,7 +2001,7 @@ components:
         updatedAt:
           type: string
           format: date-time
-          description: 'Control de concurrencia optimista (AC4.5.5) → 409 `CONFLICT`.'
+          description: 'Control de concurrencia optimista obligatorio (Política OCC estricta) → 409 `CONFLICT` si está desactualizado.'
     AboutDocument:
       type: object
       description: >-

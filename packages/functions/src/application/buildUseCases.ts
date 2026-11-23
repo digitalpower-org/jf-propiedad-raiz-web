@@ -1,4 +1,5 @@
 import type { ApplicationPorts } from './ports';
+import type { AboutDto } from './ports/about-repository';
 import { RevalidateContent } from './revalidation/revalidate-content';
 import { TranslationService } from './translation/translation-service';
 import { VerifyInternalSessionUseCase } from './use-cases/auth/verify-internal-session';
@@ -12,7 +13,15 @@ import { ObtenerPropertyUseCase } from './use-cases/properties/obtener-property'
 import { OcultarPropertyUseCase } from './use-cases/properties/ocultar-property';
 import { CrearConsignmentUseCase } from './use-cases/consignments/crear-consignment';
 import { ListarServicesUseCase } from './use-cases/services/listar-services';
+import { CrearServiceUseCase } from './use-cases/services/crear-services';
+import { ActualizarServiceUseCase } from './use-cases/services/actualizar-services';
+import { EliminarServiceUseCase } from './use-cases/services/eliminar-services';
+import { ActivarServiceUseCase } from './use-cases/services/activar-services';
+import { OcultarServiceUseCase } from './use-cases/services/ocultar-services';
+import { ReordenarServiceUseCase } from './use-cases/services/reordenar-services';
+import { ObtenerServiceUseCase } from './use-cases/services/obtener-services';
 import { ObtenerAboutUseCase } from './use-cases/about/obtener-about';
+import { ActualizarAboutUseCase } from './use-cases/about/actualizar-about';
 import { ConfirmarMediaUploadUseCase } from './use-cases/media/confirmar-media-upload';
 import { PresignMediaUploadUseCase } from './use-cases/media/presign-media-upload';
 import type { RateLimiter } from './ports/rate-limiter';
@@ -30,7 +39,15 @@ export interface UseCases {
   readonly listarFeaturedProperties: ListarFeaturedPropertiesUseCase;
   readonly obtenerProperty: ObtenerPropertyUseCase;
   readonly listarServices: ListarServicesUseCase;
+  readonly crearService: CrearServiceUseCase;
+  readonly actualizarService: ActualizarServiceUseCase;
+  readonly eliminarService: EliminarServiceUseCase;
+  readonly activarService: ActivarServiceUseCase;
+  readonly ocultarService: OcultarServiceUseCase;
+  readonly reordenarService: ReordenarServiceUseCase;
+  readonly obtenerService: ObtenerServiceUseCase;
   readonly obtenerAbout: ObtenerAboutUseCase;
+  readonly actualizarAbout: ActualizarAboutUseCase;
   readonly presignMediaUpload: PresignMediaUploadUseCase;
   readonly confirmarMediaUpload: ConfirmarMediaUploadUseCase;
   readonly crearConsignment: CrearConsignmentUseCase;
@@ -40,7 +57,7 @@ export interface UseCases {
 /** Único lugar donde se construyen los casos de uso. */
 export function buildUseCases(
   ports: ApplicationPorts,
-  config: { consignmentToEmail: string },
+  config: { consignmentToEmail: string; aboutSeed: AboutDto },
 ): UseCases {
   const revalidateContent = new RevalidateContent({
     gateway: ports.revalidationGateway,
@@ -85,7 +102,57 @@ export function buildUseCases(
     listarFeaturedProperties: new ListarFeaturedPropertiesUseCase(ports.properties, ports.logger),
     obtenerProperty: new ObtenerPropertyUseCase(ports.properties, ports.logger),
     listarServices: new ListarServicesUseCase(ports.services, ports.logger),
-    obtenerAbout: new ObtenerAboutUseCase(ports.about, ports.logger),
+    crearService: new CrearServiceUseCase({
+      services: ports.services,
+      revalidateContent,
+      mediaStorage: ports.mediaStorage,
+      translationService,
+      logger: ports.logger,
+    }),
+    actualizarService: new ActualizarServiceUseCase({
+      services: ports.services,
+      revalidateContent,
+      mediaStorage: ports.mediaStorage,
+      translationService,
+      logger: ports.logger,
+    }),
+    eliminarService: new EliminarServiceUseCase({
+      services: ports.services,
+      revalidateContent,
+      mediaStorage: ports.mediaStorage,
+      logger: ports.logger,
+    }),
+    activarService: new ActivarServiceUseCase({
+      services: ports.services,
+      revalidateContent,
+      mediaStorage: ports.mediaStorage,
+      logger: ports.logger,
+    }),
+    ocultarService: new OcultarServiceUseCase({
+      services: ports.services,
+      revalidateContent,
+      mediaStorage: ports.mediaStorage,
+      logger: ports.logger,
+    }),
+    reordenarService: new ReordenarServiceUseCase({
+      services: ports.services,
+      revalidateContent,
+      mediaStorage: ports.mediaStorage,
+      logger: ports.logger,
+    }),
+    obtenerService: new ObtenerServiceUseCase(ports.services, ports.logger),
+    obtenerAbout: new ObtenerAboutUseCase({
+      about: ports.about,
+      seed: config.aboutSeed,
+      logger: ports.logger,
+    }),
+    actualizarAbout: new ActualizarAboutUseCase({
+      about: ports.about,
+      revalidateContent,
+      mediaStorage: ports.mediaStorage,
+      translationService,
+      logger: ports.logger,
+    }),
     presignMediaUpload: new PresignMediaUploadUseCase(ports.mediaStorage, ports.logger),
     confirmarMediaUpload: new ConfirmarMediaUploadUseCase(ports.mediaStorage, ports.logger),
     crearConsignment: new CrearConsignmentUseCase(
