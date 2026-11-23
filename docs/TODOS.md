@@ -23,7 +23,7 @@
 - [x] **MT0.1** `[D1+D2]` Planificación, proceso y decisiones (DoD, ramas, commits, QA, flujos de auth) ← —
 - [x] **MT0.2** `[D1+D2]` Repositorio y tooling (monorepo, lint/format, CI con 7 gates) ← MT0.1
 - [ ] **MT0.3** `[D1]` Infraestructura, cuentas y entornos (Firebase Blaze, R2, Resend, Translation, Secret Manager → .env, Scheduler eliminado, alerta presupuesto pendiente) ← MT0.1
-  **GAP:** Firebase Blaze plan no provisionado (requerido para App Hosting en producción). R2, Translation y Secret Manager no están configurados en el proyecto real. Resend tiene API key real en `packages/functions/.env` (gitignored) con entrega verificada en local por BFF (`:5002/api/consignments`) y backend directo (`:5001/.../api/v1/consignments`), pero falta evidencia manual de dominio verificado con SPF/DKIM para `consignaciones@jfpropiedadraiz.com` (AC3.2.6) y secreto en producción. CI usa clave falsa por diseño. Alerta de presupuesto pendiente. Sin estas cuentas, MT0.5 y MT1.5 no pueden desplegarse.
+  **GAP:** Firebase Blaze plan no provisionado (requerido para App Hosting en producción). R2, Translation y Secret Manager no están configurados en el proyecto real. Resend tiene API key real en `packages/functions/.env` (gitignored) con entrega verificada en local por BFF (`:5002/api/consignments`) y backend directo (`:5001/.../api/v1/consignments`), con evidencia manual de dominio verificado con SPF/DKIM para `consignaciones@jfpropiedadraiz.com` (AC3.2.6) registrada por Daniel Pacheco el 2026-11-23, pero falta el secreto en producción. CI usa clave falsa por diseño. Alerta de presupuesto pendiente. Sin estas cuentas, MT0.5 y MT1.5 no pueden desplegarse.
 - [x] **MT0.4** `[D1+D2]` Andamiaje técnico: contratos y base i18n ← MT0.2
   - [x] US0.1 `[D1]` Contrato API (2 OpenAPI), `shared-types`, catálogo de errores y helper `buildWhatsAppUrl` (D35)
   - [x] US0.4 `[D2]` Internacionalización por rutas `/es` y `/en`
@@ -102,9 +102,9 @@
   - [ ] US3.1 `[D1+D2]` Formulario «Consigne su Propiedad»
     - [x] `[D1]` Endpoint BFF/Functions `POST /api/consignments` (integración Resend, validación, límite de envíos)
     - [x] `[D2]` UI formulario `app/[locale]/consignar` (campos, consentimiento, manejo 429/422/500)
-  - [ ] US3.2 `[D1]` Notificación por correo con Resend (BFF/Functions)
+  - [x] US3.2 `[D1]` Notificación por correo con Resend (BFF/Functions)
     - **Nota:** Evidencia local 23 nov 2026: `POST /api/consignments` vía BFF en `:5002` y `POST /api/v1/consignments` directo en `:5001` → `200` con correos recibidos por admin y solicitante; honeypot → `200`/`enviado:false`; 6.º envío → `429`; `CONSENT_REQUIRED`, `VALIDATION_ERROR`, `VALIDATION_ERROR` por falta de `X-Client-IP`, `401` por clave inválida y `405` por GET verificados.
-    - **GAP:** AC3.2.6 sigue pendiente: falta registrar quién/cuándo y evidencia de dominio verificado con SPF/DKIM en Resend para `consignaciones@jfpropiedadraiz.com`; US3.2 sigue abierta hasta entonces.
+    - **Evidencia AC3.2.6:** Daniel Pacheco, 2026-11-23T18:44:10Z; Resend muestra DNS y dominio verificados el 12 nov 2026 (`docs/reports/resend-evidencia.png`). `GET /domains/{domain_id}` devuelve `jfpropiedadraiz.com` con `status=verified`, DKIM `resend._domainkey` TXT `verified`, SPF `rsend` y `send` CNAME `verified`; correo recibido por admin con `SPF_PASS`, `DKIM_VALID_AU`, `DKIM_VALID` y `d=jfpropiedadraiz.com`. US3.2 cerrada.
   - [x] US3.3 `[D2]` Consentimiento de tratamiento de datos (UI)
   - [x] US3.4 `[D1]` Protección contra bots y límite de envíos (BFF/Functions)
 
