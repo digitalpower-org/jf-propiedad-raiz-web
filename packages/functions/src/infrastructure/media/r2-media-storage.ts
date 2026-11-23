@@ -9,6 +9,7 @@ import {
   getRange as r2GetRange,
   type PresignPutResult as R2PresignPutResult,
 } from '../storage/r2-storage';
+import { NotFound, NoSuchKey } from '@aws-sdk/client-s3';
 import {
   R2_PREFIX_PENDING,
   R2_PREFIX_DERIVADOS,
@@ -16,6 +17,24 @@ import {
   R2_MIME_WEBP,
   R2_MIME_JPEG,
 } from './constants';
+import { ApiError } from '../../domain/errors/api-error';
+import { errorCode } from '../../domain/errors/errorCatalog';
+
+/**
+ * Wrapper sobre `r2Head` que traduce errores de objeto no encontrado
+ * (NotFound / NoSuchKey del SDK de AWS) a `ApiError` con código NOT_FOUND.
+ * Otros errores se relanzan sin cambios.
+ */
+async function headObjeto(key: string): Promise<Awaited<ReturnType<typeof r2Head>>> {
+  try {
+    return await r2Head(key);
+  } catch (error) {
+    if (error instanceof NotFound || error instanceof NoSuchKey) {
+      throw new ApiError(errorCode.notFound, 'Objeto pendiente no encontrado');
+    }
+    throw error;
+  }
+}
 
 /**
  * Adaptador de `MediaStorage` sobre Cloudflare R2 (US1.8, US1.9).
@@ -23,6 +42,10 @@ import {
  * Orquesta: presignar URL de subida → obtener objeto de R2 → validar con
  * Sharp → generar derivados WebP → subir derivados a R2 → eliminar original
  * de `pending/`.
+ *
+ * Atomicidad: genera todos los buffers primero, sube todos; si falla uno,
+ * limpia los ya subidos y conserva el original. Elimina el original solo
+ * al final si todo tuvo éxito.
  */
 export function createR2MediaStorage(imageProcessor: ImageProcessor): MediaStorage {
   async function presignPut(
@@ -57,30 +80,50 @@ export function createR2MediaStorage(imageProcessor: ImageProcessor): MediaStora
       readonly ancho: number;
     }[];
   }> {
-    // 1) Obtener metadatos del objeto en R2 (HEAD)
-    const metadatos = await r2Head(key);
+    // 1) Validar prefijo pending/ antes de cualquier HEAD/GET
+    if (!key.startsWith(R2_PREFIX_PENDING)) {
+      throw new ApiError(errorCode.validationError, 'Clave inválida: debe comenzar con pending/', [
+        { field: 'key', issue: 'La clave debe estar en pending/' },
+      ]);
+    }
+
+    // 2) Obtener metadatos del objeto en R2 (HEAD)
+    const metadatos = await headObjeto(key);
     const mimeType = metadatos.contentType ?? R2_MIME_JPEG;
 
-    // 2) Descargar el objeto completo de R2 en chunks
+    // 3) Descargar el objeto completo de R2 en chunks
     const buffer = await descargarObjetoEntero(key);
 
-    // 3) Validar con Sharp
+    // 4) Validar con Sharp
     await imageProcessor.validarImagen(buffer, mimeType);
 
-    // 4) Generar derivados WebP (buffers en memoria)
+    // 5) Generar derivados WebP (buffers en memoria)
     const claveBase = `${key.replace(new RegExp(`^${R2_PREFIX_PENDING}`), '').replace(/\.[^/.]+$/, '')}`;
     const { derivados } = await imageProcessor.generarDerivados(buffer, claveBase);
 
-    // 5) Subir cada derivado a R2 bajo derivados/<recurso>/
-    for (const derivado of derivados) {
-      await r2Put(
-        `${R2_PREFIX_DERIVADOS}${recurso}/${derivado.clave}`,
-        derivado.buffer,
-        R2_MIME_WEBP,
-      );
+    // 6) Subir cada derivado a R2 bajo derivados/<recurso>/
+    // Atomicidad: si falla alguno, limpiar los ya subidos y NO borrar el original
+    const clavesSubidas: string[] = [];
+    try {
+      for (const derivado of derivados) {
+        const claveDerivado = `${R2_PREFIX_DERIVADOS}${recurso}/${derivado.clave}`;
+        await r2Put(claveDerivado, derivado.buffer, R2_MIME_WEBP);
+        clavesSubidas.push(claveDerivado);
+      }
+    } catch (error) {
+      // Limpiar derivados ya subidos
+      for (const claveSubida of clavesSubidas) {
+        try {
+          await r2Del(claveSubida);
+        } catch {
+          // Best effort: log pero no fallar la limpieza
+        }
+      }
+      // Re-lanzar el error original (será INTERNAL si es error de infraestructura)
+      throw error;
     }
 
-    // 6) Eliminar el original de pending/
+    // 7) Solo si todos los derivados se subieron OK, eliminar el original de pending/
     await r2Del(key);
 
     return {
@@ -111,7 +154,7 @@ function extensionDe(nombre: string): string {
  * Descarga un objeto entero de R2 en chunks usando getRange y lo devuelve como Buffer.
  */
 async function descargarObjetoEntero(key: string): Promise<Buffer> {
-  const metadatos = await r2Head(key);
+  const metadatos = await headObjeto(key);
   const total = Number(metadatos.contentLength ?? 0);
   const CHUNK = 1024 * 1024; // 1 MB por tramo
 
