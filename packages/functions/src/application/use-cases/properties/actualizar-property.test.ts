@@ -7,6 +7,7 @@ import { ActualizarPropertyUseCase } from './actualizar-property';
 import { TranslationService } from '../../translation/translation-service';
 import { NoopLogger } from '../../../infrastructure/logging/noop-logger';
 import type { Translator } from '../../ports/translator';
+import type { PropertyDto } from '../../ports/properties-repository';
 
 class FakeRevalidateContent extends RevalidateContent {
   override revalidate = vi.fn((_resource: ContentResource) => Promise.resolve({ ok: true }));
@@ -22,6 +23,25 @@ class FakeRevalidateContent extends RevalidateContent {
       },
     });
   }
+}
+
+function makeIncompleteProperty(): PropertyDto {
+  return {
+    id: 'doc-1',
+    codigo: 'JF-0001',
+    slug: 'casa-jf-0001',
+    status: 'HIDDEN',
+    operacion: 'VENTA',
+    tipo: 'CASA',
+    titulo: { es: 'Casa bonita' },
+    precio: 200000000,
+    departamento: 'Antioquia',
+    municipio: 'Medellín',
+    createdAt: '2026-01-15T10:00:00.000Z',
+    updatedAt: '2026-01-15T10:00:00.000Z',
+    destacada: false,
+    fotos: [],
+  };
 }
 
 function makePorts() {
@@ -65,6 +85,16 @@ describe('ActualizarPropertyUseCase', () => {
       precio: 200000000,
     };
 
+    // Mock findByIdOrSlug to return an incomplete property (no auto-activation)
+    ports.properties.findByIdOrSlug.mockResolvedValue({
+      property: makeIncompleteProperty(),
+      esPublico: false,
+    });
+    // Mock update to return the updated property
+    ports.properties.update.mockResolvedValue({
+      property: { ...makeIncompleteProperty(), precio: 200000000 },
+    });
+
     const useCase = new ActualizarPropertyUseCase(
       ports.properties,
       ports.revalidateContent,
@@ -78,7 +108,7 @@ describe('ActualizarPropertyUseCase', () => {
       input,
     });
 
-    expect(ports.properties.update).toHaveBeenCalledWith('doc-1', input);
+    expect(ports.properties.update).toHaveBeenCalledWith('doc-1', input, undefined);
     expect(ports.revalidateContent.revalidate).toHaveBeenCalledWith('propiedades');
     expect(ports.logger.info).toHaveBeenCalledWith('property_updated', {
       idOrSlug: 'doc-1',
@@ -87,6 +117,10 @@ describe('ActualizarPropertyUseCase', () => {
 
   it('propaga el error si properties.update falla', async () => {
     const ports = makePorts();
+    ports.properties.findByIdOrSlug.mockResolvedValue({
+      property: makeIncompleteProperty(),
+      esPublico: false,
+    });
     ports.properties.update.mockRejectedValue(new Error('error_actualizando'));
 
     const useCase = new ActualizarPropertyUseCase(
@@ -112,8 +146,12 @@ describe('ActualizarPropertyUseCase', () => {
       videos: ['https://youtu.be/dQw4w9WgXcQ', 'https://youtu.be/abc123'],
     };
 
+    ports.properties.findByIdOrSlug.mockResolvedValue({
+      property: makeIncompleteProperty(),
+      esPublico: false,
+    });
     ports.properties.update.mockResolvedValue({
-      property: { codigo: 'JF-0001' },
+      property: { ...makeIncompleteProperty(), precio: 200000000 },
     });
     const useCase = new ActualizarPropertyUseCase(
       ports.properties,
@@ -136,8 +174,12 @@ describe('ActualizarPropertyUseCase', () => {
   it('rechaza cuando una URL de YouTube es inválida en actualización', async () => {
     const ports = makePorts();
     ports.videoValidator.validate.mockRejectedValueOnce(new Error('URL de YouTube inválida'));
+    ports.properties.findByIdOrSlug.mockResolvedValue({
+      property: makeIncompleteProperty(),
+      esPublico: false,
+    });
     ports.properties.update.mockResolvedValue({
-      property: { codigo: 'JF-0001' },
+      property: { ...makeIncompleteProperty(), precio: 200000000 },
     });
     const useCase = new ActualizarPropertyUseCase(
       ports.properties,
