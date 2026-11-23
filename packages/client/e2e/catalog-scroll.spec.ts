@@ -82,7 +82,8 @@ test.describe('US2.2 / US2.3 | catálogo: filtros y scroll infinito', () => {
     });
     await page.goto('/es/venta', { waitUntil: 'networkidle' });
     await expect(cards(page)).toHaveCount(3);
-    await page.getByLabel('Casa', { exact: true }).check();
+    await page.getByPlaceholder('Tipo de inmueble', { exact: true }).click();
+    await page.getByRole('option', { name: 'Casa', exact: true }).click();
     await page.getByRole('button', { name: 'Aplicar', exact: true }).click();
     await expect
       .poll(() => consultas.some((q) => q.get('tipo') === 'CASA'), { timeout: 5000 })

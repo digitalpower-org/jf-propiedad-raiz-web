@@ -1,82 +1,54 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Checkbox, Select, Input, Button, Group, Text, Grid, Divider } from '@mantine/core';
-import type { TipoInmueble, Operacion } from '@jf/shared-types';
+import { Select, Input, Button, Group, Text, Grid, Divider } from '@mantine/core';
+import type { Operacion } from '@jf/shared-types';
 import styles from './Filters.module.css';
 import { DEPARTAMENTOS, municipiosDe } from '@/lib/consignment/locations';
-export interface PropertyFilters {
-  tipo?: string | undefined;
-  departamento?: string | undefined;
-  municipio?: string | undefined;
-  precioMin?: number | undefined;
-  precioMax?: number | undefined;
-  dormitorios?: string | undefined;
-  banos?: string | undefined;
-  areaMin?: string | undefined;
-  estrato?: string | undefined;
-  destacada?: boolean | undefined;
-}
+import {
+  TIPOS_INMUEBLE_CATALOGO,
+  leerFiltrosDeUrl,
+  tieneErrores,
+  validarFiltros,
+  type PropertyFilters,
+} from '@/lib/catalog-filters';
+
+export type { PropertyFilters };
 
 interface FiltersProps {
   readonly operacion: Operacion;
   readonly locale: 'es' | 'en';
-  readonly onFiltersChange?: (filters: PropertyFilters) => void;
   readonly initialFilters?: PropertyFilters;
 }
 
-const TIPO_INMUEBLE_OPTIONS = {
-  es: [
-    { value: 'CASA', label: 'Casa' },
-    { value: 'APARTAMENTO', label: 'Apartamento' },
-    { value: 'LOTE_CAMPESTRE', label: 'Lote Campestre' },
-    { value: 'LOTE_URBANO', label: 'Lote Urbano' },
-    { value: 'FINCA', label: 'Finca' },
-    { value: 'LOCAL_COMERCIAL', label: 'Local Comercial' },
-    { value: 'BODEGA', label: 'Bodega' },
-    { value: 'OFICINA', label: 'Oficina' },
-  ],
-  en: [
-    { value: 'CASA', label: 'House' },
-    { value: 'APARTAMENTO', label: 'Apartment' },
-    { value: 'LOTE_CAMPESTRE', label: 'Country Lot' },
-    { value: 'LOTE_URBANO', label: 'Urban Lot' },
-    { value: 'FINCA', label: 'Farm' },
-    { value: 'LOCAL_COMERCIAL', label: 'Commercial Space' },
-    { value: 'BODEGA', label: 'Warehouse' },
-    { value: 'OFICINA', label: 'Office' },
-  ],
-};
-
-export function Filters({
-  operacion: _operacion,
-  locale,
-  onFiltersChange,
-  initialFilters,
-}: FiltersProps) {
+/**
+ * Panel de filtros del catálogo. La URL es la única fuente de verdad (AC2.2.2): «Aplicar» solo
+ * la escribe, y quien consume los filtros (CatalogClient) los lee de ella.
+ */
+export function Filters({ operacion: _operacion, locale, initialFilters }: FiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Helper to parse searchParams into initial state
-  const getInitialState = (params: URLSearchParams) => ({
-    tipo: params.get('tipo') ? (params.get('tipo')!.split(',') as TipoInmueble[]) : [],
-    departamento: params.get('departamento') || '',
-    municipio: params.get('municipio') || '',
-    precioMin: params.get('precioMin') || '',
-    precioMax: params.get('precioMax') || '',
-    destacada: params.get('destacada') === 'true',
-    dormitorios: params.get('dormitorios') || '',
-    banos: params.get('banos') || '',
-    areaMin: params.get('areaMin') || '',
-    estrato: params.get('estrato') || '',
-  });
+  const getInitialState = (params: URLSearchParams) => {
+    const filtros = leerFiltrosDeUrl(params);
+    return {
+      tipo: filtros.tipo ?? '',
+      departamento: filtros.departamento ?? '',
+      municipio: filtros.municipio ?? '',
+      precioMin: params.get('precioMin') || '',
+      precioMax: params.get('precioMax') || '',
+      dormitorios: filtros.dormitorios ?? '',
+      banos: filtros.banos ?? '',
+      areaMin: filtros.areaMin ?? '',
+      estrato: filtros.estrato ?? '',
+    };
+  };
 
   const initialState = getInitialState(searchParams);
 
   // Merge URL params with initialFilters prop (prop takes precedence)
-  const mergedTipo = initialFilters?.tipo
-    ? ([initialFilters.tipo] as TipoInmueble[])
-    : initialState.tipo;
+  const mergedTipo = initialFilters?.tipo ?? initialState.tipo;
   const mergedDepartamento = initialFilters?.departamento ?? initialState.departamento;
   const mergedMunicipio = initialFilters?.municipio ?? initialState.municipio;
   const mergedPrecioMin = initialFilters?.precioMin
@@ -85,18 +57,16 @@ export function Filters({
   const mergedPrecioMax = initialFilters?.precioMax
     ? String(initialFilters.precioMax)
     : initialState.precioMax;
-  const mergedDestacada = initialFilters?.destacada ?? initialState.destacada;
   const mergedDormitorios = initialFilters?.dormitorios ?? initialState.dormitorios;
   const mergedBanos = initialFilters?.banos ?? initialState.banos;
   const mergedAreaMin = initialFilters?.areaMin ?? initialState.areaMin;
   const mergedEstrato = initialFilters?.estrato ?? initialState.estrato;
 
-  const [tipo, setTipo] = useState<TipoInmueble[]>(mergedTipo);
+  const [tipo, setTipo] = useState<string>(mergedTipo);
   const [departamento, setDepartamento] = useState<string>(mergedDepartamento);
   const [municipio, setMunicipio] = useState<string>(mergedMunicipio);
   const [precioMin, setPrecioMin] = useState<string>(mergedPrecioMin);
   const [precioMax, setPrecioMax] = useState<string>(mergedPrecioMax);
-  const [destacada, setDestacada] = useState<boolean>(mergedDestacada);
   const [dormitorios, setDormitorios] = useState<string>(mergedDormitorios);
   const [banos, setBanos] = useState<string>(mergedBanos);
   const [areaMin, setAreaMin] = useState<string>(mergedAreaMin);
@@ -116,38 +86,28 @@ export function Filters({
     setMunicipio(newState.municipio);
     setPrecioMin(newState.precioMin);
     setPrecioMax(newState.precioMax);
-    setDestacada(newState.destacada);
     setDormitorios(newState.dormitorios);
     setBanos(newState.banos);
     setAreaMin(newState.areaMin);
     setEstrato(newState.estrato);
   }, [searchParams]);
 
-  const notifyFiltersChange = () => {
-    if (onFiltersChange) {
-      onFiltersChange({
-        tipo: tipo.length > 0 ? tipo.join(',') : undefined,
-        departamento: departamento || undefined,
-        municipio: municipio || undefined,
-        precioMin: precioMin ? Number(precioMin) : undefined,
-        precioMax: precioMax ? Number(precioMax) : undefined,
-        dormitorios: dormitorios || undefined,
-        banos: banos || undefined,
-        areaMin: areaMin || undefined,
-        estrato: estrato || undefined,
-        destacada: destacada || undefined,
-      });
-    }
-  };
+  // AC2.2.3: las combinaciones que el backend rechazaría se impiden antes de pedir.
+  const errores = validarFiltros({
+    departamento: departamento || undefined,
+    municipio: municipio || undefined,
+    precioMin: precioMin === '' ? undefined : Number(precioMin),
+    precioMax: precioMax === '' ? undefined : Number(precioMax),
+  });
+  const hayErrores = tieneErrores(errores);
 
   const updateUrl = () => {
     const params = new URLSearchParams();
-    if (tipo.length > 0) params.set('tipo', tipo.join(','));
+    if (tipo) params.set('tipo', tipo);
     if (departamento) params.set('departamento', departamento);
     if (municipio) params.set('municipio', municipio);
     if (precioMin) params.set('precioMin', precioMin);
     if (precioMax) params.set('precioMax', precioMax);
-    if (destacada) params.set('destacada', 'true');
     if (dormitorios) params.set('dormitorios', dormitorios);
     if (banos) params.set('banos', banos);
     if (areaMin) params.set('areaMin', areaMin);
@@ -156,31 +116,27 @@ export function Filters({
     const currentPath = window.location.pathname;
     const newUrl = params.toString() ? `${currentPath}?${params.toString()}` : currentPath;
     router.push(newUrl, { scroll: false });
-    notifyFiltersChange();
   };
 
   const handleClear = () => {
-    setTipo([]);
+    setTipo('');
     setDepartamento('');
     setMunicipio('');
     setPrecioMin('');
     setPrecioMax('');
-    setDestacada(false);
     setDormitorios('');
     setBanos('');
     setAreaMin('');
     setEstrato('');
     router.push(window.location.pathname, { scroll: false });
-    notifyFiltersChange();
   };
 
   const hasActiveFilters =
-    tipo.length > 0 ||
+    tipo ||
     departamento ||
     municipio ||
     precioMin ||
     precioMax ||
-    destacada ||
     dormitorios ||
     banos ||
     areaMin ||
@@ -190,13 +146,11 @@ export function Filters({
     es: {
       title: 'Filtros',
       tipo: 'Tipo de inmueble',
-      ubicacion: 'Ubicación',
       departamento: 'Departamento',
       municipio: 'Municipio',
       precio: 'Rango de precio (COP)',
       min: 'Mín',
       max: 'Máx',
-      destacada: 'Solo destacadas',
       dormitorios: 'Dormitorios mín.',
       banos: 'Baños mín.',
       area: 'Área mín. (m²)',
@@ -204,17 +158,18 @@ export function Filters({
       aplicar: 'Aplicar',
       limpiar: 'Limpiar',
       clearAll: 'Limpiar todos',
+      errUbicacion: 'Elige también el municipio.',
+      errPrecioRango: 'El precio mínimo no puede ser mayor que el máximo.',
+      errPrecioFormato: 'Escribe precios enteros, sin signo ni decimales.',
     },
     en: {
       title: 'Filters',
       tipo: 'Property Type',
-      ubicacion: 'Location',
       departamento: 'Department',
       municipio: 'Municipality',
       precio: 'Price Range (COP)',
       min: 'Min',
       max: 'Max',
-      destacada: 'Featured Only',
       dormitorios: 'Min Bedrooms',
       banos: 'Min Bathrooms',
       area: 'Min Area (m²)',
@@ -222,10 +177,17 @@ export function Filters({
       aplicar: 'Apply',
       limpiar: 'Clear',
       clearAll: 'Clear All',
+      errUbicacion: 'Please choose a municipality too.',
+      errPrecioRango: 'The minimum price cannot be greater than the maximum.',
+      errPrecioFormato: 'Enter whole prices, without sign or decimals.',
     },
   }[locale];
 
   const municipioOptions = municipiosDe(departamento);
+  const tipoOptions = TIPOS_INMUEBLE_CATALOGO.map((opt) => ({
+    value: opt.value,
+    label: opt.label[locale],
+  }));
 
   return (
     <div className={styles.container}>
@@ -245,28 +207,19 @@ export function Filters({
       </div>
 
       <Grid className={styles.grid}>
-        {/* Tipo de inmueble */}
+        {/* Tipo de inmueble (un solo valor, D28) */}
         <div className={`${styles.field} ${styles.fieldSpan2}`}>
           <Text size="sm" fw={500} c="dimmed" className={styles.label}>
             {t.tipo}
           </Text>
-          <Group grow>
-            {TIPO_INMUEBLE_OPTIONS[locale].map((opt) => (
-              <Checkbox
-                key={opt.value}
-                label={opt.label}
-                checked={tipo.includes(opt.value as TipoInmueble)}
-                onChange={(e) =>
-                  setTipo((prev) =>
-                    e.currentTarget.checked
-                      ? [...prev, opt.value as TipoInmueble]
-                      : prev.filter((t) => t !== opt.value),
-                  )
-                }
-                size="sm"
-              />
-            ))}
-          </Group>
+          <Select
+            placeholder={t.tipo}
+            value={tipo || null}
+            onChange={(value) => setTipo(value || '')}
+            data={tipoOptions}
+            size="sm"
+            clearable
+          />
         </div>
 
         {/* Ubicación - Departamento */}
@@ -300,6 +253,7 @@ export function Filters({
             size="sm"
             clearable
             disabled={!departamento}
+            error={errores.ubicacion && departamento ? t.errUbicacion : undefined}
           />
         </div>
 
@@ -317,6 +271,7 @@ export function Filters({
               size="sm"
               min={0}
               step={100000}
+              error={errores.precio !== null}
             />
             <Input
               type="number"
@@ -326,18 +281,14 @@ export function Filters({
               size="sm"
               min={0}
               step={100000}
+              error={errores.precio !== null}
             />
           </Grid>
-        </div>
-
-        {/* Destacada */}
-        <div className={`${styles.field} ${styles.featuredField}`}>
-          <Checkbox
-            label={t.destacada}
-            checked={destacada}
-            onChange={(e) => setDestacada(e.currentTarget.checked)}
-            size="sm"
-          />
+          {errores.precio !== null && (
+            <Text size="xs" c="red" role="alert">
+              {errores.precio === 'rango' ? t.errPrecioRango : t.errPrecioFormato}
+            </Text>
+          )}
         </div>
 
         {/* Dormitorios */}
@@ -347,7 +298,7 @@ export function Filters({
           </Text>
           <Select
             placeholder={t.dormitorios}
-            value={dormitorios}
+            value={dormitorios || null}
             onChange={(value) => setDormitorios(value || '')}
             data={[
               { value: '1', label: '1+' },
@@ -368,7 +319,7 @@ export function Filters({
           </Text>
           <Select
             placeholder={t.banos}
-            value={banos}
+            value={banos || null}
             onChange={(value) => setBanos(value || '')}
             data={[
               { value: '1', label: '1+' },
@@ -404,7 +355,7 @@ export function Filters({
           </Text>
           <Select
             placeholder={t.estrato}
-            value={estrato}
+            value={estrato || null}
             onChange={(value) => setEstrato(value || '')}
             data={[
               { value: '1', label: '1' },
@@ -426,7 +377,7 @@ export function Filters({
         <Button variant="subtle" color="gray" onClick={handleClear} size="sm">
           {t.limpiar}
         </Button>
-        <Button onClick={updateUrl} size="sm">
+        <Button onClick={updateUrl} size="sm" disabled={hayErrores}>
           {t.aplicar}
         </Button>
       </Group>
