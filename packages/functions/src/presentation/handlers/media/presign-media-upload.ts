@@ -11,7 +11,7 @@ import type { Request, Response, NextFunction } from 'express';
 
 const bodySchema = z.object({
   nombre: z.string().min(1),
-  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  mimeType: z.string(),
 });
 
 /**
