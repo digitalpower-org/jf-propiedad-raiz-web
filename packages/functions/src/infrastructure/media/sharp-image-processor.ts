@@ -5,6 +5,8 @@ import type {
   DerivadoImagenProcesado,
   DerivadosImagenResult,
 } from '../../application/ports/image-processor';
+import { ApiError } from '../../domain/errors/api-error';
+import { errorCode } from '../../domain/errors/errorCatalog';
 
 /**
  * Tamaños de derivados WebP (AGENTS.md §9): 320, 640, 1280, 2048 o tamaño completo.
@@ -17,36 +19,55 @@ const LADO_MAYOR_MINIMO = 800;
 /** Tope de píxeles totales (ancho × alto) para evitar imágenes excesivas. */
 const PIXELES_MAXIMOS = 50_000_000; // 50 MP
 
+/** MIME types permitidos. */
+const MIME_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
 /**
  * Adaptador Sharp de `ImageProcessor`.
  *
  * Valida y transforma imágenes en memoria. No conoce Express, HTTP ni R2.
+ * Lanza ApiError con códigos específicos para fallos de validación esperados.
  */
 export function createSharpImageProcessor(): ImageProcessor {
   async function validarImagen(
     buffer: Buffer,
-    _mimeType: string,
+    mimeType: string,
   ): Promise<{ readonly ancho: number; readonly alto: number }> {
+    // Validar MIME type
+    if (!MIME_PERMITIDOS.includes(mimeType as (typeof MIME_PERMITIDOS)[number])) {
+      throw new ApiError(errorCode.unsupportedMedia, 'Tipo de contenido no soportado', [
+        { field: 'mimeType', issue: `Tipo no permitido: ${mimeType}` },
+      ]);
+    }
+
     const metadata = await sharp(buffer).metadata();
 
     const ancho = metadata.width ?? 0;
     const alto = metadata.height ?? 0;
 
     if (ancho === 0 || alto === 0) {
-      throw new Error('Imagen sin dimensiones válidas');
+      throw new ApiError(errorCode.validationError, 'Imagen sin dimensiones válidas', [
+        { field: 'image', issue: 'No se pudieron leer las dimensiones' },
+      ]);
     }
 
     const ladoMayor = Math.max(ancho, alto);
 
     if (ladoMayor < LADO_MAYOR_MINIMO) {
-      throw new Error(
+      throw new ApiError(
+        errorCode.imageTooSmall,
         `Imagen demasiado pequeña: lado mayor ${ladoMayor}px, mínimo ${LADO_MAYOR_MINIMO}px`,
+        [{ field: 'image', issue: `Lado mayor ${ladoMayor}px < ${LADO_MAYOR_MINIMO}px` }],
       );
     }
 
     const pixeles = ancho * alto;
     if (pixeles > PIXELES_MAXIMOS) {
-      throw new Error(`Imagen demasiado grande: ${pixeles}px, máximo ${PIXELES_MAXIMOS}px`);
+      throw new ApiError(
+        errorCode.imageTooLarge,
+        `Imagen demasiado grande: ${pixeles}px, máximo ${PIXELES_MAXIMOS}px`,
+        [{ field: 'image', issue: `Píxeles ${pixeles} > ${PIXELES_MAXIMOS}` }],
+      );
     }
 
     return { ancho, alto };

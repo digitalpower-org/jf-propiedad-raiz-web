@@ -20,11 +20,16 @@ export interface DerivadosImagenResult {
  * Implementado por Sharp.
  *
  * No conoce Express, HTTP ni R2: solo valida y transforma imágenes en memoria.
+ * Lanza ApiError con códigos específicos para fallos de validación esperados:
+ * - UNSUPPORTED_MEDIA: tipo MIME no soportado
+ * - IMAGE_TOO_LARGE: peso o píxeles exceden límites
+ * - IMAGE_TOO_SMALL: lado mayor menor a 800px
+ * - VALIDATION_ERROR: imagen sin dimensiones válidas, panorámica sin proporción 2:1
  */
 export interface ImageProcessor {
   /**
    * Valida una imagen subida: tipo de contenido, peso, dimensiones mínimas,
-   * tope de píxeles y proporción. Lanza si no pasa alguna validación.
+   * tope de píxeles y proporción. Lanza ApiError si no pasa alguna validación.
    */
   readonly validarImagen: (
     buffer: Buffer,
