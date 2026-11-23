@@ -2,7 +2,7 @@
  * US0.4 - E2E: cambio de idioma entre es y en
  * Playwright - verificación de que el selector de idioma navega a la ruta equivalente
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/client-ip';
 
 const LANGUAGE_SWITCH_CASES = [
   { from: '/es/venta', to: '/en/sale' },

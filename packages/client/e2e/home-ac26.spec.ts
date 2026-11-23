@@ -10,7 +10,7 @@
  * AC2.6.7: 0 errores [home] en consola
  * Nota: AC2.6.4 y AC2.6.5 requieren backend real caído (fetch server-side); tests de mocking no aplican.
  */
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './helpers/client-ip';
 
 const HOME_URLS = ['/es', '/en'] as const;
 const VIEWPORTS = [

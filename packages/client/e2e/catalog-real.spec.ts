@@ -3,7 +3,7 @@
  * /es/venta, /es/alquiler, /es/proyectos (y /en/...)
  * Verifica: PropertyCard con datos backend, filtros, scroll infinito, SEO
  */
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './helpers/client-ip';
 
 const CATALOG_ROUTES = [
   {
