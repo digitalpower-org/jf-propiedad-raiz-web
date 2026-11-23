@@ -23,7 +23,7 @@
 - [x] **MT0.1** `[D1+D2]` Planificación, proceso y decisiones (DoD, ramas, commits, QA, flujos de auth) ← —
 - [x] **MT0.2** `[D1+D2]` Repositorio y tooling (monorepo, lint/format, CI con 7 gates) ← MT0.1
 - [ ] **MT0.3** `[D1]` Infraestructura, cuentas y entornos (Firebase Blaze, R2, Resend, Translation, Secret Manager → .env, Scheduler eliminado, alerta presupuesto pendiente) ← MT0.1
-  **GAP:** Firebase Blaze plan no provisionado (requerido para App Hosting en producción). R2, Resend, Translation y Secret Manager no están configurados en el proyecto real. Alerta de presupuesto pendiente. Sin estas cuentas, MT0.5 y MT1.5 no pueden desplegarse.
+  **GAP:** Firebase Blaze plan no provisionado (requerido para App Hosting en producción). R2, Translation y Secret Manager no están configurados en el proyecto real. Resend tiene API key real en `packages/functions/.env` (gitignored) con entrega verificada en local por BFF (`:5002/api/consignments`) y backend directo (`:5001/.../api/v1/consignments`), pero falta evidencia manual de dominio verificado con SPF/DKIM para `consignaciones@jfpropiedadraiz.com` (AC3.2.6) y secreto en producción. CI usa clave falsa por diseño. Alerta de presupuesto pendiente. Sin estas cuentas, MT0.5 y MT1.5 no pueden desplegarse.
 - [x] **MT0.4** `[D1+D2]` Andamiaje técnico: contratos y base i18n ← MT0.2
   - [x] US0.1 `[D1]` Contrato API (2 OpenAPI), `shared-types`, catálogo de errores y helper `buildWhatsAppUrl` (D35)
   - [x] US0.4 `[D2]` Internacionalización por rutas `/es` y `/en`
@@ -57,10 +57,10 @@
 - [x] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
   - [x] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError` (evidencia: `lib/api-error.ts` + `lib/http-client.ts`; duplicado corregido; `ErrorBoundary` stub creado)
 - [ ] **MT1.4** `[D1]` Revalidación y traducción ← MT1.1, MT0.3
-  **GAP:** Revalidación está cableada y probada en integración para las 5 escrituras de inmueble (crear, actualizar, activar, ocultar, borrado lógico). Traducción create/update de inmuebles está cableada y probada en integración. Pendientes: escrituras de servicios/Nosotros y UI de reintento de traducción en el editor.
+  **GAP:** Revalidación cableada y probada en integración para las 5 escrituras de inmueble (crear, actualizar, activar, ocultar, borrado lógico). Traducción create/update de inmuebles, servicios y Nosotros cableada y probada con tests unitarios de handler y de integración HTTP (`translateContentFields` + revalidación). Pendiente para US0.5: UI del editor con indicador por campo, interruptor global y botón «Reintentar traducción» (AC0.5.6, AC4.1.4); la MT sigue abierta hasta esa UI y su E2E.
   - [x] US0.3 `[D1]` Revalidación bajo demanda
   - [ ] US0.5 `[D1]` Traducción ES→EN selectiva por campo + edición manual
-  **Nota:** AC0.5.5 pide bandera global `traduccionPendiente: true` en la respuesta; `docs/openapi.backend.yaml` no tiene ese campo y cambiarlo está fuera de alcance. El equivalente implementado es `enPendiente` por campo (ver `Translatable` en OpenAPI).
+  **Nota:** AC0.5.5 quedó formalizado con D38 (`docs/TASKS.md`): `enPendiente: true` por campo en `Translatable` es la forma oficial de indicar traducción pendiente, equivalente a la bandera global `traduccionPendiente: true` del texto original. No se añade el campo global a `docs/openapi.backend.yaml` ni a `shared-types`.
 - [x] **MT1.5** `[D1]` Operación base y despliegue temprano ← MT0.5, MT1.1, MT1.4
   - [x] US6.1 `[D1]` (andamiaje) Datos de ejemplo reproducibles ← Paquete: `packages/functions/src/seed/sample-data.ts`
   - [x] US6.2 `[D1]` Costos y presupuesto bajo control ← Paquete: `packages/functions/src/budget-config.ts`
@@ -103,6 +103,8 @@
     - [x] `[D1]` Endpoint BFF/Functions `POST /api/consignments` (integración Resend, validación, límite de envíos)
     - [x] `[D2]` UI formulario `app/[locale]/consignar` (campos, consentimiento, manejo 429/422/500)
   - [ ] US3.2 `[D1]` Notificación por correo con Resend (BFF/Functions)
+    - **Nota:** Evidencia local 23 nov 2026: `POST /api/consignments` vía BFF en `:5002` y `POST /api/v1/consignments` directo en `:5001` → `200` con correos recibidos por admin y solicitante; honeypot → `200`/`enviado:false`; 6.º envío → `429`; `CONSENT_REQUIRED`, `VALIDATION_ERROR`, `VALIDATION_ERROR` por falta de `X-Client-IP`, `401` por clave inválida y `405` por GET verificados.
+    - **GAP:** AC3.2.6 sigue pendiente: falta registrar quién/cuándo y evidencia de dominio verificado con SPF/DKIM en Resend para `consignaciones@jfpropiedadraiz.com`; US3.2 sigue abierta hasta entonces.
   - [x] US3.3 `[D2]` Consentimiento de tratamiento de datos (UI)
   - [x] US3.4 `[D1]` Protección contra bots y límite de envíos (BFF/Functions)
 

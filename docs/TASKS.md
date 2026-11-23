@@ -2,11 +2,12 @@
 # Roadmap de Tareas e Historias de Usuario (Spec-Driven Development)
 
 **Proyecto:** Plataforma Web & CMS `jfpropiedadraiz.com`   
-**Versión:** 1.1 · 22 de octubre de 2026   
+**Versión:** 1.2 · 23 de noviembre de 2026   
 **Arquitectura:** Monorepo (`packages/shared-types`, `packages/functions`, `packages/client`)   
 **Metodología:** Spec-Driven Development con trazabilidad hacia las dos specs OpenAPI (`./openapi.backend.yaml` y `./openapi.bff.yaml`, D26) y Clean Architecture.   
 **Idiomas:** el sitio público existe en español de Colombia (`es-CO`, idioma por defecto) y en inglés (`en`), bajo rutas `/es/...` y `/en/...` (US0.4). Los admins escriben en español y pueden editar el inglés a mano en el editor de inmuebles; la traducción automática ES→EN es configurable por campo en ese editor (activada por defecto) y el inglés se genera automáticamente al guardar cuando está activa (US0.5, US4.1). El panel `/admin` es solo en español (interfaz). Moneda COP, sin decimales, con formato según el idioma.  
-**Cambios v1.1:** D17 alineado con AC1.10.4 y `firestore.indexes.json` (8 presets = 8 índices de presets); AC7.5.7 sin «consignaciones»; base de decisiones D1–D36.
+**Cambios v1.1:** D17 alineado con AC1.10.4 y `firestore.indexes.json` (8 presets = 8 índices de presets); AC7.5.7 sin «consignaciones»; base de decisiones D1–D36.  
+**Cambios v1.2:** D38 formaliza `enPendiente` por campo como equivalente de `traduccionPendiente` en AC0.5.5, sin cambios en `openapi.backend.yaml`.
 
 ---
 
@@ -68,6 +69,7 @@
 | D35 | Ubicación de `buildWhatsAppUrl` | El helper de WhatsApp (T3, AC2.5.4) vive en **`packages/client/src/lib/whatsapp.ts`**, no en `shared-types`: es código de runtime y `shared-types` es un paquete **sin código ejecutable** (solo `.d.ts` y datos JSON de solo lectura; sin `main`/`exports` de runtime). La función es **pura** —recibe `{ number, message }` y devuelve siempre la URL `https://wa.me/<número>?text=<mensaje codificado>`, sin detección de dispositivo (D37)— para poder probarla y reutilizarla (AC2.5.4). El BFF puede importarla (es el mismo paquete `client`); `functions` no la necesita y sigue consumiendo `@jf/shared-types` solo con `import type` por `tsconfig paths`, lo que evita el TS6059 por archivos fuera de su `rootDir`. |
 | D36 | Implementación de i18n (US0.4) | `next-intl` **4.14.9** (exacta) en `@jf/client`, **sin middleware**: el Proxy sigue reservado por D32 para la superficie de `/api`, y el idioma se resuelve por el segmento `[locale]`. Las rutas localizadas viven en `src/i18n/routes.ts` (`getRoute`/`parsePath`/`getEquivalentPath`, slug y query preservados); los diccionarios son `messages/{es,en}.json` con un test de paridad de claves (AC0.4.4). `/` se resuelve en `app/route.ts` (307 según `Accept-Language`, `es` por defecto) y `dynamicParams = false` devuelve 404 para idiomas no soportados (AC0.4.2). El diccionario se carga con un `import()` por idioma detrás de `server-only` (`src/i18n/messages.ts`), de modo que al navegador solo llega el idioma activo (AC7.2.4). `setRequestLocale` se llama en **cada layout y cada página** porque Next 16 los renderiza en paralelo. Zona horaria de formato: `America/Bogota`. |
 | D37 | URLs de WhatsApp siempre `wa.me` | **Decisión**: todos los enlaces de WhatsApp del sitio usan **exclusivamente** `https://wa.me/<número>?text=<mensaje codificado>`, sin `web.whatsapp.com`, `api.whatsapp.com` ni detección de dispositivo (esos dominios están en desuso y `wa.me` los reemplaza). El número sale de `NEXT_PUBLIC_WHATSAPP_NUMBER` solo con dígitos; si falta, el enlace no se muestra (sin número de respaldo). Afecta D35, AC2.5.1 y AC2.5.4. |
+| D38 | Estado global de traducción pendiente | **Decisión**: `enPendiente: true` en los campos afectados de `Translatable` es la forma oficial de satisfacer AC0.5.5; equivale a la bandera global `traduccionPendiente: true` que el AC pedía originalmente. No se añade ese campo global a `./openapi.backend.yaml` ni a `shared-types`: el contrato ya expone `enPendiente` por campo y la UI deriva el estado global con «algún campo pendiente». Afecta AC0.5.5, AC0.5.10, AC0.5.11 y MT1.4. |
 
 ---
 
@@ -165,7 +167,7 @@
   - AC0.5.2 **Dado** un campo cuyo `es` no cambió y que ya tiene `en` **Entonces** no se vuelve a traducir (control de costo). `[agente]`  
   - AC0.5.3 **Dado** un campo cuyo `es` se vacía **Entonces** su `en` también se vacía. `[agente]`  
   - AC0.5.4 **Dado** una petición de escritura de admin que incluye un valor de `en` **Entonces** el backend lo persiste, limpia `enPendiente` del campo y lo marca como «Actualizada»; las peticiones públicas nunca escriben `en`. `[agente]`  
-  - AC0.5.5 **Dado** que el servicio de traducción falla o tarda más de 10 s **Entonces** el guardado en español se completa igualmente, los campos afectados (con `autoTranslate` activo) quedan «Pendiente» con `en` vacío (nunca con una traducción desactualizada), la respuesta indica `traduccionPendiente: true` y el fallo se registra con su `requestId`. `[agente]`  
+  - AC0.5.5 **Dado** que el servicio de traducción falla o tarda más de 10 s **Entonces** el guardado en español se completa igualmente, los campos afectados (con `autoTranslate` activo) quedan «Pendiente» con `en` vacío (nunca con una traducción desactualizada) y `enPendiente: true` en la respuesta, y el fallo se registra con su `requestId`. El estado por campo es la forma oficial de satisfacer este AC; equivale a la bandera global `traduccionPendiente: true` pedida originalmente, sin añadir ese campo al contrato (D38). `[agente]`  
   - AC0.5.6 **Dado** un documento con campos «Pendiente» **Cuando** el admin pulsa «Reintentar traducción» en el editor o vuelve a guardar **Entonces** se intentan traducir únicamente los campos «Pendiente» que tengan `autoTranslate` activo. `[agente]`  
   - AC0.5.7 **Dado** la traducción **Entonces** se envía como texto plano (sin HTML) y se conservan los saltos de línea y párrafos. `[agente]`  
   - AC0.5.8 **Dado** el puerto `Translator` **Entonces** vive en dominio o aplicación, el proveedor se implementa en infraestructura, ningún módulo fuera de infraestructura importa el SDK del proveedor, y los casos de uso se prueban con un `Translator` falso. `[agente]`  
