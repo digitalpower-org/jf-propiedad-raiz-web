@@ -334,4 +334,228 @@ describe('makeCreatePropertyHandler', () => {
     expect(res.status).toHaveBeenCalledWith(201);
     expect(next).not.toHaveBeenCalled();
   });
+
+  describe('validación de videos (máximo 2)', () => {
+    it('acepta 2 videos', async () => {
+      const received: unknown[] = [];
+      const useCase = {
+        execute: async (cmd: { input: CrearPropertyInputDto }) => {
+          received.push(cmd);
+          return { property: { codigo: 'JF-0001' } };
+        },
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        videos: ['https://youtu.be/video1', 'https://youtu.be/video2'],
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(received).toHaveLength(1);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('rechaza 3 videos con 422', async () => {
+      const useCase = {
+        execute: async () => ({ property: { codigo: 'JF-0001' } }),
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        videos: ['https://youtu.be/video1', 'https://youtu.be/video2', 'https://youtu.be/video3'],
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validación de fechaEntregaEstimada (formato AAAA-MM)', () => {
+    it('acepta formato válido AAAA-MM', async () => {
+      const received: unknown[] = [];
+      const useCase = {
+        execute: async (cmd: { input: CrearPropertyInputDto }) => {
+          received.push(cmd);
+          return { property: { codigo: 'JF-0001' } };
+        },
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        proyecto: { fechaEntregaEstimada: '2025-12' },
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(received).toHaveLength(1);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('rechaza formato inválido (solo año) con 422', async () => {
+      const useCase = {
+        execute: async () => ({ property: { codigo: 'JF-0001' } }),
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        proyecto: { fechaEntregaEstimada: '2025' },
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('rechaza formato inválido (AAAA-MM-DD) con 422', async () => {
+      const useCase = {
+        execute: async () => ({ property: { codigo: 'JF-0001' } }),
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        proyecto: { fechaEntregaEstimada: '2025-12-31' },
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('rechaza formato inválido (MM-AAAA) con 422', async () => {
+      const useCase = {
+        execute: async () => ({ property: { codigo: 'JF-0001' } }),
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        proyecto: { fechaEntregaEstimada: '12-2025' },
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validación de amenidades (enum cerrado)', () => {
+    it('acepta amenidades válidas (PISCINA, CANCHA, GIMNASIO)', async () => {
+      const received: unknown[] = [];
+      const useCase = {
+        execute: async (cmd: { input: CrearPropertyInputDto }) => {
+          received.push(cmd);
+          return { property: { codigo: 'JF-0001' } };
+        },
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        amenidades: ['PISCINA', 'CANCHA', 'GIMNASIO'],
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(received).toHaveLength(1);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('rechaza amenidad desconocida con 422', async () => {
+      const useCase = {
+        execute: async () => ({ property: { codigo: 'JF-0001' } }),
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        amenidades: ['PISCINA', 'SPA'],
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validación de puntosInteres.categoria (enum cerrado)', () => {
+    it('acepta categorías válidas', async () => {
+      const received: unknown[] = [];
+      const useCase = {
+        execute: async (cmd: { input: CrearPropertyInputDto }) => {
+          received.push(cmd);
+          return { property: { codigo: 'JF-0001' } };
+        },
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        puntosInteres: [
+          { categoria: 'EDUCACION', etiqueta: { es: 'Colegio' } },
+          { categoria: 'SALUD', etiqueta: { es: 'Hospital' } },
+          { categoria: 'TRANSPORTE_PUBLICO', etiqueta: { es: 'Metro' } },
+        ],
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(received).toHaveLength(1);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('rechaza categoría desconocida con 422', async () => {
+      const useCase = {
+        execute: async () => ({ property: { codigo: 'JF-0001' } }),
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        puntosInteres: [{ categoria: 'PARQUE', etiqueta: { es: 'Parque' } }],
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('acepta punto de interés personalizado sin categoría', async () => {
+      const received: unknown[] = [];
+      const useCase = {
+        execute: async (cmd: { input: CrearPropertyInputDto }) => {
+          received.push(cmd);
+          return { property: { codigo: 'JF-0001' } };
+        },
+      } as unknown as CrearPropertyUseCase;
+      const handler = makeCreatePropertyHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...validBody,
+        puntosInteres: [{ etiqueta: { es: 'Mi lugar favorito' } }],
+      });
+
+      await (handler as AsyncHandler)(req, res, next as unknown as Parameters<AsyncHandler>[2]);
+
+      expect(received).toHaveLength(1);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(next).not.toHaveBeenCalled();
+    });
+  });
 });

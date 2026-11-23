@@ -19,6 +19,8 @@ import type {
 import type { EstadoPropiedad, PuntoInteres, Translatable } from '@jf/shared-types';
 
 import { errPropertyNotFound } from '../../domain/errors/error-messages';
+import { errorCode } from '../../domain/errors/errorCatalog';
+import { ApiError } from '../../domain/errors/api-error';
 
 const CODIGOS_SECUENCIALES = 'counters';
 const DOC_CODIGO_PROPIEDAD = 'property';
@@ -206,7 +208,9 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       operacion: input.operacion,
       tipo: input.tipo,
       titulo: toFirestoreTranslatable(input.titulo),
-      descripcion: input.descripcion ? toFirestoreTranslatable(input.descripcion) : undefined,
+      ...(input.descripcion !== undefined && {
+        descripcion: toFirestoreTranslatable(input.descripcion),
+      }),
       precio: input.precio,
       departamento: input.departamento,
       municipio: input.municipio,
@@ -366,11 +370,11 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
   }
 
   async function listPublico(filtros: FiltrosListadoPublico): Promise<ListadoPublicoResult> {
+    // Todos los filtros where deben ir antes de cualquier orderBy. Cuando hay
+    // rango de precio, Firestore exige que el primer orderBy sea sobre precio.
     let consulta = propiedades
       .where('operacion', '==', filtros.operacion)
-      .where('destacada', '==', filtros.destacada)
-      .orderBy('createdAt', 'desc')
-      .orderBy('__name__', 'desc');
+      .where('destacada', '==', filtros.destacada);
 
     if (!filtros.includeHidden) {
       consulta = consulta.where('status', '==', 'ACTIVE');
@@ -393,11 +397,28 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
       consulta = consulta.where('precio', '<=', filtros.precioMax);
     }
 
+    if (filtros.precioMin !== undefined || filtros.precioMax !== undefined) {
+      consulta = consulta.orderBy('precio', 'asc');
+    }
+
+    consulta = consulta.orderBy('createdAt', 'desc').orderBy('__name__', 'desc');
+
     consulta = consulta.limit(filtros.limit ?? 12);
 
     if (filtros.cursor) {
-      const cursorData = JSON.parse(Buffer.from(filtros.cursor, 'base64').toString('utf-8'));
-      consulta = consulta.startAfter(cursorData.createdAt, cursorData.id);
+      const cursorData: { createdAt: unknown; id: string } = JSON.parse(
+        Buffer.from(filtros.cursor, 'base64').toString('utf-8'),
+      );
+      // El payload del cursor es opaco { createdAt, id }. Con precio como primer
+      // orderBy, startAfter(createdAt, id) ya no es válido. Se resuelve el
+      // documento por id y se pasa el snapshot a startAfter para que Firestore
+      // derive todos los valores del cursor. Si el documento ya no existe, se
+      // devuelve una pagina vacia sin lanzar.
+      const cursorSnap = await db.doc(`properties/${cursorData.id}`).get();
+      if (!cursorSnap.exists) {
+        return { items: [], nextCursor: undefined };
+      }
+      consulta = consulta.startAfter(cursorSnap);
     }
 
     const snap = await consulta.get();
@@ -471,91 +492,152 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
   async function update(
     idOrSlug: string,
     input: ActualizarPropertyInputDto,
+    expectedUpdatedAt?: string,
   ): Promise<{ property: PropertyDto }> {
-    // Buscar el documento existente
+    const docRef = db.doc(`properties/${idOrSlug}`);
+
+    return await db.runTransaction(async (tx) => {
+      const snap = await tx.get(docRef);
+      let targetRef = docRef;
+      let datosPrevios = snap.exists ? snap.data() : undefined;
+
+      if (!snap.exists) {
+        const porSlugSnap = await propiedades.where('slug', '==', idOrSlug).limit(1).get();
+        if (porSlugSnap.empty) {
+          throw new ApiError(errorCode.propertyNotFound, errPropertyNotFound(idOrSlug));
+        }
+        targetRef = porSlugSnap.docs[0].ref;
+        const slugSnap = await tx.get(targetRef);
+        if (!slugSnap.exists) {
+          throw new ApiError(errorCode.propertyNotFound, errPropertyNotFound(idOrSlug));
+        }
+        datosPrevios = slugSnap.data();
+        // Verificar OCC con el documento resuelto por slug
+        if (expectedUpdatedAt !== undefined) {
+          const storedUpdatedAt = datosPrevios?.updatedAt;
+          const storedISO = storedUpdatedAt ? toISO(storedUpdatedAt) : undefined;
+          if (storedISO !== expectedUpdatedAt) {
+            throw new ApiError(
+              errorCode.conflict,
+              'El inmueble ha sido modificado por otro usuario. Recarga e inténtalo de nuevo.',
+            );
+          }
+        }
+      } else {
+        // Verificar OCC con el documento por ID
+        if (expectedUpdatedAt !== undefined) {
+          const storedUpdatedAt = snap.data()?.updatedAt;
+          const storedISO = storedUpdatedAt ? toISO(storedUpdatedAt) : undefined;
+          if (storedISO !== expectedUpdatedAt) {
+            throw new ApiError(
+              errorCode.conflict,
+              'El inmueble ha sido modificado por otro usuario. Recarga e inténtalo de nuevo.',
+            );
+          }
+        }
+      }
+
+      validarMedios({
+        fotos: input.fotos,
+        videos: input.videos,
+        panoramas: input.panoramas,
+      });
+
+      const ahora = new Date().toISOString();
+
+      const actualizaciones: Record<string, unknown> = { updatedAt: ahora };
+
+      if (input.operacion !== undefined) actualizaciones.operacion = input.operacion;
+      if (input.tipo !== undefined) actualizaciones.tipo = input.tipo;
+      if (input.titulo !== undefined)
+        actualizaciones.titulo = toFirestoreTranslatable(input.titulo);
+      if (input.descripcion !== undefined)
+        actualizaciones.descripcion = toFirestoreTranslatable(input.descripcion);
+      if (input.precio !== undefined) actualizaciones.precio = input.precio;
+      if (input.departamento !== undefined) actualizaciones.departamento = input.departamento;
+      if (input.municipio !== undefined) actualizaciones.municipio = input.municipio;
+      if (input.estrato !== undefined) actualizaciones.estrato = input.estrato;
+      if (input.predial !== undefined) actualizaciones.predial = input.predial;
+      if (input.administracion !== undefined) actualizaciones.administracion = input.administracion;
+      if (input.acabados !== undefined)
+        actualizaciones.acabados = toFirestoreTranslatable(input.acabados);
+      if (input.antiguedad !== undefined) actualizaciones.antiguedad = input.antiguedad;
+      if (input.areaConstruida !== undefined) actualizaciones.areaConstruida = input.areaConstruida;
+      if (input.areaLote !== undefined) actualizaciones.areaLote = input.areaLote;
+      if (input.dormitorios !== undefined) actualizaciones.dormitorios = input.dormitorios;
+      if (input.banos !== undefined) actualizaciones.banos = input.banos;
+      if (input.parqueaderos !== undefined) actualizaciones.parqueaderos = input.parqueaderos;
+      if (input.deposito !== undefined) actualizaciones.deposito = input.deposito;
+      if (input.amenidades !== undefined) actualizaciones.amenidades = input.amenidades;
+      if (input.puntosInteres !== undefined) actualizaciones.puntosInteres = input.puntosInteres;
+      if (input.fotos !== undefined) actualizaciones.fotos = input.fotos;
+      if (input.videos !== undefined) actualizaciones.videos = input.videos;
+      if (input.panoramas !== undefined) actualizaciones.panoramas = input.panoramas;
+      if (input.destacada !== undefined) actualizaciones.destacada = input.destacada;
+      if (input.proyecto !== undefined) {
+        actualizaciones.proyecto = {
+          ...(input.proyecto.etapa !== undefined
+            ? { etapa: toFirestoreTranslatable(input.proyecto.etapa) }
+            : {}),
+          ...(input.proyecto.fechaEntregaEstimada !== undefined
+            ? { fechaEntregaEstimada: input.proyecto.fechaEntregaEstimada }
+            : {}),
+          ...(input.proyecto.unidadesDisponibles !== undefined
+            ? { unidadesDisponibles: input.proyecto.unidadesDisponibles }
+            : {}),
+        };
+      }
+
+      tx.update(targetRef, actualizaciones);
+
+      const datosActualizados = { ...(datosPrevios ?? {}), ...actualizaciones };
+      const property = documentoAPropertyDto({
+        id: targetRef.id,
+        data: () => datosActualizados,
+      });
+
+      return { property };
+    });
+  }
+
+  async function activate(idOrSlug: string): Promise<ActivarPropertyResult> {
+    // Resolver referencia (por id o por slug)
     const snap = await db.doc(`properties/${idOrSlug}`).get();
     let docRef = db.doc(`properties/${idOrSlug}`);
 
     if (!snap.exists) {
       const porSlugSnap = await propiedades.where('slug', '==', idOrSlug).limit(1).get();
       if (porSlugSnap.empty) {
-        throw new Error(errPropertyNotFound(idOrSlug));
+        throw new ApiError(errorCode.propertyNotFound, errPropertyNotFound(idOrSlug));
       }
       docRef = porSlugSnap.docs[0].ref;
     }
 
+    const currentSnap = await docRef.get();
+    const currentProperty = currentSnap.data() as Record<string, unknown> | undefined;
+    const currentStatus = currentProperty?.status as EstadoPropiedad | undefined;
+    const hasFechaPublicacion = currentProperty?.fechaPublicacion !== undefined;
+
     const ahora = new Date().toISOString();
+    const updates: Record<string, unknown> = {
+      status: 'ACTIVE',
+      updatedAt: ahora,
+    };
 
-    validarMedios({
-      fotos: input.fotos,
-      videos: input.videos,
-      panoramas: input.panoramas,
-    });
-
-    const actualizaciones: Record<string, unknown> = { updatedAt: ahora };
-
-    if (input.operacion !== undefined) actualizaciones.operacion = input.operacion;
-    if (input.tipo !== undefined) actualizaciones.tipo = input.tipo;
-    if (input.titulo !== undefined) actualizaciones.titulo = toFirestoreTranslatable(input.titulo);
-    if (input.descripcion !== undefined)
-      actualizaciones.descripcion = toFirestoreTranslatable(input.descripcion);
-    if (input.precio !== undefined) actualizaciones.precio = input.precio;
-    if (input.departamento !== undefined) actualizaciones.departamento = input.departamento;
-    if (input.municipio !== undefined) actualizaciones.municipio = input.municipio;
-    if (input.estrato !== undefined) actualizaciones.estrato = input.estrato;
-    if (input.predial !== undefined) actualizaciones.predial = input.predial;
-    if (input.administracion !== undefined) actualizaciones.administracion = input.administracion;
-    if (input.acabados !== undefined)
-      actualizaciones.acabados = toFirestoreTranslatable(input.acabados);
-    if (input.antiguedad !== undefined) actualizaciones.antiguedad = input.antiguedad;
-    if (input.areaConstruida !== undefined) actualizaciones.areaConstruida = input.areaConstruida;
-    if (input.areaLote !== undefined) actualizaciones.areaLote = input.areaLote;
-    if (input.dormitorios !== undefined) actualizaciones.dormitorios = input.dormitorios;
-    if (input.banos !== undefined) actualizaciones.banos = input.banos;
-    if (input.parqueaderos !== undefined) actualizaciones.parqueaderos = input.parqueaderos;
-    if (input.deposito !== undefined) actualizaciones.deposito = input.deposito;
-    if (input.amenidades !== undefined) actualizaciones.amenidades = input.amenidades;
-    if (input.puntosInteres !== undefined) actualizaciones.puntosInteres = input.puntosInteres;
-    if (input.fotos !== undefined) actualizaciones.fotos = input.fotos;
-    if (input.videos !== undefined) actualizaciones.videos = input.videos;
-    if (input.panoramas !== undefined) actualizaciones.panoramas = input.panoramas;
-    if (input.destacada !== undefined) actualizaciones.destacada = input.destacada;
-    if (input.proyecto !== undefined) {
-      actualizaciones.proyecto = {
-        ...(input.proyecto.etapa !== undefined
-          ? { etapa: toFirestoreTranslatable(input.proyecto.etapa) }
-          : {}),
-        ...(input.proyecto.fechaEntregaEstimada !== undefined
-          ? { fechaEntregaEstimada: input.proyecto.fechaEntregaEstimada }
-          : {}),
-        ...(input.proyecto.unidadesDisponibles !== undefined
-          ? { unidadesDisponibles: input.proyecto.unidadesDisponibles }
-          : {}),
-      };
+    // Solo fijar fechaPublicacion si es la primera activación (venía de HIDDEN y no tiene fechaPublicacion)
+    if (currentStatus === 'HIDDEN' && !hasFechaPublicacion) {
+      updates.fechaPublicacion = ahora;
     }
 
-    await docRef.update(actualizaciones);
+    await docRef.update(updates);
 
-    const snapActualizado = await docRef.get();
-    const property = documentoAPropertyDto(snapActualizado);
-
-    return { property };
-  }
-
-  async function activate(idOrSlug: string): Promise<ActivarPropertyResult> {
-    await cambiarEstado(idOrSlug, 'ACTIVE');
-
-    const snap = await db.doc(`properties/${idOrSlug}`).get();
-    if (!snap.exists) {
-      throw new Error(errPropertyNotFound(idOrSlug));
-    }
-
-    const property = documentoAPropertyDto(snap);
+    const updatedSnap = await docRef.get();
+    const property = documentoAPropertyDto(updatedSnap);
 
     return {
       property,
-      primeraActivacion: property.fechaPublicacion !== undefined,
-      fechaPublicacion: property.fechaPublicacion ?? new Date().toISOString(),
+      primeraActivacion: !hasFechaPublicacion && currentStatus === 'HIDDEN',
+      fechaPublicacion: property.fechaPublicacion ?? ahora,
     };
   }
 
@@ -564,7 +646,7 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
 
     const snap = await db.doc(`properties/${idOrSlug}`).get();
     if (!snap.exists) {
-      throw new Error(errPropertyNotFound(idOrSlug));
+      throw new ApiError(errorCode.propertyNotFound, errPropertyNotFound(idOrSlug));
     }
 
     const property = documentoAPropertyDto(snap);
@@ -577,7 +659,7 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
 
     const snap = await db.doc(`properties/${idOrSlug}`).get();
     if (!snap.exists) {
-      throw new Error(errPropertyNotFound(idOrSlug));
+      throw new ApiError(errorCode.propertyNotFound, errPropertyNotFound(idOrSlug));
     }
 
     const property = documentoAPropertyDto(snap);
@@ -593,7 +675,7 @@ export function createFirestorePropertiesRepository(db: Firestore): PropertiesRe
     if (!snap.exists) {
       const porSlugSnap = await propiedades.where('slug', '==', idOrSlug).limit(1).get();
       if (porSlugSnap.empty) {
-        throw new Error(errPropertyNotFound(idOrSlug));
+        throw new ApiError(errorCode.propertyNotFound, errPropertyNotFound(idOrSlug));
       }
       docRef = porSlugSnap.docs[0].ref;
     }

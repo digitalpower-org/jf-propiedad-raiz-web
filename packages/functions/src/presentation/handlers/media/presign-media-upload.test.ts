@@ -4,6 +4,8 @@ import type { PresignMediaUploadUseCase } from '../../../application/use-cases/m
 import { makePresignMediaUploadHandler } from './presign-media-upload';
 import type { AsyncHandler } from '../types';
 import type { Request, Response, NextFunction } from 'express';
+import { errorCode } from '../../../domain/errors/api-error';
+import { ApiError } from '../../../domain/errors/api-error';
 
 function makeRes() {
   return {
@@ -53,7 +55,7 @@ describe('makePresignMediaUploadHandler', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('pasa el error a next cuando el use case falla', async () => {
+  it('pasa el error a next cuando el use case falla con error genérico', async () => {
     const useCase = { execute: vi.fn() } as unknown as PresignMediaUploadUseCase;
     (useCase.execute as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('error_presignando'));
     const handler = makePresignMediaUploadHandler(useCase);
@@ -63,6 +65,20 @@ describe('makePresignMediaUploadHandler', () => {
     await (handler as AsyncHandler)(req, res, next);
 
     expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('pasa ApiError UNSUPPORTED_MEDIA a next para MIME inválido', async () => {
+    const useCase = { execute: vi.fn() } as unknown as PresignMediaUploadUseCase;
+    const apiError = new ApiError(errorCode.unsupportedMedia, 'Tipo MIME no soportado');
+    (useCase.execute as ReturnType<typeof vi.fn>).mockRejectedValue(apiError);
+    const handler = makePresignMediaUploadHandler(useCase);
+    const res = makeRes();
+    const req = makeReq({ nombre: 'foto.gif', mimeType: 'image/gif' });
+
+    await (handler as AsyncHandler)(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(apiError);
     expect(res.status).not.toHaveBeenCalled();
   });
 });

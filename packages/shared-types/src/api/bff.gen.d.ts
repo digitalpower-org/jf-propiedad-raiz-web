@@ -712,6 +712,7 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
                 }[];
             }[];
             /** @description Máx. 2 URLs de YouTube (MODELO DE DATOS, D13). */
@@ -721,6 +722,7 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
                 }[];
             }[];
             destacada?: boolean;

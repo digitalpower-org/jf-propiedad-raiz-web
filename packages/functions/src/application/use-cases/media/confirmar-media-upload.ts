@@ -3,6 +3,8 @@ import type { Logger } from '../../ports/logger';
 import type { MediaStorage } from '../../ports/media-storage';
 import type { RecursoMedia } from '@jf/shared-types';
 import type { ConfirmarSubidaResult } from '../../ports/media-storage';
+import { ApiError } from '../../../domain/errors/api-error';
+import { errorCode } from '../../../domain/errors/errorCatalog';
 
 export interface ConfirmarMediaUploadCommand {
   readonly key: string;
@@ -24,6 +26,13 @@ export class ConfirmarMediaUploadUseCase implements UseCase<
   ) {}
 
   async execute(command: ConfirmarMediaUploadCommand): Promise<ConfirmarSubidaResult> {
+    // Validar prefijo pending/ como defensa en profundidad
+    if (!command.key.startsWith('pending/')) {
+      throw new ApiError(errorCode.validationError, 'Clave inválida: debe comenzar con pending/', [
+        { field: 'key', issue: 'La clave debe estar en pending/' },
+      ]);
+    }
+
     const resultado = await this.mediaStorage.confirmarSubida(command.key, command.recurso);
 
     this.logger.info('media_confirmed', {

@@ -27,7 +27,7 @@ function makeReq(params: unknown, body: unknown, headers: unknown) {
 const next = vi.fn();
 
 const validParams = { idOrSlug: 'doc-1' };
-const validBody = { precio: 200000000 };
+const validBody = { precio: 200000000, updatedAt: '2026-01-15T10:00:00.000Z' };
 const validHeaders = {
   'x-user-id': 'user-1',
   'x-user-role': 'admin',
@@ -77,7 +77,12 @@ describe('makeUpdatePropertyHandler', () => {
   it('acepta fotos, videos y panoramas en el body de actualización', async () => {
     const received: unknown[] = [];
     const useCase = {
-      execute: async (cmd: { idOrSlug: string; input: unknown }) => {
+      execute: async (cmd: {
+        idOrSlug: string;
+        input: unknown;
+        expectedUpdatedAt?: string;
+        requestId?: string;
+      }) => {
         received.push(cmd);
         return { property: { codigo: 'JF-0001' } };
       },
@@ -108,8 +113,9 @@ describe('makeUpdatePropertyHandler', () => {
     expect(received).toHaveLength(1);
     expect(received[0]).toEqual({
       idOrSlug: 'doc-1',
+      expectedUpdatedAt: '2026-01-15T10:00:00.000Z',
       input: {
-        ...validBody,
+        precio: 200000000,
         fotos: [
           {
             derivados: [{ clave: 'abc-123-320.webp', ancho: 320, alto: 240 }],
@@ -122,6 +128,7 @@ describe('makeUpdatePropertyHandler', () => {
           },
         ],
       },
+      requestId: undefined,
     });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
@@ -151,7 +158,12 @@ describe('makeUpdatePropertyHandler', () => {
   it('acepta titulo con en y autoTranslate en actualización', async () => {
     const received: unknown[] = [];
     const useCase = {
-      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+      execute: async (cmd: {
+        idOrSlug: string;
+        input: ActualizarPropertyInputDto;
+        expectedUpdatedAt?: string;
+        requestId?: string;
+      }) => {
         received.push(cmd);
         return { property: { codigo: 'JF-0001' } };
       },
@@ -175,6 +187,9 @@ describe('makeUpdatePropertyHandler', () => {
       en: 'Updated house',
       autoTranslate: false,
     });
+    expect((received[0] as { expectedUpdatedAt?: string }).expectedUpdatedAt).toBe(
+      '2026-01-15T10:00:00.000Z',
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });
@@ -182,7 +197,12 @@ describe('makeUpdatePropertyHandler', () => {
   it('acepta descripcion vacia con autoTranslate en actualización', async () => {
     const received: unknown[] = [];
     const useCase = {
-      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+      execute: async (cmd: {
+        idOrSlug: string;
+        input: ActualizarPropertyInputDto;
+        expectedUpdatedAt?: string;
+        requestId?: string;
+      }) => {
         received.push(cmd);
         return { property: { codigo: 'JF-0001' } };
       },
@@ -205,6 +225,9 @@ describe('makeUpdatePropertyHandler', () => {
       es: '',
       autoTranslate: true,
     });
+    expect((received[0] as { expectedUpdatedAt?: string }).expectedUpdatedAt).toBe(
+      '2026-01-15T10:00:00.000Z',
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });
@@ -257,6 +280,7 @@ describe('makeUpdatePropertyHandler', () => {
       execute: async (cmd: {
         idOrSlug: string;
         input: ActualizarPropertyInputDto;
+        expectedUpdatedAt?: string;
         requestId?: string;
       }) => {
         received.push(cmd);
@@ -272,6 +296,9 @@ describe('makeUpdatePropertyHandler', () => {
 
     expect(received).toHaveLength(1);
     expect((received[0] as { requestId?: string }).requestId).toBe('req-456');
+    expect((received[0] as { expectedUpdatedAt?: string }).expectedUpdatedAt).toBe(
+      '2026-01-15T10:00:00.000Z',
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });
@@ -279,7 +306,12 @@ describe('makeUpdatePropertyHandler', () => {
   it('acepta acabados con autoTranslate en actualización', async () => {
     const received: unknown[] = [];
     const useCase = {
-      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+      execute: async (cmd: {
+        idOrSlug: string;
+        input: ActualizarPropertyInputDto;
+        expectedUpdatedAt?: string;
+        requestId?: string;
+      }) => {
         received.push(cmd);
         return { property: { codigo: 'JF-0001' } };
       },
@@ -302,6 +334,9 @@ describe('makeUpdatePropertyHandler', () => {
       es: 'Acabados actualizados',
       autoTranslate: true,
     });
+    expect((received[0] as { expectedUpdatedAt?: string }).expectedUpdatedAt).toBe(
+      '2026-01-15T10:00:00.000Z',
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });
@@ -309,7 +344,12 @@ describe('makeUpdatePropertyHandler', () => {
   it('acepta puntosInteres con etiqueta traducible en actualización', async () => {
     const received: unknown[] = [];
     const useCase = {
-      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+      execute: async (cmd: {
+        idOrSlug: string;
+        input: ActualizarPropertyInputDto;
+        expectedUpdatedAt?: string;
+        requestId?: string;
+      }) => {
         received.push(cmd);
         return { property: { codigo: 'JF-0001' } };
       },
@@ -335,6 +375,9 @@ describe('makeUpdatePropertyHandler', () => {
       { categoria: 'EDUCACION', etiqueta: { es: 'Colegio cercano', autoTranslate: true } },
       { etiqueta: { es: 'Parque personalizado', en: 'Custom park' } },
     ]);
+    expect((received[0] as { expectedUpdatedAt?: string }).expectedUpdatedAt).toBe(
+      '2026-01-15T10:00:00.000Z',
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });
@@ -342,7 +385,12 @@ describe('makeUpdatePropertyHandler', () => {
   it('acepta proyecto.etapa con autoTranslate en actualización', async () => {
     const received: unknown[] = [];
     const useCase = {
-      execute: async (cmd: { idOrSlug: string; input: ActualizarPropertyInputDto }) => {
+      execute: async (cmd: {
+        idOrSlug: string;
+        input: ActualizarPropertyInputDto;
+        expectedUpdatedAt?: string;
+        requestId?: string;
+      }) => {
         received.push(cmd);
         return { property: { codigo: 'JF-0001' } };
       },
@@ -365,6 +413,9 @@ describe('makeUpdatePropertyHandler', () => {
       es: 'En construcción',
       autoTranslate: true,
     });
+    expect((received[0] as { expectedUpdatedAt?: string }).expectedUpdatedAt).toBe(
+      '2026-01-15T10:00:00.000Z',
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });

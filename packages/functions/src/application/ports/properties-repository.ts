@@ -170,6 +170,8 @@ export interface ActualizarPropertyInputDto {
     readonly fechaEntregaEstimada?: string;
     readonly unidadesDisponibles?: number;
   };
+  /** updatedAt esperado para control de concurrencia optimista. */
+  readonly expectedUpdatedAt?: string;
 }
 
 /** Resultado de crear un inmueble. */
@@ -212,6 +214,7 @@ export interface PropertiesRepository {
   readonly update: (
     idOrSlug: string,
     input: ActualizarPropertyInputDto,
+    expectedUpdatedAt?: string,
   ) => Promise<ActualizarPropertyResult>;
   readonly activate: (idOrSlug: string) => Promise<ActivarPropertyResult>;
   readonly hide: (idOrSlug: string) => Promise<OcultarPropertyResult>;

@@ -31,9 +31,15 @@ const validCreateBody = {
   municipio: 'Medellín',
 };
 
+const completePropertyDto: PropertyDto = {
+  ...validPropertyDto,
+  fotos: [{ derivados: [{ clave: 'foto-1', ancho: 640, alto: 480 }] }],
+};
+
 const validUpdateBody = {
   titulo: { es: 'Casa en venta actualizada' },
   precio: 160000000,
+  updatedAt: '2024-01-15T10:00:00.000Z',
 };
 
 function makeRevalidationGateway(
@@ -56,7 +62,7 @@ function makePropertiesRepository(
 ) {
   return {
     create: vi.fn().mockResolvedValue({ property: { ...validPropertyDto, status: 'HIDDEN' } }),
-    findByIdOrSlug: vi.fn(),
+    findByIdOrSlug: vi.fn().mockResolvedValue({ property: completePropertyDto }),
     listPublico: vi.fn(),
     getFeatured: vi.fn(),
     update: vi.fn().mockResolvedValue({

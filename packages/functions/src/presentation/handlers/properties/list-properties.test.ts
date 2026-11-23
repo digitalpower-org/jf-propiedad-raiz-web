@@ -169,4 +169,254 @@ describe('makeListPropertiesHandler', () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });
+
+  describe('validación de presets (8 combinaciones válidas)', () => {
+    const baseQuery = { operacion: 'VENTA', destacada: 'false' };
+
+    it('acepta preset 1 (solo base: operacion + destacada)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq(baseQuery);
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('acepta preset 1+2 (base + rangoPrecio)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({ ...baseQuery, precioMin: 100000000, precioMax: 200000000 });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('acepta preset 1+3 (base + tipo)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({ ...baseQuery, tipo: 'CASA' });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('acepta preset 1+4 (base + ubicacion)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({ ...baseQuery, departamento: 'Antioquia', municipio: 'Medellín' });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('acepta preset 1+2+3 (base + rangoPrecio + tipo)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...baseQuery,
+        precioMin: 100000000,
+        precioMax: 200000000,
+        tipo: 'CASA',
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('acepta preset 1+2+4 (base + rangoPrecio + ubicacion)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...baseQuery,
+        precioMin: 100000000,
+        precioMax: 200000000,
+        departamento: 'Antioquia',
+        municipio: 'Medellín',
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('acepta preset 1+3+4 (base + tipo + ubicacion)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...baseQuery,
+        tipo: 'CASA',
+        departamento: 'Antioquia',
+        municipio: 'Medellín',
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('acepta preset 1+2+3+4 (base + rangoPrecio + tipo + ubicacion)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: undefined,
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        ...baseQuery,
+        precioMin: 100000000,
+        precioMax: 200000000,
+        tipo: 'CASA',
+        departamento: 'Antioquia',
+        municipio: 'Medellín',
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('rechaza combinación inválida: solo tipo sin base (imposible por schema, pero validamos preset)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      // Esta combinación no debería pasar el schema base (operacion y destacada son requeridos)
+      // Pero probamos que el preset validation rechaza combinaciones no documentadas
+      const req = makeReq({
+        operacion: 'VENTA',
+        destacada: 'false',
+        tipo: 'CASA',
+        precioMin: 100000000, // precioMin sin precioMax -> no es rangoPrecio válido
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('rechaza combinación inválida: precioMin sin precioMax (no forma preset válido)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        operacion: 'VENTA',
+        destacada: 'false',
+        precioMin: 100000000,
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('rechaza combinación inválida: precioMax sin precioMin (no forma preset válido)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        operacion: 'VENTA',
+        destacada: 'false',
+        precioMax: 200000000,
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('acepta cursor, limit e includeHidden sin afectar preset (excluidos de membresía)', async () => {
+      const useCase = { execute: vi.fn() } as unknown as ListarPropertiesUseCase;
+      (useCase.execute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        items: [],
+        nextCursor: 'cursor-123',
+      });
+      const handler = makeListPropertiesHandler(useCase);
+      const res = makeRes();
+      const req = makeReq({
+        operacion: 'VENTA',
+        destacada: 'false',
+        tipo: 'CASA',
+        cursor: 'abc123',
+        limit: '10',
+        includeHidden: 'false',
+      });
+
+      await (handler as AsyncHandler)(req, res, next);
+
+      expect(useCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operacion: 'VENTA',
+          destacada: false,
+          tipo: 'CASA',
+          cursor: 'abc123',
+          limit: 10,
+          includeHidden: false,
+        }),
+      );
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(next).not.toHaveBeenCalled();
+    });
+  });
 });

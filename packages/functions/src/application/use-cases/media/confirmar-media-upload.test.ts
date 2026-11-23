@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ConfirmarMediaUploadUseCase } from './confirmar-media-upload';
+import { errorCode } from '../../../domain/errors/errorCatalog';
 
 function makePorts() {
   return {
@@ -48,5 +49,31 @@ describe('ConfirmarMediaUploadUseCase', () => {
     await expect(useCase.execute({ key: 'pending/abc-123.jpg', recurso: 'foto' })).rejects.toThrow(
       'error_confirmando',
     );
+  });
+
+  it('rechaza clave sin prefijo pending/ con VALIDATION_ERROR', async () => {
+    const ports = makePorts();
+    const useCase = new ConfirmarMediaUploadUseCase(ports.mediaStorage, ports.logger);
+
+    await expect(useCase.execute({ key: 'otra/ruta.jpg', recurso: 'foto' })).rejects.toEqual(
+      expect.objectContaining({
+        code: errorCode.validationError,
+        message: 'Clave inválida: debe comenzar con pending/',
+        details: [{ field: 'key', issue: 'La clave debe estar en pending/' }],
+      }),
+    );
+    expect(ports.mediaStorage.confirmarSubida).not.toHaveBeenCalled();
+  });
+
+  it('rechaza clave vacía con VALIDATION_ERROR', async () => {
+    const ports = makePorts();
+    const useCase = new ConfirmarMediaUploadUseCase(ports.mediaStorage, ports.logger);
+
+    await expect(useCase.execute({ key: '', recurso: 'foto' })).rejects.toEqual(
+      expect.objectContaining({
+        code: errorCode.validationError,
+      }),
+    );
+    expect(ports.mediaStorage.confirmarSubida).not.toHaveBeenCalled();
   });
 });

@@ -207,9 +207,9 @@ export interface paths {
          *     AC1.9.6), genera los derivados WebP y elimina el original (AC1.9.1). Códigos:
          *     `UNSUPPORTED_MEDIA` (contenido no permitido) · `IMAGE_TOO_LARGE` (peso o píxeles) ·
          *     `IMAGE_TOO_SMALL` (lado mayor < 800 px) · `VALIDATION_ERROR` (clave inexistente o fuera
-         *     de `pending/`, panorámica que no es 2:1). Un fallo de derivados responde 500 `INTERNAL`
-         *     sin dejar derivados parciales y el cliente puede reintentar hasta 3 veces con la misma
-         *     clave (AC1.9.14, AC1.9.15).
+         *     de `pending/`, panorámica que no es 2:1) · `NOT_FOUND` (la clave en `pending/` no existe
+         *     en R2). Un fallo de derivados responde 500 `INTERNAL` sin dejar derivados parciales y el
+         *     cliente puede reintentar hasta 3 veces con la misma clave (AC1.9.14, AC1.9.15).
          */
         post: operations["confirmMediaUpload"];
         delete?: never;
@@ -676,6 +676,7 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
                 }[];
             }[];
             /** @description Máx. 2 URLs de YouTube (MODELO DE DATOS, D13). */
@@ -685,6 +686,7 @@ export interface components {
                 derivados: {
                     clave: string;
                     ancho: number;
+                    alto: number;
                 }[];
             }[];
             destacada?: boolean;
@@ -1399,6 +1401,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             405: components["responses"]["MethodNotAllowed"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["RateLimited"];

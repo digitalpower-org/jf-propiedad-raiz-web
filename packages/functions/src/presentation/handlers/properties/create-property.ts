@@ -5,96 +5,13 @@ import type {
   CrearPropertyCommand,
 } from '../../../application/use-cases/properties/crear-property';
 import type { CrearPropertyInputDto } from '../../../application/ports/properties-repository';
-import type { PuntoInteresCategoria } from '@jf/shared-types';
-import { OPERACIONES } from '../../../domain/value-objects/operacion';
-import { TIPOS_INMUEBLE } from '../../../domain/value-objects/tipo-propiedad';
-import {
-  translatableInputSchema,
-  optionalClearableTranslatableInputSchema,
-} from '../../schemas/translatable';
+import { createPropertyInputSchema } from '../../schemas/property-input';
 import { MSG_PROPERTY_CREATED } from '../../messages';
 import { writeSuccess } from '../../protocol';
 import type { AsyncHandler } from '../types';
 import type { Request, Response, NextFunction } from 'express';
 
-const bodySchema = z.object({
-  operacion: z.enum(OPERACIONES),
-  tipo: z.enum(TIPOS_INMUEBLE),
-  titulo: translatableInputSchema,
-  descripcion: optionalClearableTranslatableInputSchema,
-  precio: z.number().int().positive(),
-  departamento: z.string().min(1),
-  municipio: z.string().min(1),
-  estrato: z.number().int().min(1).max(6).optional(),
-  predial: z.string().min(1).optional(),
-  administracion: z.string().min(1).optional(),
-  acabados: optionalClearableTranslatableInputSchema,
-  antiguedad: z.string().min(1).optional(),
-  areaConstruida: z.number().positive().optional(),
-  areaLote: z.number().positive().optional(),
-  dormitorios: z.number().int().nonnegative().optional(),
-  banos: z.number().int().nonnegative().optional(),
-  parqueaderos: z.number().int().nonnegative().optional(),
-  deposito: z.number().int().nonnegative().optional(),
-  amenidades: z.array(z.string()).optional(),
-  puntosInteres: z
-    .array(
-      z.object({
-        categoria: z.string().optional(),
-        etiqueta: translatableInputSchema,
-      }),
-    )
-    .optional(),
-  fotos: z
-    .array(
-      z.object({
-        derivados: z
-          .array(
-            z.object({
-              clave: z.string().min(1),
-              ancho: z.number().int().positive(),
-              alto: z.number().int().positive(),
-            }),
-          )
-          .nonempty(),
-      }),
-    )
-    .optional(),
-  videos: z.array(z.string()).optional(),
-  panoramas: z
-    .array(
-      z.object({
-        derivados: z
-          .array(
-            z.object({
-              clave: z.string().min(1),
-              ancho: z.number().int().positive(),
-              alto: z.number().int().positive(),
-            }),
-          )
-          .nonempty(),
-      }),
-    )
-    .max(3)
-    .refine(
-      (panoramas) =>
-        panoramas.every((p) =>
-          p.derivados.every((d) => d.ancho / d.alto >= 1.98 && d.ancho / d.alto <= 2.02),
-        ),
-      {
-        message: 'Cada derivado de una panorámica debe tener proporción 2:1 ±1 %',
-      },
-    )
-    .optional(),
-  destacada: z.boolean().optional(),
-  proyecto: z
-    .object({
-      etapa: optionalClearableTranslatableInputSchema,
-      fechaEntregaEstimada: z.string().optional(),
-      unidadesDisponibles: z.number().int().nonnegative().optional(),
-    })
-    .optional(),
-});
+const bodySchema = createPropertyInputSchema;
 
 /**
  * Construye el DTO de entrada para crear un inmueble a partir del
@@ -141,7 +58,7 @@ function buildCreatePropertyInput(body: z.infer<typeof bodySchema>): CrearProper
       ? {
           puntosInteres: body.puntosInteres.map((pi) =>
             pi.categoria !== undefined
-              ? { categoria: pi.categoria as PuntoInteresCategoria, etiqueta: pi.etiqueta }
+              ? { categoria: pi.categoria, etiqueta: pi.etiqueta }
               : { etiqueta: pi.etiqueta },
           ),
         }

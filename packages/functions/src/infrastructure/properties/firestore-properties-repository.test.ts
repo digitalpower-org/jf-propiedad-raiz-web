@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Firestore } from 'firebase-admin/firestore';
 import { createFirestorePropertiesRepository } from './firestore-properties-repository';
 import type { CrearPropertyInputDto } from '../../application/ports/properties-repository';
+import { errorCode } from '../../domain/errors/errorCatalog';
+import { errPropertyNotFound } from '../../domain/errors/error-messages';
 
 function makeMockDocSnapshot(data: unknown, exists = true, docId = 'doc-1') {
   return {
@@ -12,61 +14,125 @@ function makeMockDocSnapshot(data: unknown, exists = true, docId = 'doc-1') {
   } as unknown as { exists: boolean; id: string; data: () => unknown };
 }
 
-function makeMockFirestore() {
+type ColeccionQueryMock = {
+  _calls: { method: string; args: unknown[] }[];
+  where: ReturnType<typeof vi.fn>;
+  limit: ReturnType<typeof vi.fn>;
+  orderBy: ReturnType<typeof vi.fn>;
+  startAfter: ReturnType<typeof vi.fn>;
+  get: ReturnType<typeof vi.fn>;
+};
+
+function hasUndefinedValues(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(hasUndefinedValues);
+  if (value !== null && typeof value === 'object') {
+    return Object.values(value).some(hasUndefinedValues);
+  }
+  return value === undefined;
+}
+
+function makeMockFirestore(): Firestore & {
+  _docs: Map<string, Record<string, unknown>>;
+  _collectionQuery: ColeccionQueryMock;
+} {
   const docs = new Map<string, Record<string, unknown>>();
-  const collectionQuery = {
-    where: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    orderBy: vi.fn().mockReturnThis(),
-    startAfter: vi.fn().mockReturnThis(),
-    get: vi.fn().mockResolvedValue({
-      empty: true,
-      docs: [],
+  docs.set('counters/property', { secuencial: 0 });
+  const collectionQuery: ColeccionQueryMock = {
+    _calls: [],
+    where: vi.fn().mockImplementation(function (...args: unknown[]) {
+      collectionQuery._calls.push({ method: 'where', args });
+      return collectionQuery;
     }),
+    limit: vi.fn().mockImplementation(function (...args: unknown[]) {
+      collectionQuery._calls.push({ method: 'limit', args });
+      return collectionQuery;
+    }),
+    orderBy: vi.fn().mockImplementation(function (...args: unknown[]) {
+      collectionQuery._calls.push({ method: 'orderBy', args });
+      return collectionQuery;
+    }),
+    startAfter: vi.fn().mockImplementation(function (...args: unknown[]) {
+      collectionQuery._calls.push({ method: 'startAfter', args });
+      return collectionQuery;
+    }),
+    get: vi.fn().mockResolvedValue({ empty: true, docs: [] }),
   };
+
+  function makeDocRef(path: string) {
+    return {
+      path,
+      get: vi.fn().mockImplementation(() => {
+        const existing = docs.get(path);
+        return Promise.resolve(
+          existing
+            ? makeMockDocSnapshot(existing, true, path.split('/').pop())
+            : makeMockDocSnapshot(null, false, path.split('/').pop()),
+        );
+      }),
+      set: vi.fn().mockImplementation((data: unknown) => {
+        docs.set(path, data as Record<string, unknown>);
+        return Promise.resolve();
+      }),
+      update: vi.fn().mockImplementation((data: unknown) => {
+        const current = (docs.get(path) ?? {}) as Record<string, unknown>;
+        docs.set(path, { ...current, ...(data as Record<string, unknown>) });
+        return Promise.resolve();
+      }),
+    };
+  }
 
   return {
     collection: vi.fn().mockReturnValue(collectionQuery),
-    doc: vi.fn().mockImplementation((path: string) => {
-      return {
-        get: vi.fn().mockImplementation(() => {
-          const existing = docs.get(path);
-          return Promise.resolve(
-            existing
-              ? makeMockDocSnapshot(existing, true, path.split('/').pop())
-              : makeMockDocSnapshot(null, false, path.split('/').pop()),
-          );
-        }),
-        set: vi.fn().mockImplementation((data: unknown) => {
-          docs.set(path, data as Record<string, unknown>);
-          return Promise.resolve();
-        }),
-        update: vi.fn().mockImplementation((data: unknown) => {
-          const current = (docs.get(path) ?? {}) as Record<string, unknown>;
-          docs.set(path, { ...current, ...(data as Record<string, unknown>) });
-          return Promise.resolve();
-        }),
-      };
-    }),
-    runTransaction: vi
-      .fn()
-      .mockImplementation(
-        async (
-          fn: (tx: {
-            get: () => Promise<{ secuencial: number }>;
-            set: () => Promise<void>;
-          }) => Promise<unknown>,
-        ) => {
-          const tx = {
-            get: vi.fn().mockResolvedValue(makeMockDocSnapshot({ secuencial: 0 }, true)),
-            set: vi.fn().mockResolvedValue(undefined),
-          };
-          return fn(tx);
-        },
-      ),
+    doc: vi.fn().mockImplementation(makeDocRef),
+    runTransaction: vi.fn().mockImplementation(
+      async (
+        fn: (tx: {
+          get: (ref: { path: string }) => Promise<{
+            exists: boolean;
+            id: string;
+            data: () => unknown;
+          }>;
+          set: (ref: { path: string }, data: unknown, options?: unknown) => Promise<void>;
+          update: (ref: { path: string }, data: unknown) => Promise<void>;
+        }) => Promise<unknown>,
+      ) => {
+        let escrituraRealizada = false;
+        const tx = {
+          get: vi.fn().mockImplementation((ref: { path: string }) => {
+            if (escrituraRealizada) {
+              throw new Error(
+                'Firestore transactions require all reads to be executed before all writes.',
+              );
+            }
+            const existing = docs.get(ref.path);
+
+            return Promise.resolve(
+              existing
+                ? makeMockDocSnapshot(existing, true, ref.path.split('/').pop())
+                : makeMockDocSnapshot(null, false, ref.path.split('/').pop()),
+            );
+          }),
+          set: vi.fn().mockImplementation((ref: { path: string }, data: unknown) => {
+            escrituraRealizada = true;
+            docs.set(ref.path, data as Record<string, unknown>);
+            return Promise.resolve();
+          }),
+          update: vi.fn().mockImplementation((ref: { path: string }, data: unknown) => {
+            escrituraRealizada = true;
+            const current = (docs.get(ref.path) ?? {}) as Record<string, unknown>;
+            docs.set(ref.path, { ...current, ...(data as Record<string, unknown>) });
+            return Promise.resolve();
+          }),
+        };
+        return fn(tx);
+      },
+    ),
     _docs: docs,
     _collectionQuery: collectionQuery,
-  } as unknown as Firestore;
+  } as unknown as Firestore & {
+    _docs: Map<string, Record<string, unknown>>;
+    _collectionQuery: ColeccionQueryMock;
+  };
 }
 
 describe('createFirestorePropertiesRepository', () => {
@@ -87,6 +153,25 @@ describe('createFirestorePropertiesRepository', () => {
     expect(resultado.property.slug).toMatch(/^casa-en-venta-JF-/);
     expect(resultado.property.status).toBe('HIDDEN');
     expect(db.collection).toHaveBeenCalledWith('properties');
+  });
+
+  it('omite campos opcionales ausentes al crear una propiedad', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+
+    await repo.create({
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'x' },
+      precio: 1,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+    });
+
+    const documento = [...db._docs.entries()].find(([ruta]) => ruta.startsWith('properties/'));
+
+    expect(documento).toBeDefined();
+    expect(hasUndefinedValues(documento?.[1])).toBe(false);
   });
 
   it('crea una propiedad preservando autoTranslate y enPendiente en titulo', async () => {
@@ -266,16 +351,135 @@ describe('createFirestorePropertiesRepository', () => {
     });
   });
 
-  it('activate, hide y softDelete lanzan error si el documento no existe', async () => {
+  it('update devuelve el inmueble actualizado sin leer después de escribir en la transacción', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+    const creado = await repo.create({
+      operacion: 'VENTA',
+      tipo: 'CASA',
+      titulo: { es: 'Casa sin lectura posterior' },
+      precio: 150000000,
+      departamento: 'Antioquia',
+      municipio: 'Medellín',
+    });
+
+    const actualizado = await repo.update(creado.property.id, { precio: 200000000 });
+
+    expect(actualizado.property.precio).toBe(200000000);
+  });
+
+  it('activate, hide y softDelete lanzan PROPERTY_NOT_FOUND si el documento no existe', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+    const esperado = {
+      name: 'ApiError',
+      code: errorCode.propertyNotFound,
+      message: errPropertyNotFound('inexistente'),
+    };
+
+    await expect(repo.activate('inexistente')).rejects.toMatchObject(esperado);
+    await expect(repo.hide('inexistente')).rejects.toMatchObject(esperado);
+    await expect(repo.softDelete('inexistente')).rejects.toMatchObject(esperado);
+  });
+});
+
+describe('listPublico: orden de consulta y cursor', () => {
+  it('aplica todos los where antes de cualquier orderBy; precio primero con rango', async () => {
     const db = makeMockFirestore();
     const repo = createFirestorePropertiesRepository(db);
 
-    await expect(repo.activate('inexistente')).rejects.toThrow(
-      'Inmueble no encontrado: inexistente',
-    );
-    await expect(repo.hide('inexistente')).rejects.toThrow('Inmueble no encontrado: inexistente');
-    await expect(repo.softDelete('inexistente')).rejects.toThrow(
-      'Inmueble no encontrado: inexistente',
-    );
+    await repo.listPublico({
+      operacion: 'VENTA',
+      destacada: true,
+      precioMin: 100000000,
+      precioMax: 200000000,
+    });
+
+    const q = db._collectionQuery;
+    expect(q.where.mock.calls).toEqual([
+      ['operacion', '==', 'VENTA'],
+      ['destacada', '==', true],
+      ['status', '==', 'ACTIVE'],
+      ['precio', '>=', 100000000],
+      ['precio', '<=', 200000000],
+    ]);
+    expect(q.orderBy.mock.calls).toEqual([
+      ['precio', 'asc'],
+      ['createdAt', 'desc'],
+      ['__name__', 'desc'],
+    ]);
+
+    const metodos = q._calls.map((llamada) => llamada.method);
+    const ultimoWhere = metodos.lastIndexOf('where');
+    const primerOrderBy = metodos.indexOf('orderBy');
+    expect(primerOrderBy).toBeGreaterThan(ultimoWhere);
+  });
+
+  it('sin rango de precio ordena por createdAt y __name__', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+
+    await repo.listPublico({
+      operacion: 'VENTA',
+      destacada: true,
+    });
+
+    const q = db._collectionQuery;
+    expect(q.where.mock.calls).toEqual([
+      ['operacion', '==', 'VENTA'],
+      ['destacada', '==', true],
+      ['status', '==', 'ACTIVE'],
+    ]);
+    expect(q.orderBy.mock.calls).toEqual([
+      ['createdAt', 'desc'],
+      ['__name__', 'desc'],
+    ]);
+  });
+
+  it('cursor resuelve el documento por id y startAfter recibe el snapshot', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+    const cursorId = 'prop-cursor-1';
+    db._docs.set(`properties/${cursorId}`, {
+      precio: 150000000,
+      createdAt: '2024-01-01T00:00:00Z',
+    });
+
+    const cursor = Buffer.from(
+      JSON.stringify({ createdAt: '2024-01-01T00:00:00Z', id: cursorId }),
+    ).toString('base64');
+
+    await repo.listPublico({
+      operacion: 'VENTA',
+      destacada: true,
+      precioMin: 100000000,
+      precioMax: 200000000,
+      cursor,
+    });
+
+    const q = db._collectionQuery;
+    expect(db.doc).toHaveBeenCalledWith(`properties/${cursorId}`);
+    expect(q.startAfter.mock.calls).toHaveLength(1);
+    const [cursorSnap] = q.startAfter.mock.calls[0];
+    expect(cursorSnap.exists).toBe(true);
+    expect(cursorSnap.id).toBe(cursorId);
+  });
+
+  it('cursor de documento inexistente devuelve pagina vacia sin lanzar', async () => {
+    const db = makeMockFirestore();
+    const repo = createFirestorePropertiesRepository(db);
+    const cursor = Buffer.from(
+      JSON.stringify({ createdAt: '2024-01-01T00:00:00Z', id: 'no-existe' }),
+    ).toString('base64');
+
+    const resultado = await repo.listPublico({
+      operacion: 'VENTA',
+      destacada: true,
+      precioMin: 100000000,
+      precioMax: 200000000,
+      cursor,
+    });
+
+    expect(resultado).toEqual({ items: [], nextCursor: undefined });
   });
 });
