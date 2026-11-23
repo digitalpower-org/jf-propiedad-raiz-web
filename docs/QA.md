@@ -231,7 +231,7 @@ Marcar con **quién** y **cuándo** (exige DoD §2.1):
 - [ ] **Drag-and-drop de fotos** en el editor: reordenar con mouse y con botones «mover antes/después» en táctil (AC4.2.3/AC4.2.5); portada correcta tras recargar.
 - [ ] **Visor Pannellum 360°**: carga solo al pulsar «Ver en 360°»; 3 panorámicas como máximo; comportamiento en móvil real.
 - [ ] **Upload en red lenta/móvil real**: 2 en paralelo, barra de progreso, reintento por foto sin bloquear el formulario (AC7.5.3/4).
-- [ ] **Credenciales/dominio Resend**: remitente con SPF/DKIM válidos (AC3.2.6).
+- [x] **Credenciales/dominio Resend**: remitente con SPF/DKIM válidos (AC3.2.6). Verificado por Daniel Pacheco el 2026-11-23T18:44:10Z; Resend muestra DNS y dominio verificados el 12 nov 2026, con captura en `docs/reports/resend-evidencia.png`. `GET /domains/{domain_id}` devuelve `jfpropiedadraiz.com` con `status=verified`, DKIM `resend._domainkey` TXT `verified`, SPF `rsend` y `send` CNAME `verified`. Correo recibido por admin con `SPF_PASS`, `DKIM_VALID_AU`, `DKIM_VALID` y `d=jfpropiedadraiz.com`.
 - [ ] **Alerta de presupuesto** de Firebase creada (AC6.2.1).
 - [ ] **Revisión jurídica** de páginas legales y retiro del aviso de «borrador» (AC5.3.4).
 - [ ] **Dispositivo Android real** de gama media: listado con filtros, ficha, consignación, carga de foto en panel (AC7.6.6).
