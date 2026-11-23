@@ -492,7 +492,7 @@
 
 ### US3.2 — Notificación por Correo con Resend
 
-- **Responsable:** \[ Dev 1 \] · **Prioridad:** MUST · **Estado:** \[ \]  
+- **Responsable:** \[ Dev 1 \] · **Prioridad:** MUST · **Estado:** \[x\]
 - **Descripción:** `POST /api/v1/consignments` valida la solicitud y envía dos correos: uno a Juan Fernando y un «Recibo» al solicitante. El contenido de la solicitud no se traduce (US0.5 aplica solo al contenido que publican los admins).  
 - **Criterios de aceptación:**  
   - AC3.2.1 **Dado** una solicitud válida **Entonces** se envía vía Resend un correo HTML al email corporativo de Juan Fernando (variable `CONSIGNMENT_TO_EMAIL`), con asunto y cuerpo en español, que incluye nombre, teléfono, email, datos del inmueble, mensaje, idioma del solicitante y fecha en `America/Bogota`. `[agente]`  
@@ -502,6 +502,7 @@
   - AC3.2.5 **Dado** los datos del usuario **Entonces** se escapan antes de entrar al HTML o a una cabecera del correo (sin inyección de HTML ni saltos de línea en el asunto). `[agente]`  
   - AC3.2.6 **Dado** el remitente **Entonces** pertenece a un dominio verificado en Resend (SPF y DKIM). `[manual]`  
   - AC3.2.7 **\[Debe NOT\]** No se guarda ningún dato de la solicitud, no se registra PII completa a nivel `info` (solo `requestId` y resultado) y `EMAIL_DELIVERY_FAILED` no expone datos personales. `[agente]`
+  - **Evidencia AC3.2.6:** Daniel Pacheco, 2026-11-23T18:44:10Z; Resend muestra DNS y dominio verificados el 12 nov 2026 (`docs/reports/resend-evidencia.png`). `GET /domains/{domain_id}` devuelve `jfpropiedadraiz.com` con `status=verified`, registros DKIM y SPF `verified`; correo recibido por admin con `SPF_PASS`, `DKIM_VALID_AU` y `DKIM_VALID`.
 
 ### US3.3 — Consentimiento de Tratamiento de Datos
 
