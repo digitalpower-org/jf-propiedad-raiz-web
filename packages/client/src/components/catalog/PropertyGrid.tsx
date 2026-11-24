@@ -6,6 +6,11 @@ import type { PropertyCard } from '@jf/shared-types';
 import type { PropertyListParams } from '@/lib/api-catalog';
 import type { IHttpClient } from '@/lib/http-client.types';
 import {
+  filtrarEnNavegador,
+  hayFiltrosFrontend,
+  type FiltrosFrontend,
+} from '@/lib/catalog-filters';
+import {
   buildQueryParams,
   useInfiniteScroll,
   usePropertiesQuery,
@@ -15,6 +20,7 @@ import {
   renderLoadMore,
   renderSkeletons,
 } from './property-grid-hooks';
+import { useCargarTodo } from './useCargarTodo';
 
 import styles from './PropertyGrid.module.css';
 
@@ -23,6 +29,8 @@ interface PropertyGridProps {
   readonly locale: 'es' | 'en';
   readonly initialData?: PropertyCard[] | undefined;
   readonly filters?: Partial<PropertyListParams>;
+  /** Filtros que se aplican en el navegador sobre lo ya cargado (D9, AC2.2.5). */
+  readonly frontendFilters?: FiltrosFrontend | undefined;
   readonly httpClient?: IHttpClient;
 }
 
@@ -31,6 +39,7 @@ export function PropertyGrid({
   locale,
   initialData,
   filters,
+  frontendFilters,
   httpClient,
 }: PropertyGridProps) {
   const [showDestacadas, setShowDestacadas] = React.useState(true);
@@ -77,8 +86,19 @@ export function PropertyGrid({
     return [...featuredItems, ...newItems];
   }, [data, featuredItems]);
 
+  // Filtros de frontend (AC2.2.5): se aplican en caliente sobre lo cargado, sin pedir nada.
+  const filtrosActivos = frontendFilters !== undefined && hayFiltrosFrontend(frontendFilters);
+  const visibleItems = React.useMemo(
+    () =>
+      frontendFilters && filtrosActivos ? filtrarEnNavegador(allItems, frontendFilters) : allItems,
+    [allItems, frontendFilters, filtrosActivos],
+  );
+
   // Next-page fetch error: data exists (initial load succeeded) but latest fetch failed
   const isNextPageError = data !== undefined && isError;
+
+  // Quedan páginas por cargar (o la consulta activa aún no ha respondido).
+  const pendiente = isLoading || hasNextPage || isFetchingNextPage;
 
   const { ref } = useInfiniteScroll(
     hasNextPage,
@@ -86,6 +106,8 @@ export function PropertyGrid({
     fetchNextPage,
     isNextPageError,
   );
+  // AC2.2.6: con un filtro de frontend activo se cargan solas las páginas restantes.
+  useCargarTodo(filtrosActivos, hasNextPage, isFetchingNextPage, fetchNextPage, isNextPageError);
 
   if (isLoading && allItems.length === 0) {
     return renderSkeletons();
@@ -96,21 +118,31 @@ export function PropertyGrid({
     return renderError(t);
   }
 
-  if (allItems.length === 0) {
+  if (visibleItems.length === 0) {
+    // Sin coincidencias aún, pero faltan páginas: no se declara vacío hasta haber cargado todo.
+    if (filtrosActivos && pendiente && !isNextPageError) {
+      return renderSkeletons();
+    }
     return renderEmpty(t);
   }
 
   return (
     <>
+      {filtrosActivos && !pendiente && (
+        <p className={styles.resultCount} data-testid="result-count" aria-live="polite">
+          {t('resultsCount', { count: visibleItems.length })}
+        </p>
+      )}
+
       <div className={styles.grid}>
-        {allItems.map((property) => (
+        {visibleItems.map((property) => (
           <PropertyCardComponent key={property.id} property={property} locale={locale} />
         ))}
       </div>
 
       {renderLoadMore(hasNextPage, isFetchingNextPage, fetchNextPage, t, ref, isNextPageError)}
 
-      {!hasNextPage && !isFetchingNextPage && allItems.length > 0 && renderEndOfList(t)}
+      {!hasNextPage && !isFetchingNextPage && visibleItems.length > 0 && renderEndOfList(t)}
     </>
   );
 }
