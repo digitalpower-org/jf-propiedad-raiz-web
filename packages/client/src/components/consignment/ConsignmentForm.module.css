@@ -90,6 +90,14 @@
 .form .consentLabel {
   color: var(--color-tinta);
   font-size: var(--text-body-sm);
+  /* DoD (US7.1): área tocable ≥ 44 px. El relleno es del propio label, que es lo que se pulsa. */
+  padding-block: var(--spacing-12);
+  min-height: 44px;
+}
+
+/* Baja el cuadrito para que siga alineado con la primera línea del texto (relleno de arriba). */
+.form .consentBox {
+  margin-block-start: var(--spacing-12);
 }
 
 .form .consentDescription a {

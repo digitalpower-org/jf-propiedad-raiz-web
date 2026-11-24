@@ -296,6 +296,7 @@ export function ConsignmentForm({ locale, whatsappNumber, dataPolicyHref }: Cons
         classNames={{
           root: styles.consent,
           label: styles.consentLabel,
+          inner: styles.consentBox,
           description: styles.consentDescription,
           error: styles.error,
         }}
