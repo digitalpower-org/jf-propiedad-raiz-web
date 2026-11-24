@@ -281,7 +281,8 @@
     "loadErrorHint": "Revisa tu conexión e inténtalo de nuevo en unos segundos.",
     "emptyTitle": "No encontramos propiedades",
     "emptyHint": "Prueba a ajustar o limpiar los filtros.",
-    "loadMoreError": "No se pudieron cargar más propiedades."
+    "loadMoreError": "No se pudieron cargar más propiedades.",
+    "resultsCount": "{count, plural, one {# resultado} other {# resultados}}"
   },
   "contact": {
     "title": "Contacto",

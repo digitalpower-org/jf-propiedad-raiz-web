@@ -96,3 +96,63 @@ export function filtrosParaApi(filtros: PropertyFilters): Partial<PropertyListPa
     ...(errores.precio === null && filtros.precioMax ? { precioMax: filtros.precioMax } : {}),
   };
 }
+
+/** Filtros de frontend ya interpretados como números; `undefined` = filtro inactivo. */
+export interface FiltrosFrontend {
+  readonly dormitorios?: number | undefined;
+  readonly banos?: number | undefined;
+  readonly areaMin?: number | undefined;
+  readonly estrato?: number | undefined;
+}
+
+/** Lo que hace falta de una tarjeta para filtrarla en el navegador. */
+export interface TarjetaFiltrable {
+  readonly dormitorios?: number | undefined;
+  readonly banos?: number | undefined;
+  readonly areaConstruida?: number | undefined;
+  readonly estrato?: number | undefined;
+}
+
+const positivo = (valor: string | undefined): number | undefined => {
+  if (!valor) return undefined;
+  const numero = Number(valor);
+  return Number.isFinite(numero) && numero > 0 ? numero : undefined;
+};
+
+/** Interpreta los filtros de frontend de la URL; un valor que no sea un número válido se ignora. */
+export function leerFiltrosFrontend(
+  filtros: Pick<PropertyFilters, 'dormitorios' | 'banos' | 'areaMin' | 'estrato'>,
+): FiltrosFrontend {
+  const estrato = positivo(filtros.estrato);
+  return {
+    dormitorios: positivo(filtros.dormitorios),
+    banos: positivo(filtros.banos),
+    areaMin: positivo(filtros.areaMin),
+    estrato:
+      estrato !== undefined && Number.isInteger(estrato) && estrato <= 6 ? estrato : undefined,
+  };
+}
+
+export function hayFiltrosFrontend(filtros: FiltrosFrontend): boolean {
+  return Object.values(filtros).some((valor) => valor !== undefined);
+}
+
+/**
+ * Filtra en el navegador las tarjetas ya cargadas (D9, AC2.2.5). Dormitorios, baños y área son
+ * «mínimo»; el estrato es exacto. Una tarjeta sin ese dato no cumple un filtro activo.
+ */
+export function filtrarEnNavegador<T extends TarjetaFiltrable>(
+  tarjetas: readonly T[],
+  filtros: FiltrosFrontend,
+): T[] {
+  const { dormitorios, banos, areaMin, estrato } = filtros;
+  return tarjetas.filter(
+    (tarjeta) =>
+      (dormitorios === undefined ||
+        (tarjeta.dormitorios !== undefined && tarjeta.dormitorios >= dormitorios)) &&
+      (banos === undefined || (tarjeta.banos !== undefined && tarjeta.banos >= banos)) &&
+      (areaMin === undefined ||
+        (tarjeta.areaConstruida !== undefined && tarjeta.areaConstruida >= areaMin)) &&
+      (estrato === undefined || tarjeta.estrato === estrato),
+  );
+}

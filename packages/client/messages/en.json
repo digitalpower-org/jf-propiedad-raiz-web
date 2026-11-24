@@ -281,7 +281,8 @@
     "loadErrorHint": "Check your connection and try again in a few seconds.",
     "emptyTitle": "No properties found",
     "emptyHint": "Try adjusting or clearing the filters.",
-    "loadMoreError": "Couldn't load more properties."
+    "loadMoreError": "Couldn't load more properties.",
+    "resultsCount": "{count, plural, one {# result} other {# results}}"
   },
   "contact": {
     "title": "Contact",
