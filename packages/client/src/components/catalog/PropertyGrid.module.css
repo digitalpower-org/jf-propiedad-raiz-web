@@ -188,3 +188,43 @@
   font-size: var(--text-body-sm);
   color: var(--color-grafito);
 }
+
+/* AC2.2.7: etiqueta discreta del orden */
+.orderLabel {
+  margin: 0 0 var(--spacing-16);
+  font-size: var(--text-body-sm);
+  color: var(--color-grafito);
+}
+
+/* AC2.2.9: hueco reservado mientras el skeleton espera sus ~200 ms (sin saltos de layout) */
+.reserva {
+  min-height: 380px;
+}
+
+/* AC2.2.10: invitación y botón de WhatsApp del estado vacío */
+.emptyInvite {
+  margin: var(--spacing-8) 0 var(--spacing-16);
+  font-size: var(--text-body);
+  color: var(--color-grafito);
+}
+
+.emptyWhatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--spacing-10) var(--spacing-24);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-verde-bosque);
+  color: var(--color-blanco-puro);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.emptyWhatsapp:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-marfil-elegante),
+    0 0 0 4px var(--color-verde-bosque);
+}

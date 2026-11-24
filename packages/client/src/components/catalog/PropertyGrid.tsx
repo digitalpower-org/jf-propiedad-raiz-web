@@ -18,9 +18,13 @@ import {
   renderEmpty,
   renderError,
   renderLoadMore,
+  renderReserva,
   renderSkeletons,
 } from './property-grid-hooks';
 import { useCargarTodo } from './useCargarTodo';
+import { useRetraso } from './useRetraso';
+import { resumirFiltros, urlWhatsAppSinResultados } from '@/lib/catalog-resumen';
+import { buildWhatsAppUrl, getWhatsAppNumber } from '@/lib/whatsapp';
 
 import styles from './PropertyGrid.module.css';
 
@@ -109,8 +113,24 @@ export function PropertyGrid({
   // AC2.2.6: con un filtro de frontend activo se cargan solas las páginas restantes.
   useCargarTodo(filtrosActivos, hasNextPage, isFetchingNextPage, fetchNextPage, isNextPageError);
 
+  // AC2.2.10: enlace de WhatsApp con un resumen de los filtros activos (sin número: sin botón).
+  const urlWhatsApp = React.useMemo(() => {
+    const resumen = resumirFiltros(filters ?? {}, frontendFilters ?? {}, locale);
+    return urlWhatsAppSinResultados(getWhatsAppNumber(), resumen, locale, buildWhatsAppUrl);
+  }, [filters, frontendFilters, locale]);
+
+  // AC2.2.9: el skeleton solo aparece si la espera supera ~200 ms; antes se reserva el hueco.
+  const esperando =
+    (isLoading && allItems.length === 0) ||
+    (!(isError && !data) &&
+      visibleItems.length === 0 &&
+      filtrosActivos &&
+      pendiente &&
+      !isNextPageError);
+  const mostrarEsqueleto = useRetraso(esperando);
+
   if (isLoading && allItems.length === 0) {
-    return renderSkeletons();
+    return mostrarEsqueleto ? renderSkeletons() : renderReserva();
   }
 
   // Initial load error (no data yet)
@@ -121,9 +141,9 @@ export function PropertyGrid({
   if (visibleItems.length === 0) {
     // Sin coincidencias aún, pero faltan páginas: no se declara vacío hasta haber cargado todo.
     if (filtrosActivos && pendiente && !isNextPageError) {
-      return renderSkeletons();
+      return mostrarEsqueleto ? renderSkeletons() : renderReserva();
     }
-    return renderEmpty(t);
+    return renderEmpty(t, urlWhatsApp);
   }
 
   return (
@@ -133,6 +153,10 @@ export function PropertyGrid({
           {t('resultsCount', { count: visibleItems.length })}
         </p>
       )}
+
+      <p className={styles.orderLabel} data-testid="order-label">
+        {t('orderLabel')}
+      </p>
 
       <div className={styles.grid}>
         {visibleItems.map((property) => (
