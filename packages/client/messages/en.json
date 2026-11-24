@@ -282,7 +282,10 @@
     "emptyTitle": "No properties found",
     "emptyHint": "Try adjusting or clearing the filters.",
     "loadMoreError": "Couldn't load more properties.",
-    "resultsCount": "{count, plural, one {# result} other {# results}}"
+    "resultsCount": "{count, plural, one {# result} other {# results}}",
+    "emptyInvite": "Tell us what you are looking for and we will help you find it.",
+    "emptyWhatsapp": "Message us on WhatsApp",
+    "orderLabel": "Featured first · Newest first"
   },
   "contact": {
     "title": "Contact",

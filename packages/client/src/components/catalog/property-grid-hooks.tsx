@@ -119,6 +119,14 @@ export function renderSkeletons(count = PAGE_SIZE): ReactElement {
 }
 
 /**
+ * Función pura de render: hueco con la altura del skeleton mientras la espera es menor que ~200 ms
+ * (AC2.2.9). Evita saltos de layout cuando el skeleton llega después.
+ */
+export function renderReserva(): ReactElement {
+  return <div className={styles.reserva} aria-busy="true" data-testid="grid-reserva" />;
+}
+
+/**
  * Función pura de render: estado de error (carga inicial).
  */
 export function renderError(t: Translator): ReactElement {
@@ -147,9 +155,9 @@ export function renderError(t: Translator): ReactElement {
 /**
  * Función pura de render: estado vacío.
  */
-export function renderEmpty(t: Translator): ReactElement {
+export function renderEmpty(t: Translator, whatsappUrl: string | null = null): ReactElement {
   return (
-    <div className={styles.emptyState}>
+    <div className={styles.emptyState} data-testid="empty-state">
       <svg
         className={styles.emptyIcon}
         fill="none"
@@ -166,6 +174,17 @@ export function renderEmpty(t: Translator): ReactElement {
       </svg>
       <h3 className={styles.emptyTitle}>{t('emptyTitle')}</h3>
       <p className={styles.emptyMessage}>{t('emptyHint')}</p>
+      <p className={styles.emptyInvite}>{t('emptyInvite')}</p>
+      {whatsappUrl && (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.emptyWhatsapp}
+        >
+          {t('emptyWhatsapp')}
+        </a>
+      )}
     </div>
   );
 }
