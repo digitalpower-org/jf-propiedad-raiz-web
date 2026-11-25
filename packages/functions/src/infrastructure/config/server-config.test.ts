@@ -43,6 +43,8 @@ const VALID_ENV: Record<EnvKey, string> = {
   R2_PUBLIC_BASE_URL: 'https://media.example.com',
 };
 
+const DEFAULT_DEV_CONSIGNMENT_TO_EMAIL = 'DesarrollosDigitalPower@gmail.com';
+
 const originalEnv: Record<EnvKey, string | undefined> = {} as Record<EnvKey, string | undefined>;
 
 for (const key of ENV_KEYS) {
@@ -167,7 +169,7 @@ describe('server-config', () => {
     expect(messages.some((message) => message.includes('R2_ENDPOINT'))).toBe(true);
   });
 
-  it('aplica valores por defecto cuando las variables opcionales faltan', async () => {
+  it('aplica valores por defecto de development cuando las variables opcionales faltan', async () => {
     applyEnv({
       NODE_ENV: undefined,
       BFF_URL: undefined,
@@ -188,8 +190,16 @@ describe('server-config', () => {
     expect(config.firebaseProjectId).toBe('jf-propiedad-raiz');
     expect(config.useFakeTranslator).toBe(false);
     expect(config.resendFromEmail).toBe('consignaciones@jfpropiedadraiz.com');
-    expect(config.consignmentToEmail).toBe('juanfer@jfpropiedadraiz.com');
+    expect(config.consignmentToEmail).toBe(DEFAULT_DEV_CONSIGNMENT_TO_EMAIL);
     expect(config.firebaseAuthEmulatorHost).toBeUndefined();
+  });
+
+  it('usa el destinatario de desarrollo cuando CONSIGNMENT_TO_EMAIL está definido', async () => {
+    applyEnv({ NODE_ENV: 'development' });
+
+    const { config } = await importConfig();
+
+    expect(config.consignmentToEmail).toBe(DEFAULT_DEV_CONSIGNMENT_TO_EMAIL);
   });
 
   it('rechaza CONSIGNMENT_TO_EMAIL que no es un correo válido', async () => {

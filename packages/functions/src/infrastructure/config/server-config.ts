@@ -46,6 +46,7 @@ export const env = parsed.data;
 const DEFAULT_BFF_URL = 'http://127.0.0.1:3000';
 const DEFAULT_FIREBASE_PROJECT_ID = 'jf-propiedad-raiz';
 const DEFAULT_CONSIGNMENT_TO_EMAIL = 'juanfer@jfpropiedadraiz.com';
+const DEFAULT_CONSIGNMENT_TO_EMAIL_DEV = 'DesarrollosDigitalPower@gmail.com';
 
 export const config = {
   nodeEnv: env.NODE_ENV,
@@ -58,7 +59,10 @@ export const config = {
   useFakeTranslator: env.TRANSLATOR_FAKE === '1',
   resendApiKey: env.RESEND_API_KEY,
   resendFromEmail: env.RESEND_FROM_EMAIL ?? 'consignaciones@jfpropiedadraiz.com',
-  consignmentToEmail: env.CONSIGNMENT_TO_EMAIL ?? DEFAULT_CONSIGNMENT_TO_EMAIL,
+  consignmentToEmail:
+    env.NODE_ENV === 'development'
+      ? DEFAULT_CONSIGNMENT_TO_EMAIL_DEV
+      : (env.CONSIGNMENT_TO_EMAIL ?? DEFAULT_CONSIGNMENT_TO_EMAIL),
   firebaseAuthEmulatorHost: env.FIREBASE_AUTH_EMULATOR_HOST,
   r2: {
     endpoint: env.R2_ENDPOINT,
