@@ -13,6 +13,7 @@ import {
   publicReadKey,
   socketIpKey,
 } from './guards/rate-limit';
+import { svixHeadersGuard } from './guards/svix-headers';
 import { optionalAdminIdentity, requireUserIdentity } from './guards/user-identity';
 import { buildHandlers } from './handlers';
 import { methodNotAllowed } from './middlewares/method-not-allowed';
@@ -152,6 +153,18 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     'rate-email-notifications',
   );
 
+  const requireSvixHeadersGuard = withName(svixHeadersGuard, 'svix-headers');
+  const rateWebhook = withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-webhook',
+      keyFrom: socketIpKey,
+      limit: 600,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    'rate-webhook',
+  );
+
   const routes: readonly RouteDeclaration[] = [
     {
       method: 'post',
@@ -174,7 +187,7 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     {
       method: 'post',
       path: API_PATHS.resendDeliveryWebhook,
-      guards: [],
+      guards: [requireSvixHeadersGuard, rateWebhook],
       handler: handlers.resendDeliveryWebhook,
     },
     {

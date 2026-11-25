@@ -97,7 +97,7 @@ const expectedGuards: Record<string, readonly string[]> = {
     'require-user-identity',
     'rate-media-confirm',
   ],
-  [`post:${API_PATHS.resendDeliveryWebhook}`]: [],
+  [`post:${API_PATHS.resendDeliveryWebhook}`]: ['svix-headers', 'rate-webhook'],
   [`get:${API_PATHS.consignmentEmailNotifications}`]: [
     'guard-internal',
     'rate-email-notifications',
