@@ -13,6 +13,8 @@ const ENV_KEYS = [
   'TRANSLATOR_FAKE',
   'RESEND_API_KEY',
   'RESEND_FROM_EMAIL',
+  'RESEND_WEBHOOK_SECRET',
+  'CONSIGNMENT_NOTIFICATION_TTL_SECONDS',
   'CONSIGNMENT_TO_EMAIL',
   'FIREBASE_AUTH_EMULATOR_HOST',
   'R2_ENDPOINT',
@@ -33,6 +35,8 @@ const VALID_ENV: Record<EnvKey, string> = {
   TRANSLATOR_FAKE: '1',
   RESEND_API_KEY: 're_resend_key',
   RESEND_FROM_EMAIL: 'consignaciones@jfpropiedadraiz.com',
+  RESEND_WEBHOOK_SECRET: 're_webhook_secret_ejemplo',
+  CONSIGNMENT_NOTIFICATION_TTL_SECONDS: '86400',
   CONSIGNMENT_TO_EMAIL: 'juanfer@jfpropiedadraiz.com',
   FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099',
   R2_ENDPOINT: 'https://account-id.r2.cloudflarestorage.com',
@@ -95,7 +99,7 @@ describe('server-config', () => {
 
     const { config, env } = await importConfig();
 
-    expect(env).toEqual(VALID_ENV);
+    expect(env).toEqual({ ...VALID_ENV, CONSIGNMENT_NOTIFICATION_TTL_SECONDS: 86400 });
     expect(config).toEqual({
       nodeEnv: 'test',
       isProd: false,
@@ -107,6 +111,8 @@ describe('server-config', () => {
       useFakeTranslator: true,
       resendApiKey: VALID_ENV.RESEND_API_KEY,
       resendFromEmail: VALID_ENV.RESEND_FROM_EMAIL,
+      resendWebhookSecret: VALID_ENV.RESEND_WEBHOOK_SECRET,
+      consignmentNotificationTtlSeconds: 86400,
       consignmentToEmail: VALID_ENV.CONSIGNMENT_TO_EMAIL,
       firebaseAuthEmulatorHost: VALID_ENV.FIREBASE_AUTH_EMULATOR_HOST,
       r2: {
@@ -124,6 +130,7 @@ describe('server-config', () => {
   it.each([
     'BFF_INTERNAL_KEY',
     'RESEND_API_KEY',
+    'RESEND_WEBHOOK_SECRET',
     'R2_ENDPOINT',
     'R2_REGION',
     'R2_ACCESS_KEY_ID',
@@ -141,13 +148,16 @@ describe('server-config', () => {
     expect(messages.some((message) => message.includes(key))).toBe(true);
   });
 
-  it.each(['BFF_INTERNAL_KEY', 'RESEND_API_KEY', 'R2_REGION'])('rechaza %s vacía', async (key) => {
-    applyEnv({ [key]: '' });
+  it.each(['BFF_INTERNAL_KEY', 'RESEND_API_KEY', 'RESEND_WEBHOOK_SECRET', 'R2_REGION'])(
+    'rechaza %s vacía',
+    async (key) => {
+      applyEnv({ [key]: '' });
 
-    await expect(importConfig()).rejects.toThrow(
-      'Fallo al validar variables de entorno del backend.',
-    );
-  });
+      await expect(importConfig()).rejects.toThrow(
+        'Fallo al validar variables de entorno del backend.',
+      );
+    },
+  );
 
   it('rechaza BFF_INTERNAL_KEY demasiado corta', async () => {
     applyEnv({ BFF_INTERNAL_KEY: 'short' });
@@ -210,6 +220,23 @@ describe('server-config', () => {
     );
     const messages = consoleErrorSpy.mock.calls.map((call) => String(call[0]));
     expect(messages.some((message) => message.includes('CONSIGNMENT_TO_EMAIL'))).toBe(true);
+  });
+
+  it('usa 86400 por defecto cuando CONSIGNMENT_NOTIFICATION_TTL_SECONDS falta', async () => {
+    applyEnv({ CONSIGNMENT_NOTIFICATION_TTL_SECONDS: undefined });
+
+    const { config } = await importConfig();
+
+    expect(config.consignmentNotificationTtlSeconds).toBe(86400);
+  });
+
+  it('convierte CONSIGNMENT_NOTIFICATION_TTL_SECONDS a número', async () => {
+    applyEnv({ CONSIGNMENT_NOTIFICATION_TTL_SECONDS: '3600' });
+
+    const { config } = await importConfig();
+
+    expect(config.consignmentNotificationTtlSeconds).toBe(3600);
+    expect(typeof config.consignmentNotificationTtlSeconds).toBe('number');
   });
 
   it('no falla si NODE_ENV es production, development o test', async () => {
