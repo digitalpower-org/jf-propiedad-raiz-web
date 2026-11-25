@@ -16,12 +16,14 @@ export class ResendEmailSender implements EmailSender {
     this.fromEmail = fromEmail;
   }
 
-  async send(to: string, subject: string, html: string): Promise<void> {
+  async send(to: string, subject: string, html: string, replyTo?: string): Promise<void> {
     const result = await this.resend.emails.send({
       from: `Consignaciones <${this.fromEmail}>`,
       to,
       subject,
       html,
+      // exactOptionalPropertyTypes: no enviar `replyTo: undefined`.
+      ...(replyTo !== undefined ? { replyTo } : {}),
     });
 
     if (result.error) {

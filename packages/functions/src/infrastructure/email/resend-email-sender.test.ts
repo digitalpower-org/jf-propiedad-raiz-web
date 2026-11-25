@@ -70,4 +70,24 @@ describe('ResendEmailSender', () => {
       html: '<p>Test HTML</p>',
     });
   });
+
+  it('reenvía replyTo al SDK de Resend cuando se proporciona', async () => {
+    const sender = new ResendEmailSender('test-api-key', fromEmail);
+    mocks.emailsSend.mockResolvedValue({ data: { id: 'email-123' }, error: null });
+
+    await sender.send(
+      'recipient@example.com',
+      'Test Subject',
+      '<p>Test HTML</p>',
+      'reply@example.com',
+    );
+
+    expect(mocks.emailsSend).toHaveBeenCalledWith({
+      from: `Consignaciones <${fromEmail}>`,
+      to: 'recipient@example.com',
+      subject: 'Test Subject',
+      html: '<p>Test HTML</p>',
+      replyTo: 'reply@example.com',
+    });
+  });
 });
