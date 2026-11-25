@@ -99,3 +99,32 @@ describe('PropertyGrid | destacadas y no destacadas', () => {
     expect(tarjetas()).toEqual([...ids('card-c', 1, 13), 'card-n2']);
   });
 });
+
+describe('PropertyGrid | orden de las peticiones', () => {
+  it('mientras carga la primera página de destacadas no pide las no destacadas', async () => {
+    const pedidas: Array<string | null> = [];
+    let liberar: () => void = () => undefined;
+    const espera = new Promise<void>((resolve) => {
+      liberar = resolve;
+    });
+    const apiLenta: IHttpClient = {
+      get: async <T,>(url: string) => {
+        pedidas.push(new URL(url, 'http://prueba.local').searchParams.get('destacada'));
+        await espera;
+        return apiFalsa.get<T>(url);
+      },
+    };
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <PropertyGrid operacion="VENTA" locale="es" filters={{}} httpClient={apiLenta} />
+      </QueryClientProvider>,
+    );
+
+    await vi.waitFor(() => expect(pedidas).toContain('true'));
+    expect(pedidas).toEqual(['true']);
+
+    liberar();
+    await screen.findByTestId('card-n1');
+    expect(pedidas).toEqual(['true', 'false']);
+  });
+});

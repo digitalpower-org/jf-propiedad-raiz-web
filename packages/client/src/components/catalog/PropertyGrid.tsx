@@ -43,7 +43,6 @@ export function PropertyGrid({
   frontendFilters,
   httpClient,
 }: PropertyGridProps) {
-  const [showDestacadas, setShowDestacadas] = React.useState(true);
   const t = useTranslations('common');
 
   // Highlighted-query params
@@ -51,7 +50,6 @@ export function PropertyGrid({
   const {
     data: featuredData,
     hasNextPage: hasFeaturedNextPage,
-    isFetchingNextPage: isFetchingFeatured,
     isLoading: isLoadingFeatured,
   } = usePropertiesQuery(featuredParams, httpClient);
 
@@ -60,12 +58,9 @@ export function PropertyGrid({
     return featuredData.pages.flatMap((page) => (page.success ? page.data.items : []));
   }, [featuredData]);
 
-  // Auto-switch to non-destacadas when destacadas are exhausted (only after initial load completes)
-  const shouldSwitch =
-    showDestacadas && !isLoadingFeatured && !hasFeaturedNextPage && !isFetchingFeatured;
-  if (shouldSwitch) {
-    setShowDestacadas(false);
-  }
+  // La consulta activa son las destacadas mientras no estén agotadas. Se deriva (no es estado)
+  // para que al cambiar de filtro se recalcule con las destacadas del filtro nuevo.
+  const showDestacadas = isLoadingFeatured || hasFeaturedNextPage;
 
   // Active-query params (destacadas or not)
   const activeParams = buildQueryParams(operacion, showDestacadas, undefined, filters);
