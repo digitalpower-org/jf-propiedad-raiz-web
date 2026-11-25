@@ -5,9 +5,10 @@ import type { useTranslations } from 'next-intl';
 import type { PropertyListParams } from '@/lib/api-catalog';
 import type { IHttpClient } from '@/lib/http-client.types';
 import { fetchPropertiesPage } from '@/lib/api-catalog';
+import { PAGE_SIZE, getNextPropertiesPageParam, propertiesQueryKey } from '@/lib/properties-query';
 import styles from './PropertyGrid.module.css';
 
-export const PAGE_SIZE = 12;
+export { PAGE_SIZE };
 
 /** Tarjetas esqueleto que se muestran al final de la lista mientras llega la página siguiente. */
 const LOAD_MORE_SKELETONS = 4;
@@ -38,25 +39,11 @@ export function buildQueryParams(
  * SRP: solo maneja data fetching, no rendering.
  */
 export function usePropertiesQuery(params: PropertyListParams, httpClient?: IHttpClient) {
-  // Clave estable con todos los filtros: si cambian, la consulta se repite desde la primera página.
-  const filterKey = [
-    params.tipo ?? '',
-    params.departamento ?? '',
-    params.municipio ?? '',
-    params.precioMin ?? '',
-    params.precioMax ?? '',
-  ].join('|');
-
   return useInfiniteQuery({
-    queryKey: ['properties', params.operacion, params.destacada, filterKey, params.cursor],
+    queryKey: propertiesQueryKey(params),
     queryFn: ({ pageParam }) =>
       fetchPropertiesPage({ ...params, cursor: pageParam as string | undefined }, httpClient),
-    getNextPageParam: (lastPage) => {
-      if (lastPage.success && lastPage.data.nextCursor) {
-        return lastPage.data.nextCursor;
-      }
-      return undefined;
-    },
+    getNextPageParam: getNextPropertiesPageParam,
     initialPageParam: undefined as string | undefined,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
