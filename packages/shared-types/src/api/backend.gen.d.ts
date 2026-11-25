@@ -235,6 +235,17 @@ export interface paths {
          *     minuto desde la misma IP (`X-Client-IP`) → 429 `RATE_LIMITED` (AC3.4.2). Fallo del
          *     correo a Juan → 502 `EMAIL_DELIVERY_FAILED` (AC3.2.4). `consent` ausente o falso → 422
          *     `CONSENT_REQUIRED` sin enviar nada (AC3.3.2).
+         *
+         *     El correo a Juan lleva el tag `consignmentKind: 'admin'` y el acuse al visitante lleva
+         *     `consignmentKind: 'client'`, ambos con `consignmentRequestId` igual al `requestId` que se
+         *     devuelve en la respuesta. Este `requestId` correlaciona el envío con las notificaciones
+         *     de entrega que Resend enviará al webhook `POST /api/v1/webhooks/resend-delivery`.
+         *
+         *     **Importante:** el código `200` significa que la solicitud fue **aceptada y los correos
+         *     puestos en cola de envío**, no que hayan sido entregados. El backend **no clasifica**
+         *     las notificaciones de Resend como éxito, espera o fallo; devuelve los datos crudos
+         *     mínimos vía `GET /api/v1/consignments/email-notifications` para que el BFF/client
+         *     aplique su propia regla de decisión, frecuencia de consulta y tiempo máximo de espera.
          */
         post: operations["createConsignment"];
         delete?: never;
@@ -430,6 +441,67 @@ export interface paths {
          *     BFF↔Functions de negocio y no exige `X-Internal-Key`.
          */
         get: operations["healthCheck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/resend-delivery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Webhook público de notificaciones de entrega de Resend (firmado por Svix)
+         * @description Recibe notificaciones de eventos de correo (entregado, rebotado, abierto, clic, etc.) firmadas
+         *     por Svix. El backend verifica la firma con el secreto compartido de Resend y persiste solo
+         *     las notificaciones cuyo payload incluya el tag `consignmentKind: 'admin'`. Las notificaciones
+         *     con tag `client` o sin tag se descartan respondiendo `200` sin escritura.
+         *
+         *     **Headers requeridos (Svix):**
+         *     - `svix-id`: identificador único del evento (usado para idempotencia).
+         *     - `svix-timestamp`: timestamp Unix del envío.
+         *     - `svix-signature`: firma Base64 del payload con el secreto del webhook.
+         *
+         *     El body crudo se captura antes de cualquier parsing para que la verificación de firma reciba
+         *     los bytes originales. Una firma inválida responde `401 UNAUTHORIZED` sin persistir nada.
+         *     Un evento válido sin tag de admin responde `200` vacío y registra `debug` sin PII.
+         */
+        post: operations["resendDeliveryWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/consignments/email-notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consulta interna de notificaciones de correo persistidas para una solicitud
+         * @description Devuelve la lista de notificaciones de Resend persistidas para el `requestId` dado.
+         *     Solo se persisten notificaciones cuyo payload lleve el tag `consignmentKind: 'admin'`
+         *     (correo a Juan Fernando). El backend **no interpreta** los tipos de evento ni asigna
+         *     significado de éxito, espera o fallo: devuelve los datos crudos mínimos para que el
+         *     BFF/client aplique su propia regla de decisión, frecuencia de consulta y tiempo máximo
+         *     de espera.
+         *
+         *     Requiere cabecera `X-Internal-Key` válida. El parámetro `requestId` es obligatorio.
+         *     Si no hay notificaciones vigentes (todas expiradas por TTL), devuelve `200` con
+         *     `notifications: []`. No expone la existencia de solicitudes sin notificaciones.
+         */
+        get: operations["getConsignmentEmailNotifications"];
         put?: never;
         post?: never;
         delete?: never;
@@ -858,6 +930,34 @@ export interface components {
             }[];
             /** Format: date-time */
             updatedAt: string;
+        };
+        /**
+         * @description Notificación de evento de correo de Resend persistida (solo las que llevan tag
+         *     `consignmentKind: 'admin'`). El backend no clasifica el tipo de evento ni asigna
+         *     significado de éxito, espera o fallo; el BFF/client decide su propia regla.
+         */
+        ResendNotification: {
+            /** @description Identificador único del evento en Resend (Svix `svix-id`). */
+            eventId: string;
+            /** @description Tipo de evento de Resend (p. ej. `email.delivered`, `email.bounced`, `email.opened`, `email.clicked`). */
+            eventType: string;
+            /**
+             * Format: date-time
+             * @description Momento de creación del evento en Resend (timestamp del proveedor).
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Momento de recepción y persistencia en el backend.
+             */
+            receivedAt: string;
+        };
+        /** @description Respuesta de la consulta de notificaciones por `requestId`. */
+        ResendNotificationsData: {
+            /** @description Identificador de la solicitud de consignación consultada. */
+            requestId: string;
+            /** @description Lista de notificaciones persistidas ordenadas por `receivedAt` ascendente; vacía si no hay vigentes. */
+            notifications: components["schemas"]["ResendNotification"][];
         };
     };
     responses: {
@@ -1424,17 +1524,18 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Solicitud aceptada y correos enviados (o suprimidos por honeypot, AC3.4.1). */
+            /** @description Solicitud aceptada y correos puestos en cola (o suprimidos por honeypot, AC3.4.1). */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiSuccess"] & {
-                        /** @description PENDIENTE: definición pendiente en TASKS (US3.1/US3.2 no especifican el cuerpo de la respuesta de éxito). */
                         data: {
                             /** @description Falso cuando el honeypot `sitio` bloquea el envío (AC3.4.1). */
-                            enviado?: boolean;
+                            enviado: boolean;
+                            /** @description Identificador de la solicitud; correlaciona con notificaciones de entrega en el webhook y en la consulta `GET /api/v1/consignments/email-notifications`. */
+                            requestId: string;
                         };
                     };
                 };
@@ -1833,6 +1934,73 @@ export interface operations {
                 };
             };
             405: components["responses"]["MethodNotAllowed"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    resendDeliveryWebhook: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Identificador único del evento Svix (idempotencia). */
+                "svix-id": string;
+                /** @description Timestamp Unix del envío del webhook. */
+                "svix-timestamp": string;
+                /** @description Firma Base64 del payload con el secreto compartido de Resend. */
+                "svix-signature": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Notificación procesada (persistida si tiene tag admin; descartada en caso contrario). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccess"] & {
+                        /** @description Respuesta vacía; el backend no devuelve datos del evento. */
+                        data: Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getConsignmentEmailNotifications: {
+        parameters: {
+            query: {
+                /** @description Identificador de la solicitud de consignación (correlaciona envío y notificaciones). */
+                requestId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista de notificaciones persistidas (puede ser vacía). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSuccess"] & {
+                        data: components["schemas"]["ResendNotificationsData"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            405: components["responses"]["MethodNotAllowed"];
+            422: components["responses"]["ValidationError"];
             429: components["responses"]["RateLimited"];
         };
     };
