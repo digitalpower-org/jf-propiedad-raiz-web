@@ -472,7 +472,8 @@ export interface paths {
          *
          *     El body crudo se captura antes de cualquier parsing para que la verificación de firma reciba
          *     los bytes originales. Una firma inválida responde `401 UNAUTHORIZED` sin persistir nada.
-         *     Un evento válido sin tag de admin responde `200` vacío y registra `debug` sin PII.
+         *     Un evento válido responde `200` con la envoltura `ApiSuccess` y `data: {}`, haya o no
+         *     persistencia; los eventos sin tag de admin solo registran `debug` sin PII.
          */
         post: operations["resendDeliveryWebhook"];
         delete?: never;

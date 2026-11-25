@@ -48,12 +48,13 @@ function makeReq(rawBody?: Buffer, headers: Record<string, string> = {}): Reques
 function makeRes(): Response {
   const res = {} as unknown as Response;
   res.status = vi.fn().mockReturnValue(res);
+  res.json = vi.fn();
   res.end = vi.fn();
   return res;
 }
 
 describe('POST /api/v1/webhooks/resend-delivery', () => {
-  it('responde 200 y persiste cuando el evento es de admin', async () => {
+  it('responde 200 con envelope ApiSuccess y persiste cuando el evento es de admin', async () => {
     const { sut, verifier, registrarNotificacion } = makeSut();
     const req = makeReq(Buffer.from('{}'));
     const res = makeRes();
@@ -64,7 +65,11 @@ describe('POST /api/v1/webhooks/resend-delivery', () => {
     expect(verifier.verify).toHaveBeenCalledTimes(1);
     expect(registrarNotificacion.execute).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.end).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: {},
+      message: expect.any(String),
+    });
     expect(next).not.toHaveBeenCalled();
   });
 

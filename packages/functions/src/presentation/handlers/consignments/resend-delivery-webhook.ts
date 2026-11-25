@@ -5,14 +5,15 @@ import type { RegistrarNotificacionResendUseCase } from '../../../application/us
 import type { AsyncHandler } from '../types';
 import { ApiError } from '../../../domain/errors/api-error';
 import { errorCode } from '../../../domain/errors/errorCatalog';
+import { writeSuccess } from '../../protocol';
 
 /**
  * POST /api/v1/webhooks/resend-delivery — Webhook de delivery de Resend (T5).
  *
  * Ruta pública firmada por Svix. Verifica la firma, y solo persiste las
  * notificaciones con tag de admin. Los eventos `client`, sin tag o
- * desconocidos responden `200` vacío sin escritura. Una firma inválida
- * responde `401` y nunca alcanza el caso de uso.
+ * desconocidos responden `200` con `ApiSuccess` y `data: {}` sin escritura.
+ * Una firma inválida responde `401` y nunca alcanza el caso de uso.
  */
 export const makeResendDeliveryWebhookHandler =
   (
@@ -53,7 +54,7 @@ export const makeResendDeliveryWebhookHandler =
       return;
     }
 
-    res.status(200).end();
+    writeSuccess(res, {}, 'Notificación de entrega procesada');
   };
 
 function verificarFirma(
