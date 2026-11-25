@@ -10,6 +10,10 @@ import type { EmailSender } from '../../ports/email-sender';
 import type { BackendSpec } from '@jf/shared-types';
 import { ApiError } from '../../../domain/errors/api-error';
 import { errorCode } from '../../../domain/errors/errorCatalog';
+import {
+  construirHtmlNotificacion,
+  construirHtmlRecibo,
+} from '../../email/plantillas-consignacion';
 
 type ConsignmentInput = BackendSpec.components['schemas']['ConsignmentInput'];
 
@@ -21,7 +25,7 @@ export interface CrearConsignmentResult {
   readonly enviado: boolean;
 }
 
-const ASUNTO_JUAN = 'Nueva solicitud de consignación de propiedad';
+const ASUNTO_NOTIFICACION_CONSIGNACION = 'Nueva solicitud de consignación de propiedad';
 const ASUNTO_RECIBO = 'Recibo de tu solicitud de consignación';
 
 export class CrearConsignmentUseCase implements UseCase<
@@ -52,10 +56,17 @@ export class CrearConsignmentUseCase implements UseCase<
       );
     }
 
+    const idioma = input.idioma ?? 'es';
+
     // AC3.2.1 / AC3.2.3 — Correo a Juan Fernando con los datos del solicitante.
-    const htmlJuan = this.construirHtmlJuan(input);
+    const htmlNotificacion = construirHtmlNotificacion(input, idioma);
     try {
-      await this.emailSender.send(this.consignmentToEmail, ASUNTO_JUAN, htmlJuan);
+      await this.emailSender.send(
+        this.consignmentToEmail,
+        ASUNTO_NOTIFICACION_CONSIGNACION,
+        htmlNotificacion,
+        input.email,
+      );
     } catch (error) {
       this.logger.warn('consignment_email_juan_failed', { error: String(error) });
       throw new ApiError(
@@ -65,59 +76,16 @@ export class CrearConsignmentUseCase implements UseCase<
     }
 
     // AC3.2.2 — Recibo al solicitante.
-    const htmlRecibo = this.construirHtmlRecibo(input, input.idioma ?? 'es');
+    const htmlRecibo = construirHtmlRecibo(input, idioma);
     try {
       await this.emailSender.send(input.email, ASUNTO_RECIBO, htmlRecibo);
     } catch (error) {
+      // El recibo es degradado: si falla, la solicitud sigue siendo exitosa
+      // y solo se advierte. El correo a Juan (AC3.2.1) sigue siendo fatal.
       this.logger.warn('consignment_email_recibo_failed', { error: String(error) });
-      throw new ApiError(errorCode.emailDeliveryFailed, 'No se pudo enviar el correo de recibo');
     }
 
     this.logger.info('consignment_created', { email: input.email });
     return { enviado: true };
-  }
-
-  private construirHtmlJuan(input: ConsignmentInput): string {
-    return `
-      <h2>Nueva solicitud de consignación</h2>
-      <p><strong>Nombre:</strong> ${this.escapeHtml(input.nombre)}</p>
-      <p><strong>Teléfono:</strong> ${this.escapeHtml(input.telefono)}</p>
-      <p><strong>Email:</strong> ${this.escapeHtml(input.email)}</p>
-      <p><strong>Tipo de inmueble:</strong> ${this.escapeHtml(input.tipo)}</p>
-      <p><strong>Ubicación:</strong> ${this.escapeHtml(input.departamento)}, ${this.escapeHtml(input.municipio)}</p>
-      ${input.valor !== undefined ? `<p><strong>Valor solicitado:</strong> $${input.valor.toLocaleString()}</p>` : ''}
-      ${input.areaConstruida !== undefined ? `<p><strong>Área construida:</strong> ${input.areaConstruida} m²</p>` : ''}
-      ${input.areaLote !== undefined ? `<p><strong>Área de lote:</strong> ${input.areaLote} m²</p>` : ''}
-      ${input.mensaje ? `<p><strong>Mensaje:</strong> ${this.escapeHtml(input.mensaje)}</p>` : ''}
-      <p><strong>Idioma:</strong> ${input.idioma ?? 'es'}</p>
-    `;
-  }
-
-  private construirHtmlRecibo(input: ConsignmentInput, idioma: 'es' | 'en'): string {
-    if (idioma === 'en') {
-      return `
-        <h2>Receipt of your consignment request</h2>
-        <p>Dear ${this.escapeHtml(input.nombre)},</p>
-        <p>We have received your request to list your property. We will contact you shortly.</p>
-        <p><strong>Property type:</strong> ${this.escapeHtml(input.tipo)}</p>
-        <p><strong>Location:</strong> ${this.escapeHtml(input.departamento)}, ${this.escapeHtml(input.municipio)}</p>
-      `;
-    }
-    return `
-      <h2>Recibo de tu solicitud de consignación</h2>
-      <p>Hola ${this.escapeHtml(input.nombre)},</p>
-      <p>Hemos recibido tu solicitud para consignar tu propiedad. Nos comunicaremos contigo pronto.</p>
-      <p><strong>Tipo de inmueble:</strong> ${this.escapeHtml(input.tipo)}</p>
-      <p><strong>Ubicación:</strong> ${this.escapeHtml(input.departamento)}, ${this.escapeHtml(input.municipio)}</p>
-    `;
-  }
-
-  private escapeHtml(text: string): string {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
   }
 }

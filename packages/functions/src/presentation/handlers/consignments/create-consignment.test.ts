@@ -71,6 +71,32 @@ describe('POST /api/v1/consignments', () => {
     expect(response.body.data.code).toBe('EMAIL_DELIVERY_FAILED');
   });
 
+  it('retorna 200 y enviado=true cuando solo falla el recibo al solicitante', async () => {
+    const emailSender = {
+      send: vi.fn().mockImplementation((to) => {
+        if (to === 'cliente@ejemplo.com') throw new Error('Resend error: Invalid API key');
+        return Promise.resolve();
+      }),
+    };
+    const { app, logger } = setup({ emailSender });
+
+    const response = await request(app)
+      .post('/api/v1/consignments')
+      .set('X-Internal-Key', INTERNAL_KEY)
+      .set('X-Client-IP', '203.0.113.10')
+      .send(inputValido);
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.enviado).toBe(true);
+    expect(vi.mocked(emailSender.send)).toHaveBeenCalledTimes(2);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      'consignment_email_recibo_failed',
+      expect.objectContaining({ error: expect.any(String) }),
+    );
+  });
+
   it('retorna enviado=false y no envía correos cuando el honeypot `sitio` tiene valor', async () => {
     const emailSender = { send: vi.fn().mockResolvedValue(undefined) };
     const { app } = setup({ emailSender });
