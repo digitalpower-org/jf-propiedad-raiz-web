@@ -11,6 +11,8 @@ import { vi } from 'vitest';
 import type { ApplicationPorts } from '../../application/ports';
 import type { AboutDto } from '../../application/ports/about-repository';
 import type { AuthorizedUsersRepository } from '../../application/ports/authorized-users-repository';
+import type { ConsignmentEmailNotificationRepository } from '../../application/ports/consignment-email-notification-repository';
+import type { DeliveryWebhookVerifier } from '../../application/ports/delivery-webhook-verifier';
 import type { IdentityVerifier } from '../../application/ports/identity-verifier';
 import type { Logger } from '../../application/ports/logger';
 import type { RevalidationGateway } from '../../application/ports/revalidation-gateway';
@@ -82,6 +84,13 @@ export function makePorts(overrides: Partial<ApplicationPorts> = {}) {
       generarDerivados: vi.fn(),
     },
     emailSender: { send: vi.fn() },
+    consignmentEmailNotificationRepository: {
+      appendIfAbsent: vi.fn(),
+      listByRequestId: vi.fn(),
+    } as ConsignmentEmailNotificationRepository,
+    deliveryWebhookVerifier: {
+      verify: vi.fn(),
+    } as DeliveryWebhookVerifier,
     rateLimiter: { check: vi.fn() },
     videoValidator: { validate: vi.fn() },
   };
@@ -91,7 +100,11 @@ export function makePorts(overrides: Partial<ApplicationPorts> = {}) {
 export function setup(overrides: Partial<ApplicationPorts> = {}) {
   const deps = makePorts(overrides);
   const app = appBuilder(
-    buildUseCases(deps, { consignmentToEmail: 'test@example.com', aboutSeed }),
+    buildUseCases(deps, {
+      consignmentToEmail: 'test@example.com',
+      aboutSeed,
+      consignmentNotificationTtlSeconds: 86400,
+    }),
     {
       internalKey: INTERNAL_KEY,
       logger: deps.logger,

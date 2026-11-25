@@ -141,6 +141,16 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
     }),
     'rate-media-confirm',
   );
+  const rateEmailNotifications = withName(
+    makeRateLimitGuard(useCases.rateLimiter, deps.logger, {
+      name: 'rate-email-notifications',
+      keyFrom: fixedKey('email-notifications'),
+      limit: 60,
+      windowSeconds: 60,
+      message: 'Límite de solicitudes excedido',
+    }),
+    'rate-email-notifications',
+  );
 
   const routes: readonly RouteDeclaration[] = [
     {
@@ -160,6 +170,18 @@ export function apiRouter(useCases: UseCases, deps: ApiDeps): Router {
       path: API_PATHS.consignments,
       guards: [guardInternal, requireClientIpGuard, rateConsignment],
       handler: handlers.createConsignment,
+    },
+    {
+      method: 'post',
+      path: API_PATHS.resendDeliveryWebhook,
+      guards: [],
+      handler: handlers.resendDeliveryWebhook,
+    },
+    {
+      method: 'get',
+      path: API_PATHS.consignmentEmailNotifications,
+      guards: [guardInternal, rateEmailNotifications],
+      handler: handlers.getEmailNotifications,
     },
     // Propiedades — escritura (requieren sesión de admin vía X-Internal-Key + X-User-*)
     {

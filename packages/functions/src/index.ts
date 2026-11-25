@@ -12,6 +12,7 @@ const infrastructure = createInfrastructure();
 const useCases = buildUseCases(infrastructure, {
   consignmentToEmail: infrastructure.config.consignmentToEmail,
   aboutSeed: aboutCatalogo,
+  consignmentNotificationTtlSeconds: infrastructure.config.consignmentNotificationTtlSeconds,
 });
 const app = appBuilder(useCases, {
   internalKey: infrastructure.config.internalKey,

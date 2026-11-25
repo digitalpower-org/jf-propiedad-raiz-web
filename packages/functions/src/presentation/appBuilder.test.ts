@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 
 import { INTERNAL_KEY, setup, verifiedIdentity } from './testing/appBuilderTestHarness';
+import { API_PATHS } from './paths';
 
 describe('API HTTP', () => {
   it('GET /health responde con el cuerpo crudo esperado', async () => {
@@ -180,5 +181,99 @@ describe('API HTTP', () => {
       expect.any(Error),
       expect.objectContaining({ requestId: expect.any(String) }),
     );
+  });
+});
+
+describe('GET /api/v1/consignments/email-notifications', () => {
+  const notificacionVigente = {
+    eventId: 'evt-456',
+    eventType: 'email.delivered',
+    createdAt: '2026-11-24T12:00:00.000Z',
+    receivedAt: '2026-11-24T12:00:05.000Z',
+  };
+
+  function setupConNotificaciones(notificaciones: readonly (typeof notificacionVigente)[]) {
+    return setup({
+      consignmentEmailNotificationRepository: {
+        appendIfAbsent: vi.fn(),
+        listByRequestId: vi.fn().mockResolvedValue(notificaciones),
+      },
+    });
+  }
+
+  it('consulta autorizada devuelve 200 con la lista de notificaciones', async () => {
+    const { app } = setupConNotificaciones([notificacionVigente]);
+
+    const response = await request(app)
+      .get(API_PATHS.consignmentEmailNotifications)
+      .query({ requestId: 'req-123' })
+      .set('X-Internal-Key', INTERNAL_KEY);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      data: { requestId: 'req-123', notifications: [notificacionVigente] },
+      message: '',
+    });
+  });
+
+  it('consulta sin clave interna devuelve 401', async () => {
+    const { app } = setup();
+
+    const response = await request(app)
+      .get(API_PATHS.consignmentEmailNotifications)
+      .query({ requestId: 'req-123' });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toMatchObject({
+      success: false,
+      data: { code: 'UNAUTHORIZED' },
+    });
+  });
+
+  it('notificación expirada no es devuelta (el repositorio filtra por expiración)', async () => {
+    const { app } = setupConNotificaciones([]);
+
+    const response = await request(app)
+      .get(API_PATHS.consignmentEmailNotifications)
+      .query({ requestId: 'req-123' })
+      .set('X-Internal-Key', INTERNAL_KEY);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      data: { requestId: 'req-123', notifications: [] },
+      message: '',
+    });
+  });
+
+  it('consulta sin notificaciones devuelve 200 con notifications vacía', async () => {
+    const { app } = setupConNotificaciones([]);
+
+    const response = await request(app)
+      .get(API_PATHS.consignmentEmailNotifications)
+      .query({ requestId: 'req-inexistente' })
+      .set('X-Internal-Key', INTERNAL_KEY);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      data: { requestId: 'req-inexistente', notifications: [] },
+      message: '',
+    });
+  });
+
+  it('consulta sin requestId devuelve 422', async () => {
+    const { app } = setup();
+
+    const response = await request(app)
+      .get(API_PATHS.consignmentEmailNotifications)
+      .set('X-Internal-Key', INTERNAL_KEY);
+
+    expect(response.status).toBe(422);
+    expect(response.body).toMatchObject({
+      success: false,
+      data: { code: 'VALIDATION_ERROR' },
+    });
   });
 });

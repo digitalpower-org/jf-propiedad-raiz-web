@@ -24,6 +24,8 @@ import { makeUpdateAboutHandler } from './about/update-about';
 import { makePresignMediaUploadHandler } from './media/presign-media-upload';
 import { makeConfirmarMediaUploadHandler } from './media/confirm-media-upload';
 import { makeCreateConsignmentHandler } from './consignments/create-consignment';
+import { makeGetEmailNotificationsHandler } from './consignments/get-email-notifications';
+import { makeResendDeliveryWebhookHandler } from './consignments/resend-delivery-webhook';
 import type { AsyncHandler } from './types';
 
 export interface Handlers {
@@ -50,6 +52,8 @@ export interface Handlers {
   readonly presignMediaUpload: AsyncHandler;
   readonly confirmarMediaUpload: AsyncHandler;
   readonly createConsignment: AsyncHandler;
+  readonly getEmailNotifications: AsyncHandler;
+  readonly resendDeliveryWebhook: AsyncHandler;
 }
 
 export function buildHandlers(useCases: UseCases): Handlers {
@@ -77,5 +81,10 @@ export function buildHandlers(useCases: UseCases): Handlers {
     presignMediaUpload: makePresignMediaUploadHandler(useCases.presignMediaUpload),
     confirmarMediaUpload: makeConfirmarMediaUploadHandler(useCases.confirmarMediaUpload),
     createConsignment: makeCreateConsignmentHandler(useCases.crearConsignment),
+    getEmailNotifications: makeGetEmailNotificationsHandler(useCases.obtenerEmailNotifications),
+    resendDeliveryWebhook: makeResendDeliveryWebhookHandler(
+      useCases.deliveryWebhookVerifier,
+      useCases.registrarNotificacionResend,
+    ),
   };
 }

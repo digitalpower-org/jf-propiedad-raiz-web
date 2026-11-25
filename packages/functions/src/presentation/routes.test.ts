@@ -97,6 +97,11 @@ const expectedGuards: Record<string, readonly string[]> = {
     'require-user-identity',
     'rate-media-confirm',
   ],
+  [`post:${API_PATHS.resendDeliveryWebhook}`]: [],
+  [`get:${API_PATHS.consignmentEmailNotifications}`]: [
+    'guard-internal',
+    'rate-email-notifications',
+  ],
 };
 
 describe('apiRouter', () => {
@@ -116,7 +121,7 @@ describe('apiRouter', () => {
     expect(paths.length).toBeGreaterThan(0);
   });
 
-  it('registra el número y orden de guards por nombre en las 23 rutas', () => {
+  it('registra el número y orden de guards por nombre en las 25 rutas', () => {
     const router = apiRouter(useCases, deps);
 
     const actual: Record<string, string[]> = {};
@@ -135,7 +140,7 @@ describe('apiRouter', () => {
     for (const [key, expected] of Object.entries(expectedGuards)) {
       expect(actual[key], `ruta ${key}`).toEqual(expected);
     }
-    // Ninguna ruta de más ni de menos: exactamente las 23 esperadas.
+    // Ninguna ruta de más ni de menos: exactamente las 25 esperadas.
     expect(Object.keys(actual).sort()).toEqual(Object.keys(expectedGuards).sort());
   });
 });
