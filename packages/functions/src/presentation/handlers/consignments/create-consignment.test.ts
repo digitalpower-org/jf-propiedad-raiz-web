@@ -39,6 +39,46 @@ describe('POST /api/v1/consignments', () => {
     expect(response.body.data.code).toBe('CONSENT_REQUIRED');
   });
 
+  it('rechaza con 422 cuando consent es false (CONSENT_REQUIRED)', async () => {
+    const { app } = setup();
+
+    const response = await request(app)
+      .post('/api/v1/consignments')
+      .set('X-Internal-Key', INTERNAL_KEY)
+      .set('X-Client-IP', '203.0.113.10')
+      .send({ ...inputValido, consent: false });
+
+    expect(response.status).toBe(422);
+    expect(response.body.data.code).toBe('CONSENT_REQUIRED');
+  });
+
+  it('rechaza con 422 cuando consent no es booleano (VALIDATION_ERROR)', async () => {
+    const { app } = setup();
+
+    const response = await request(app)
+      .post('/api/v1/consignments')
+      .set('X-Internal-Key', INTERNAL_KEY)
+      .set('X-Client-IP', '203.0.113.10')
+      .send({ ...inputValido, consent: 'true' });
+
+    expect(response.status).toBe(422);
+    expect(response.body.data.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rechaza con 422 cuando falta consent y el email es inválido (VALIDATION_ERROR)', async () => {
+    const { app } = setup();
+    const { consent: _consent, ...sinConsent } = inputValido;
+
+    const response = await request(app)
+      .post('/api/v1/consignments')
+      .set('X-Internal-Key', INTERNAL_KEY)
+      .set('X-Client-IP', '203.0.113.10')
+      .send({ ...sinConsent, email: 'no-es-un-email' });
+
+    expect(response.status).toBe(422);
+    expect(response.body.data.code).toBe('VALIDATION_ERROR');
+  });
+
   it('retorna 200 y enviado=true cuando la solicitud es válida', async () => {
     const emailSender = { send: vi.fn().mockResolvedValue(undefined) };
     const { app } = setup({ emailSender });
