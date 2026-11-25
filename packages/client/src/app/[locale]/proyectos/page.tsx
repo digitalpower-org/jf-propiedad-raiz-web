@@ -2,8 +2,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { isLocale } from '@/i18n/config';
-import { CatalogClient } from '@/components/catalog/CatalogClient';
-import { QueryClientProviderWrapper } from '@/components/catalog/QueryClientProvider';
+import { CatalogoServidor } from '@/components/catalog/CatalogoServidor';
 
 import styles from './page.module.css';
 
@@ -12,7 +11,7 @@ type CatalogoPageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function ProyectosPage({ params }: CatalogoPageProps) {
+export default async function ProyectosPage({ params, searchParams }: CatalogoPageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -28,9 +27,11 @@ export default async function ProyectosPage({ params }: CatalogoPageProps) {
         </div>
 
         <Suspense fallback={<div className="h-[400px] animate-pulse" />}>
-          <QueryClientProviderWrapper>
-            <CatalogClient operacion="PROYECTO_SOBRE_PLANOS" locale={locale} />
-          </QueryClientProviderWrapper>
+          <CatalogoServidor
+            operacion="PROYECTO_SOBRE_PLANOS"
+            locale={locale}
+            searchParams={searchParams}
+          />
         </Suspense>
       </div>
     </div>

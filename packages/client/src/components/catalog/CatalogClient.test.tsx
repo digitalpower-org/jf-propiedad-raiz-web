@@ -21,12 +21,10 @@ vi.mock('@/components/catalog/PropertyGrid', () => ({
   },
 }));
 
-const INICIAL = [{ id: 'p1' }] as never;
-
 function propsDelGrid(consulta: string) {
   mocks.searchParams = new URLSearchParams(consulta);
-  render(<CatalogClient operacion="VENTA" locale="es" initialData={INICIAL} />);
-  return mocks.grid.mock.lastCall?.[0] as { filters: unknown; initialData: unknown };
+  render(<CatalogClient operacion="VENTA" locale="es" />);
+  return mocks.grid.mock.lastCall?.[0] as { filters: unknown; frontendFilters: unknown };
 }
 
 describe('CatalogClient | filtros derivados de la URL', () => {
@@ -34,16 +32,14 @@ describe('CatalogClient | filtros derivados de la URL', () => {
     mocks.grid.mockClear();
   });
 
-  it('sin filtros: filtros vacíos y conserva los datos iniciales del servidor', () => {
+  it('sin filtros: filtros vacíos y la rejilla no recibe datos iniciales (llegan hidratados)', () => {
     const props = propsDelGrid('');
     expect(props.filters).toEqual({});
-    expect(props.initialData).toBe(INICIAL);
+    expect(props).not.toHaveProperty('initialData');
   });
 
-  it('con un filtro de base de datos descarta los datos iniciales sin filtrar', () => {
-    const props = propsDelGrid('tipo=CASA');
-    expect(props.filters).toEqual({ tipo: 'CASA' });
-    expect(props.initialData).toBeUndefined();
+  it('con un filtro de base de datos lo manda a la API', () => {
+    expect(propsDelGrid('tipo=CASA').filters).toEqual({ tipo: 'CASA' });
   });
 
   it('de una lista de tipos manda solo el primero', () => {
@@ -51,9 +47,7 @@ describe('CatalogClient | filtros derivados de la URL', () => {
   });
 
   it('departamento sin municipio no llega a la API', () => {
-    const props = propsDelGrid('departamento=Antioquia');
-    expect(props.filters).toEqual({});
-    expect(props.initialData).toBe(INICIAL);
+    expect(propsDelGrid('departamento=Antioquia').filters).toEqual({});
   });
 
   it('ubicación completa y precios válidos sí llegan', () => {
@@ -67,9 +61,11 @@ describe('CatalogClient | filtros derivados de la URL', () => {
     expect(propsDelGrid('precioMin=900&precioMax=100').filters).toEqual({});
   });
 
-  it('los filtros de frontend nunca llegan a la API ni descartan los datos iniciales', () => {
+  it('los filtros de frontend nunca llegan a la API', () => {
     const props = propsDelGrid('dormitorios=2&banos=1&areaMin=80&estrato=3');
     expect(props.filters).toEqual({});
-    expect(props.initialData).toBe(INICIAL);
+    expect(props.frontendFilters).toEqual(
+      expect.objectContaining({ dormitorios: 2, banos: 1, areaMin: 80, estrato: 3 }),
+    );
   });
 });

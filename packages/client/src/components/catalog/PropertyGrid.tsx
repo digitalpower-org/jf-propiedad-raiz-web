@@ -2,7 +2,6 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { PropertyCardComponent } from './PropertyCard';
-import type { PropertyCard } from '@jf/shared-types';
 import type { PropertyListParams } from '@/lib/api-catalog';
 import type { IHttpClient } from '@/lib/http-client.types';
 import {
@@ -31,7 +30,6 @@ import styles from './PropertyGrid.module.css';
 interface PropertyGridProps {
   readonly operacion: 'VENTA' | 'ALQUILER' | 'PROYECTO_SOBRE_PLANOS';
   readonly locale: 'es' | 'en';
-  readonly initialData?: PropertyCard[] | undefined;
   readonly filters?: Partial<PropertyListParams>;
   /** Filtros que se aplican en el navegador sobre lo ya cargado (D9, AC2.2.5). */
   readonly frontendFilters?: FiltrosFrontend | undefined;
@@ -41,7 +39,6 @@ interface PropertyGridProps {
 export function PropertyGrid({
   operacion,
   locale,
-  initialData,
   filters,
   frontendFilters,
   httpClient,
@@ -58,17 +55,10 @@ export function PropertyGrid({
     isLoading: isLoadingFeatured,
   } = usePropertiesQuery(featuredParams, httpClient);
 
-  // Combine initialData with fetched data without local state
   const featuredItems = React.useMemo(() => {
-    if (!featuredData) return initialData || [];
-    const fetchedItems = featuredData.pages.flatMap((page) =>
-      page.success ? page.data.items : [],
-    );
-    const initial = initialData || [];
-    const existingIds = new Set(initial.map((p) => p.id));
-    const newItems = fetchedItems.filter((p) => !existingIds.has(p.id));
-    return [...initial, ...newItems];
-  }, [featuredData, initialData]);
+    if (!featuredData) return [];
+    return featuredData.pages.flatMap((page) => (page.success ? page.data.items : []));
+  }, [featuredData]);
 
   // Auto-switch to non-destacadas when destacadas are exhausted (only after initial load completes)
   const shouldSwitch =
