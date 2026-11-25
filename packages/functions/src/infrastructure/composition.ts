@@ -21,7 +21,7 @@ import { createSharpImageProcessor } from './media/sharp-image-processor';
 import { ResendEmailSender } from './email/resend-email-sender';
 import { ResendWebhookVerifier } from './email/resend-webhook-verifier';
 import { createFirestoreRateLimiter } from './rate-limiter/firestore-rate-limiter';
-import { createFirestoreConsignmentEmailNotificationRepository } from './persistence/firestore-consignment-email-notification-repository';
+import { createFirestoreConsignmentEmailNotificationRepository } from './consignments/firestore-consignment-email-notification-repository';
 import { YouTubeOEmbedValidator } from './video/youtube-oembed-validator';
 
 export interface Infrastructure extends ApplicationPorts {
