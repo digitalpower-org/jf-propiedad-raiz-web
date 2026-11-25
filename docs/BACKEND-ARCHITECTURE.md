@@ -151,6 +151,7 @@ packages/functions/src/
 │   ├── properties/firestore-properties-repository.ts
 │   ├── services/firestore-services-repository.ts
 │   ├── about/firestore-about-repository.ts
+│   ├── consignments/firestore-consignment-email-notification-repository.ts
 │   ├── storage/r2-media-storage.ts
 │   ├── media/sharp-image-processor.ts
 │   ├── email/resend-email-sender.ts
@@ -853,7 +854,7 @@ export interface ConsignmentEmailNotificationRepository {
 }
 ```
  
-**Adaptador Firestore** (`infrastructure/persistence/firestore-consignment-email-notification-repository.ts`):
+**Adaptador Firestore** (`infrastructure/consignments/firestore-consignment-email-notification-repository.ts`):
 - Colección: `consignment_email_notifications`.
 - Documento ID = `eventId` (`svix-id`).
 - Campos: `eventId`, `eventType`, `requestId`, `consignmentKind: 'admin'`, `createdAt`, `receivedAt`, `expiresAt`.

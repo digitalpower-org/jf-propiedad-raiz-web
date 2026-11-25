@@ -138,7 +138,7 @@ npm run lint -w @jf/functions
 | `application/use-cases/consignments/registrar-notificacion-resend.test.ts` | Filtro por tag `admin` vs `client`/sin tag; persistencia solo admin; idempotencia por `svix-id`; no deriva estado | unitario (puertos falsos) |
 | `application/use-cases/consignments/obtener-notificaciones-resend.test.ts` | Consulta por `requestId`; excluye expirados por `expiresAt`; ordena por `receivedAt`; sin interpretación de `eventType` | unitario (puerto falso) |
 | `infrastructure/email/resend-webhook-verifier.test.ts` | Firma Svix válida → evento parseado; firma inválida → error; headers requeridos; payload validado con Zod | unitario (SDK mockeado) |
-| `infrastructure/persistence/firestore-consignment-email-notification-repository.test.ts` | `appendIfAbsent` idempotente; `listByRequestId` filtra expirados y ordena en memoria; sin PII en documento | integración (emulador Firestore) |
+| `infrastructure/consignments/firestore-consignment-email-notification-repository.test.ts` | `appendIfAbsent` idempotente; `listByRequestId` filtra expirados y ordena en memoria; sin PII en documento | integración (emulador Firestore) |
 | `presentation/handlers/consignments/resend-delivery-webhook.test.ts` | Guard de firma: 401 inválida, 200 válida; rate limit fail-open; raw body capturado | integración (supertest) |
 | `presentation/handlers/consignments/get-email-notifications.test.ts` | `X-Internal-Key` 401; query `requestId` 422; 200 con lista (vacía o con datos); sin PII | integración (supertest) |
 | `presentation/routes.test.ts` | 25 rutas declaradas; orden exacto de guards: webhook sin `guardInternal` + `rateResendWebhook` + `deliveryWebhookGuard`; consulta con `guardInternal` | integración (supertest) |
