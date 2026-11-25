@@ -8,6 +8,10 @@ import type { UseCase } from '../../use-case';
 import type { Logger } from '../../ports/logger';
 import type { EmailSender } from '../../ports/email-sender';
 import type { BackendSpec } from '@jf/shared-types';
+import {
+  CONSIGNMENT_KIND_TAG,
+  CONSIGNMENT_REQUEST_ID_TAG,
+} from '../../consignments/resend-notification';
 import { ApiError } from '../../../domain/errors/api-error';
 import { errorCode } from '../../../domain/errors/errorCatalog';
 import {
@@ -19,6 +23,7 @@ type ConsignmentInput = BackendSpec.components['schemas']['ConsignmentInput'];
 
 export interface CrearConsignmentCommand {
   readonly input: ConsignmentInput;
+  readonly requestId: string;
 }
 
 export interface CrearConsignmentResult {
@@ -39,7 +44,7 @@ export class CrearConsignmentUseCase implements UseCase<
   ) {}
 
   async execute(command: CrearConsignmentCommand): Promise<CrearConsignmentResult> {
-    const { input } = command;
+    const { input, requestId } = command;
 
     // AC3.4.1 — Honeypot: si el campo oculto `sitio` tiene valor, éxito sin envío.
     if (input.sitio && input.sitio.trim().length > 0) {
@@ -58,6 +63,15 @@ export class CrearConsignmentUseCase implements UseCase<
 
     const idioma = input.idioma ?? 'es';
 
+    const tagsAdmin = {
+      [CONSIGNMENT_REQUEST_ID_TAG]: requestId,
+      [CONSIGNMENT_KIND_TAG]: 'admin',
+    };
+    const tagsClient = {
+      [CONSIGNMENT_REQUEST_ID_TAG]: requestId,
+      [CONSIGNMENT_KIND_TAG]: 'client',
+    };
+
     // AC3.2.1 / AC3.2.3 — Correo a Juan Fernando con los datos del solicitante.
     const htmlNotificacion = construirHtmlNotificacion(input, idioma);
     try {
@@ -66,6 +80,7 @@ export class CrearConsignmentUseCase implements UseCase<
         ASUNTO_NOTIFICACION_CONSIGNACION,
         htmlNotificacion,
         input.email,
+        tagsAdmin,
       );
     } catch (error) {
       this.logger.warn('consignment_email_juan_failed', { error: String(error) });
@@ -78,14 +93,14 @@ export class CrearConsignmentUseCase implements UseCase<
     // AC3.2.2 — Recibo al solicitante.
     const htmlRecibo = construirHtmlRecibo(input, idioma);
     try {
-      await this.emailSender.send(input.email, ASUNTO_RECIBO, htmlRecibo);
+      await this.emailSender.send(input.email, ASUNTO_RECIBO, htmlRecibo, undefined, tagsClient);
     } catch (error) {
       // El recibo es degradado: si falla, la solicitud sigue siendo exitosa
       // y solo se advierte. El correo a Juan (AC3.2.1) sigue siendo fatal.
       this.logger.warn('consignment_email_recibo_failed', { error: String(error) });
     }
 
-    this.logger.info('consignment_created', { email: input.email });
+    this.logger.info('consignment_created', { requestId, resultado: 'enviado' });
     return { enviado: true };
   }
 }

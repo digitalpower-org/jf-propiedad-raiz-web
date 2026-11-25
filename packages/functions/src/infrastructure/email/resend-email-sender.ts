@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import { Resend, type Tag } from 'resend';
 
 import type { EmailSender } from '../../application/ports/email-sender';
 
@@ -16,14 +16,23 @@ export class ResendEmailSender implements EmailSender {
     this.fromEmail = fromEmail;
   }
 
-  async send(to: string, subject: string, html: string, replyTo?: string): Promise<void> {
+  async send(
+    to: string,
+    subject: string,
+    html: string,
+    replyTo?: string,
+    tags?: Readonly<Record<string, string>>,
+  ): Promise<void> {
     const result = await this.resend.emails.send({
       from: `Consignaciones <${this.fromEmail}>`,
       to,
       subject,
       html,
-      // exactOptionalPropertyTypes: no enviar `replyTo: undefined`.
+      // exactOptionalPropertyTypes: no enviar `replyTo: undefined` ni `tags: undefined`.
       ...(replyTo !== undefined ? { replyTo } : {}),
+      ...(tags !== undefined
+        ? { tags: Object.entries(tags).map(([name, value]) => ({ name, value })) as Tag[] }
+        : {}),
     });
 
     if (result.error) {

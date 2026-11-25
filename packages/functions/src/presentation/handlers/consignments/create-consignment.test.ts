@@ -53,6 +53,17 @@ describe('POST /api/v1/consignments', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data.enviado).toBe(true);
     expect(vi.mocked(emailSender.send)).toHaveBeenCalledTimes(2);
+
+    const llamadas = vi.mocked(emailSender.send).mock.calls;
+    expect(llamadas[0]?.[4]).toEqual({
+      consignmentRequestId: expect.any(String),
+      consignmentKind: 'admin',
+    });
+    expect(llamadas[1]?.[4]).toEqual({
+      consignmentRequestId: expect.any(String),
+      consignmentKind: 'client',
+    });
+    expect(llamadas[0]?.[4].consignmentRequestId).toBe(llamadas[1]?.[4].consignmentRequestId);
   });
 
   it('retorna 502 con EMAIL_DELIVERY_FAILED cuando falla el envío de correo', async () => {

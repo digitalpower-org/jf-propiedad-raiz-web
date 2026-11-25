@@ -90,4 +90,35 @@ describe('ResendEmailSender', () => {
       replyTo: 'reply@example.com',
     });
   });
+
+  it('envía tags al SDK de Resend cuando se proporcionan', async () => {
+    const sender = new ResendEmailSender('test-api-key', fromEmail);
+    mocks.emailsSend.mockResolvedValue({ data: { id: 'email-123' }, error: null });
+
+    await sender.send('recipient@example.com', 'Test Subject', '<p>Test HTML</p>', undefined, {
+      consignmentRequestId: 'req-123',
+      consignmentKind: 'admin',
+    });
+
+    expect(mocks.emailsSend).toHaveBeenCalledWith({
+      from: `Consignaciones <${fromEmail}>`,
+      to: 'recipient@example.com',
+      subject: 'Test Subject',
+      html: '<p>Test HTML</p>',
+      tags: [
+        { name: 'consignmentRequestId', value: 'req-123' },
+        { name: 'consignmentKind', value: 'admin' },
+      ],
+    });
+  });
+
+  it('no envía la clave tags cuando no se proporcionan', async () => {
+    const sender = new ResendEmailSender('test-api-key', fromEmail);
+    mocks.emailsSend.mockResolvedValue({ data: { id: 'email-123' }, error: null });
+
+    await sender.send('recipient@example.com', 'Test Subject', '<p>Test HTML</p>');
+
+    const payload = mocks.emailsSend.mock.calls[0]?.[0];
+    expect(payload).not.toHaveProperty('tags');
+  });
 });

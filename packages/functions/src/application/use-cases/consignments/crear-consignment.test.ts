@@ -6,6 +6,10 @@ import type { BackendSpec } from '@jf/shared-types';
 import { CrearConsignmentUseCase } from './crear-consignment';
 import type { EmailSender } from '../../ports/email-sender';
 import type { Logger } from '../../ports/logger';
+import {
+  CONSIGNMENT_KIND_TAG,
+  CONSIGNMENT_REQUEST_ID_TAG,
+} from '../../consignments/resend-notification';
 
 type ConsignmentInput = BackendSpec.components['schemas']['ConsignmentInput'];
 
@@ -18,6 +22,8 @@ const inputBase: ConsignmentInput = {
   municipio: 'Medellín',
   consent: true,
 };
+
+const requestId = 'req-123';
 
 function makeSut(
   overrides: {
@@ -48,7 +54,7 @@ describe('CrearConsignmentUseCase', () => {
   it('envía ambos correos y retorna enviado=true cuando todo es válido', async () => {
     const { sut, emailSender } = makeSut();
 
-    const resultado = await sut.execute({ input: inputBase });
+    const resultado = await sut.execute({ input: inputBase, requestId });
 
     expect(resultado.enviado).toBe(true);
     expect(emailSender.send).toHaveBeenCalledTimes(2);
@@ -58,20 +64,58 @@ describe('CrearConsignmentUseCase', () => {
       'Nueva solicitud de consignación de propiedad',
       expect.any(String),
       'cliente@ejemplo.com',
+      expect.objectContaining({
+        [CONSIGNMENT_REQUEST_ID_TAG]: requestId,
+        [CONSIGNMENT_KIND_TAG]: 'admin',
+      }),
     );
     expect(emailSender.send).toHaveBeenNthCalledWith(
       2,
       'cliente@ejemplo.com',
       'Recibo de tu solicitud de consignación',
       expect.any(String),
+      undefined,
+      expect.objectContaining({
+        [CONSIGNMENT_REQUEST_ID_TAG]: requestId,
+        [CONSIGNMENT_KIND_TAG]: 'client',
+      }),
     );
+  });
+
+  it('etiqueta el correo a Juan con admin y el acuse al visitante con client (T4)', async () => {
+    const { sut, emailSender } = makeSut();
+
+    await sut.execute({ input: inputBase, requestId });
+
+    const llamadas = vi.mocked(emailSender.send).mock.calls;
+    expect(llamadas[0]?.[4]).toEqual({
+      [CONSIGNMENT_REQUEST_ID_TAG]: requestId,
+      [CONSIGNMENT_KIND_TAG]: 'admin',
+    });
+    expect(llamadas[1]?.[4]).toEqual({
+      [CONSIGNMENT_REQUEST_ID_TAG]: requestId,
+      [CONSIGNMENT_KIND_TAG]: 'client',
+    });
+  });
+
+  it('registra consignment_created con requestId y sin email (PII) (T4)', async () => {
+    const { sut, logger } = makeSut();
+
+    await sut.execute({ input: inputBase, requestId });
+
+    expect(logger.info).toHaveBeenCalledWith('consignment_created', {
+      requestId,
+      resultado: 'enviado',
+    });
+    const infoMeta = vi.mocked(logger.info).mock.calls[0]?.[1];
+    expect(infoMeta).not.toHaveProperty('email');
   });
 
   async function htmlsDe(
     input: ConsignmentInput,
   ): Promise<{ notificacion: string; recibo: string }> {
     const { sut, emailSender } = makeSut();
-    await sut.execute({ input });
+    await sut.execute({ input, requestId });
     const llamadas = vi.mocked(emailSender.send).mock.calls;
     const notificacion = llamadas[0]?.[2];
     const recibo = llamadas[1]?.[2];
@@ -192,6 +236,7 @@ describe('CrearConsignmentUseCase', () => {
 
     const resultado = await sut.execute({
       input: { ...inputBase, sitio: 'valor-del-bot' },
+      requestId,
     });
 
     expect(resultado.enviado).toBe(false);
@@ -201,7 +246,9 @@ describe('CrearConsignmentUseCase', () => {
   it('rechaza con CONSENT_REQUIRED cuando consent es falso (AC3.3.2)', async () => {
     const { sut } = makeSut();
 
-    await expect(sut.execute({ input: { ...inputBase, consent: false } })).rejects.toMatchObject({
+    await expect(
+      sut.execute({ input: { ...inputBase, consent: false }, requestId }),
+    ).rejects.toMatchObject({
       code: 'CONSENT_REQUIRED',
     });
   });
@@ -211,7 +258,9 @@ describe('CrearConsignmentUseCase', () => {
 
     const { consent: _consent, ...sinConsent } = inputBase;
 
-    await expect(sut.execute({ input: sinConsent as ConsignmentInput })).rejects.toMatchObject({
+    await expect(
+      sut.execute({ input: sinConsent as ConsignmentInput, requestId }),
+    ).rejects.toMatchObject({
       code: 'CONSENT_REQUIRED',
     });
   });
@@ -226,7 +275,7 @@ describe('CrearConsignmentUseCase', () => {
       },
     });
 
-    await expect(sut.execute({ input: inputBase })).rejects.toMatchObject({
+    await expect(sut.execute({ input: inputBase, requestId })).rejects.toMatchObject({
       code: 'EMAIL_DELIVERY_FAILED',
     });
     expect(emailSender.send).toHaveBeenCalledTimes(1);
@@ -242,7 +291,7 @@ describe('CrearConsignmentUseCase', () => {
       },
     });
 
-    const resultado = await sut.execute({ input: inputBase });
+    const resultado = await sut.execute({ input: inputBase, requestId });
 
     expect(resultado).toEqual({ enviado: true });
     expect(emailSender.send).toHaveBeenCalledTimes(2);
@@ -264,7 +313,7 @@ describe('CrearConsignmentUseCase', () => {
       },
     });
 
-    await expect(sut.execute({ input: inputBase })).rejects.toMatchObject({
+    await expect(sut.execute({ input: inputBase, requestId })).rejects.toMatchObject({
       code: 'EMAIL_DELIVERY_FAILED',
     });
     expect(emailSender.send).toHaveBeenCalledTimes(1);
@@ -280,7 +329,7 @@ describe('CrearConsignmentUseCase', () => {
       },
     });
 
-    const resultado = await sut.execute({ input: inputBase });
+    const resultado = await sut.execute({ input: inputBase, requestId });
 
     expect(resultado).toEqual({ enviado: true });
     expect(emailSender.send).toHaveBeenCalledTimes(2);

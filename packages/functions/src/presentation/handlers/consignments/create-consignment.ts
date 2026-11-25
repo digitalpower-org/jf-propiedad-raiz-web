@@ -47,6 +47,7 @@ export const makeCreateConsignmentHandler =
 
       const resultado = await crearConsignmentUseCase.execute({
         input: { ...input, consent: true },
+        requestId: res.locals.requestId,
       });
       writeSuccess(res, resultado, 'Solicitud de consignación registrada');
     } catch (error) {
