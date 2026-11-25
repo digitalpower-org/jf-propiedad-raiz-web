@@ -107,6 +107,17 @@
     - **Evidencia AC3.2.6:** Daniel Pacheco, 2026-11-23T18:44:10Z; Resend muestra DNS y dominio verificados el 12 nov 2026 (`docs/reports/resend-evidencia.png`). `GET /domains/{domain_id}` devuelve `jfpropiedadraiz.com` con `status=verified`, DKIM `resend._domainkey` TXT `verified`, SPF `rsend` y `send` CNAME `verified`; correo recibido por admin con `SPF_PASS`, `DKIM_VALID_AU`, `DKIM_VALID` y `d=jfpropiedadraiz.com`. US3.2 cerrada.
   - [x] US3.3 `[D2]` Consentimiento de tratamiento de datos (UI)
   - [x] US3.4 `[D1]` Protección contra bots y límite de envíos (BFF/Functions)
+- [ ] **MT3.2** `[D1]` Monitoreo de entrega de correo (webhook Resend) ← MT3.1, MT1.1, MT0.3
+  - [ ] T1 Contrato y documentación (openapi.backend.yaml, TASKS, DATABASE, BACKEND-ARCHITECTURE, QA, TODOS) — **este turno**
+  - [ ] T2 Configuración y env (RESEND_WEBHOOK_SECRET, CONSIGNMENT_NOTIFICATION_TTL_SECONDS)
+  - [ ] T3 Dominio y puerto de notificación (tipos, puerto repositorio)
+  - [ ] T4 Correlación en el envío (tags admin/client en EmailSender.send, requestId en response)
+  - [ ] T5 Verificación de firma y webhook (puerto DeliveryWebhookVerifier, adaptador Resend, caso de uso registrar, handler, raw body en appBuilder)
+  - [ ] T6 Consulta de notificaciones (caso de uso obtener, handler, X-Internal-Key)
+  - [ ] T7 Wiring y rutas (API_PATHS, routes.ts con guards, handlers, buildUseCases, composition, appBuilder)
+  - [ ] T8 Persistencia Firestore (repositorio, colección consignment_email_notifications, TTL, idempotencia)
+  - **Tests:** unitarios (filtro tag, casos de uso, verificador), integración supertest (webhook firmado admin/client/sin tag, replay, firma inválida, consulta autorizada/sin clave, expiradas, tags en envío), mutación requerida (romper filtro tag o verificación firma → test falla)
+  - **Verificación manual:** configuración webhook en dashboard Resend (eventos, secreto, prueba de envío)
 
 ---
 

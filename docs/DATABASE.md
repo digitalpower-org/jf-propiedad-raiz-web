@@ -6,8 +6,8 @@
 ---
 
 ## Convenciones generales
-
-- **Colecciones de dominio:** `properties`, `authorized_users` y `services`. **Documento único:** `pages/nosotros`. No hay ninguna otra entidad de negocio en Firestore.
+ 
+- **Colecciones de dominio:** `properties`, `authorized_users` y `services`. **Documento único:** `pages/nosotros`. **Colección técnica (no Lead):** `consignment_email_notifications` (metadatos de notificaciones de Resend con tag `admin`, TTL 24 h, sin PII). No hay ninguna otra entidad de negocio en Firestore.
 - **`id` no es un campo almacenado:** el identificador de un documento es su id en Firestore. Ese id se usa además como desempate de `createdAt` en el orden del listado y como segunda componente del cursor `{ createdAt, id }` (D17, AC1.10.1, AC1.10.2). Por eso en los índices compuestos aparece como `__name__` y no como `id`.
 - **`Translatable`:** `{ es: string, en?: string, autoTranslate?: boolean, enPendiente?: boolean }`. `es` lo escribe el admin; `en` lo escribe el sistema con la traducción automática o el admin a mano; `autoTranslate` (activo por defecto, por campo) lo envía el admin en el DTO y decide si el backend traduce al guardar; `enPendiente` solo lo mantiene el backend (US0.5).
 - **Campos obligatorios para pasar a `ACTIVE`:** `operacion`, `tipo`, `titulo` (`es`), `departamento`, `municipio`, `precio` y al menos una foto. Si falta alguno, 422 `VALIDATION_ERROR` listando los campos (AC1.7.3). El resto de los campos es opcional: en la ficha solo se muestra la fila del campo que existe (AC2.4.2).
@@ -58,27 +58,77 @@ La transacción lee el documento y, si el contador no excede el límite, lo escr
 - No hay campos de identificación personal, email, ni metadatos de usuario en la colección.
 
 ### Sharding
-
+ 
 - **Por defecto: sin sharding.** Un documento por clave.
 - Reversible: si en el futuro se requiere mayor throughput, se puede añadir un sufijo de shard a la clave (p. ej., `keyHash + ":shard:N"`) sin migración de datos existente.
-
+ 
 ### Extracción de la clave de cliente (IP)
-
+ 
 El guard de rate-limit público usa el siguiente fallback porque **`appBuilder.ts` no configura `trust proxy`** (Express `app.set('trust proxy', true)`). Detrás de un balanceador de carga (Cloud Run, Cloudflare, ALB, etc.), `req.ip` devuelve la IP del proxy, no la del cliente real.
-
+ 
 ```ts
 const clientKey = req.header('x-client-ip') ?? req.ip ?? 'unknown';
 ```
-
+ 
 - `x-client-ip`: cabecera inyectada por el balanceador / CDN (configuración de infraestructura).
 - `req.ip`: fallback si la cabecera no llega; puede ser la IP del proxy si `trust proxy` no está activo.
 - `'unknown'`: último recurso para que el rate-limit no falle silenciosamente; agrupa todo tráfico sin IP identificable bajo una misma clave.
-
+ 
 > **Nota operativa:** para que `req.ip` sea la IP real del cliente detrás de balanceador, habilitar `app.set('trust proxy', true)` en `appBuilder.ts` y configurar el balanceador para enviar `X-Forwarded-For` / `X-Client-IP`. Mientras no se haga, el fallback anterior es la defensa razonable.
-
+ 
 ---
-
-## 1. Colección `properties`
+ 
+## 8. Colección `consignment_email_notifications` (técnica, no Lead)
+ 
+Colección técnica para persistir notificaciones de entrega de correo de Resend **exclusivamente** cuando el payload del webhook incluye el tag `consignmentKind: 'admin'` (correo a Juan Fernando). Las notificaciones con tag `client` (acuse al visitante) o sin tag se descartan y no se persisten.
+ 
+**No es una entidad Lead** (D11). No contiene datos del solicitante (nombre, teléfono, email, mensaje, asunto, dirección de destinatario). Solo guarda metadatos mínimos del evento de Resend para correlación y consulta interna.
+ 
+### Identificador del documento
+ 
+`id` = `svix-id` del evento (header `svix-id` de Svix). Garantiza idempotencia: un replay del mismo evento no crea duplicado.
+ 
+### Campos
+ 
+| Campo | Tipo | Descripción |
+| :---- | :---- | :---------- |
+| `eventId` | `string` | Identificador único del evento en Resend (mismo valor que `svix-id`). |
+| `eventType` | `string` | Tipo de evento de Resend (p. ej. `email.delivered`, `email.bounced`, `email.opened`, `email.clicked`). |
+| `requestId` | `string` | Identificador de la solicitud de consignación (`consignmentRequestId` del tag). Correlaciona envío y notificaciones. |
+| `consignmentKind` | `string` | Valor fijo `'admin'` (solo se persisten notificaciones con este tag). |
+| `createdAt` | `Timestamp` | Momento de creación del evento en Resend (timestamp del proveedor). |
+| `receivedAt` | `Timestamp` | Momento de recepción y persistencia en el backend. |
+| `expiresAt` | `Timestamp` | Momento de expiración TTL: `createdAt + CONSIGNMENT_NOTIFICATION_TTL_SECONDS` (default 86400 s = 24 h). No se renueva. |
+ 
+### Política TTL
+ 
+- Configurada en Firestore sobre el campo `expiresAt`.
+- Valor por defecto: **86400 segundos** (24 horas), configurable vía variable de entorno `CONSIGNMENT_NOTIFICATION_TTL_SECONDS`.
+- La expiración se cuenta desde `createdAt` de cada notificación y **no se renueva** al consultar.
+- Firestore borra el documento automáticamente al alcanzar `expiresAt`.
+ 
+### Consultas
+ 
+- **Por `requestId`**: consulta simple (sin índices compuestos) filtrando `requestId == <valor>` y `expiresAt > now`. El ordenamiento por `receivedAt` ascendente se hace en memoria (la colección es pequeña: máx. unos pocos eventos por solicitud).
+- **Por `svix-id` (id del documento)**: `create()` para idempotencia en `appendIfAbsent`; si ya existe, no-op.
+ 
+### Privacidad (sin PII)
+ 
+- **No se persiste**: nombre, teléfono, email, mensaje, asunto, dirección de destinatario, `email_id`, `message_id`, payload crudo del webhook.
+- Solo metadatos del evento (`eventId`, `eventType`, `createdAt`, `receivedAt`) y la correlación (`requestId`, `consignmentKind: 'admin'`).
+- Los logs del backend registran a nivel `debug` (sin PII) los eventos descartados por tag `client` o sin tag.
+ 
+### Coste de operaciones
+ 
+| Operación | Lecturas | Escrituras |
+| :-------- | :------: | :--------: |
+| `appendIfAbsent` (nuevo) | 0 | 1 |
+| `appendIfAbsent` (replay, ya existe) | 1 | 0 |
+| `listByRequestId` | N (documentos vigentes) | 0 |
+ 
+---
+ 
+## 9. Colección `properties`
 
 Un documento por inmueble. El listado público exige siempre `status = ACTIVE` más la `operacion` de la pestaña (D9); el admin ve `HIDDEN` solo por su API y nunca `DELETED` (AC1.7.6, AC1.7.7). Los tres estados se crean y se retiran sin estado de disponibilidad (vendido o alquilado) y sin `DRAFT`: un inmueble nuevo nace en `HIDDEN` y se valida al activar (D7, supuesto 2, AC1.7.9).
 
@@ -146,8 +196,8 @@ Solo se guarda cuando `operacion = PROYECTO_SOBRE_PLANOS`; con cualquier otra op
 | `proyecto.unidadesDisponibles` | `number` | Unidades disponibles del proyecto. |
 
 ---
-
-## 2. Colección `authorized_users`
+ 
+## 10. Colección `authorized_users`
 
 Lista blanca de administradores que el **backend** verifica al crear la sesión, a petición del BFF (D27, US1.1). Firebase Auth solo aporta la identidad con Google; el rol no se guarda como custom claim sino que se lee de aquí (AC1.1.4).
 
@@ -162,8 +212,8 @@ Lista blanca de administradores que el **backend** verifica al crear la sesión,
 - El BFF no lee ni escribe esta colección; vive solo en el backend (AC1.2.9). Nunca está en variables de entorno ni en Firebase Auth (AC1.1.8).
 
 ---
-
-## 3. Colección `services`
+ 
+## 11. Colección `services`
 
 Servicios editables desde el panel sin cantidad fija: crear, editar, ocultar, reordenar y eliminar (D10). Comparten los mismos estados que los inmuebles (US4.4).
 
@@ -180,8 +230,8 @@ Servicios editables desde el panel sin cantidad fija: crear, editar, ocultar, re
 | `updatedAt` | marca de tiempo | Última modificación. |
 
 ---
-
-## 4. Documento único `pages/nosotros`
+ 
+## 12. Documento único `pages/nosotros`
 
 Contenido de la página `/nosotros` (y `/en/about-us`), editable desde el panel (D25, US4.5, US5.6). La portada solo muestra el `extracto` (AC2.6.4).
 
@@ -194,14 +244,14 @@ Contenido de la página `/nosotros` (y `/en/about-us`), editable desde el panel 
 | `updatedAt` | marca de tiempo | Último guardado; la concurrencia optimista responde 409 si está desactualizado (AC4.5.5). |
 
 ---
-
-## 5. Sin entidad Lead (D11)
+ 
+## 13. Sin entidad Lead (D11)
 
 **No existe la entidad Lead.** Las solicitudes (consignación y contacto) solo generan correos (US3.2, D5); no se guarda, lista ni gestiona ningún dato de solicitante en Firestore ni en ningún otro sitio (D11; `docs/TASKS.md`, §«MODELO DE DATOS MÍNIMO»). El «guardado o gestión de leads» está además en la lista de fuera de alcance de v1.
 
 ---
-
-## 6. Índices compuestos
+ 
+## 14. Índices compuestos
 
 Los índices viven en `firestore.indexes.json` (raíz del repo) y deben coincidir con la tabla única de combinaciones de `docs/ARCHITECTURE.md` §5 (D17, AC1.10.4). Si cambia un preset, hay que actualizar a la vez esa tabla, `firestore.indexes.json` y `shared-types`.
 
@@ -227,7 +277,7 @@ Notas:
 - **Pendiente de validación en el emulador:** Firestore exige que el primer `orderBy` sea sobre el mismo campo del filtro de rango (`>=`/`<=`), por lo que la consulta con `precio` y `orderBy(createdAt desc)` de AC1.10.2 puede rechazarse o exigir otro orden (choque con AC1.10.7). Los 8 presets y sus 8 índices se mantienen tal como están; el orden exacto se confirma en el emulador antes de cerrar US1.10. No rediseñar presets.
 
 ---
-
-## 7. Ítem abierto: `RIGHTS_TRANSFER`
+ 
+## 15. Ítem abierto: `RIGHTS_TRANSFER`
 
 **Pendiente de confirmación: fuera del alcance actual según TASKS.** El borrador anterior listaba `RIGHTS_TRANSFER` (cesión de derechos) como valor del tipo de inmueble, pero TASKS no lo incluye en el enum `tipo` ni en ningún otro enum, y no define dónde encajaría. Se deja registrado como única decisión abierta del modelo de datos, sin añadirlo como valor activo en ninguna parte. Confirmar con el propietario antes de incorporarlo.

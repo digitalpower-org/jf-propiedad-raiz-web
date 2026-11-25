@@ -656,6 +656,17 @@ paths:
         minuto desde la misma IP (`X-Client-IP`) → 429 `RATE_LIMITED` (AC3.4.2). Fallo del
         correo a Juan → 502 `EMAIL_DELIVERY_FAILED` (AC3.2.4). `consent` ausente o falso → 422
         `CONSENT_REQUIRED` sin enviar nada (AC3.3.2).
+
+        El correo a Juan lleva el tag `consignmentKind: 'admin'` y el acuse al visitante lleva
+        `consignmentKind: 'client'`, ambos con `consignmentRequestId` igual al `requestId` que se
+        devuelve en la respuesta. Este `requestId` correlaciona el envío con las notificaciones
+        de entrega que Resend enviará al webhook `POST /api/v1/webhooks/resend-delivery`.
+
+        **Importante:** el código `200` significa que la solicitud fue **aceptada y los correos
+        puestos en cola de envío**, no que hayan sido entregados. El backend **no clasifica**
+        las notificaciones de Resend como éxito, espera o fallo; devuelve los datos crudos
+        mínimos vía `GET /api/v1/consignments/email-notifications` para que el BFF/client
+        aplique su propia regla de decisión, frecuencia de consulta y tiempo máximo de espera.
       parameters:
         - $ref: '#/components/parameters/XClientIP'
       requestBody:
@@ -666,7 +677,7 @@ paths:
               $ref: '#/components/schemas/ConsignmentInput'
       responses:
         '200':
-          description: Solicitud aceptada y correos enviados (o suprimidos por honeypot, AC3.4.1).
+          description: Solicitud aceptada y correos puestos en cola (o suprimidos por honeypot, AC3.4.1).
           content:
             application/json:
               schema:
@@ -677,11 +688,14 @@ paths:
                     properties:
                       data:
                         type: object
-                        description: 'PENDIENTE: definición pendiente en TASKS (US3.1/US3.2 no especifican el cuerpo de la respuesta de éxito).'
+                        required: [enviado, requestId]
                         properties:
                           enviado:
                             type: boolean
                             description: 'Falso cuando el honeypot `sitio` bloquea el envío (AC3.4.1).'
+                          requestId:
+                            type: string
+                            description: Identificador de la solicitud; correlaciona con notificaciones de entrega en el webhook y en la consulta `GET /api/v1/consignments/email-notifications`.
         '401':
           $ref: '#/components/responses/Unauthorized'
         '422':
@@ -1189,6 +1203,121 @@ paths:
                   status:
                     type: string
                     example: ok
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /api/v1/webhooks/resend-delivery:
+    post:
+      tags: [consignments]
+      operationId: resendDeliveryWebhook
+      summary: Webhook público de notificaciones de entrega de Resend (firmado por Svix)
+      description: |
+        Recibe notificaciones de eventos de correo (entregado, rebotado, abierto, clic, etc.) firmadas
+        por Svix. El backend verifica la firma con el secreto compartido de Resend y persiste solo
+        las notificaciones cuyo payload incluya el tag `consignmentKind: 'admin'`. Las notificaciones
+        con tag `client` o sin tag se descartan respondiendo `200` sin escritura.
+
+        **Headers requeridos (Svix):**
+        - `svix-id`: identificador único del evento (usado para idempotencia).
+        - `svix-timestamp`: timestamp Unix del envío.
+        - `svix-signature`: firma Base64 del payload con el secreto del webhook.
+
+        El body crudo se captura antes de cualquier parsing para que la verificación de firma reciba
+        los bytes originales. Una firma inválida responde `401 UNAUTHORIZED` sin persistir nada.
+        Un evento válido sin tag de admin responde `200` vacío y registra `debug` sin PII.
+      security: []
+      parameters:
+        - name: svix-id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Identificador único del evento Svix (idempotencia).
+        - name: svix-timestamp
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Timestamp Unix del envío del webhook.
+        - name: svix-signature
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Firma Base64 del payload con el secreto compartido de Resend.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Payload del evento de Resend (estructura definida por Resend/Svix).
+      responses:
+        '200':
+          description: Notificación procesada (persistida si tiene tag admin; descartada en caso contrario).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: object
+                        description: Respuesta vacía; el backend no devuelve datos del evento.
+                        additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /api/v1/consignments/email-notifications:
+    get:
+      tags: [consignments]
+      operationId: getConsignmentEmailNotifications
+      summary: Consulta interna de notificaciones de correo persistidas para una solicitud
+      description: |
+        Devuelve la lista de notificaciones de Resend persistidas para el `requestId` dado.
+        Solo se persisten notificaciones cuyo payload lleve el tag `consignmentKind: 'admin'`
+        (correo a Juan Fernando). El backend **no interpreta** los tipos de evento ni asigna
+        significado de éxito, espera o fallo: devuelve los datos crudos mínimos para que el
+        BFF/client aplique su propia regla de decisión, frecuencia de consulta y tiempo máximo
+        de espera.
+
+        Requiere cabecera `X-Internal-Key` válida. El parámetro `requestId` es obligatorio.
+        Si no hay notificaciones vigentes (todas expiradas por TTL), devuelve `200` con
+        `notifications: []`. No expone la existencia de solicitudes sin notificaciones.
+      security:
+        - X-Internal-Key: []
+      parameters:
+        - name: requestId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Identificador de la solicitud de consignación (correlaciona envío y notificaciones).
+      responses:
+        '200':
+          description: Lista de notificaciones persistidas (puede ser vacía).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccess'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ResendNotificationsData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '429':
           $ref: '#/components/responses/RateLimited'
         '405':
@@ -2056,3 +2185,38 @@ components:
         updatedAt:
           type: string
           format: date-time
+    ResendNotification:
+      type: object
+      description: |
+        Notificación de evento de correo de Resend persistida (solo las que llevan tag
+        `consignmentKind: 'admin'`). El backend no clasifica el tipo de evento ni asigna
+        significado de éxito, espera o fallo; el BFF/client decide su propia regla.
+      required: [eventId, eventType, createdAt, receivedAt]
+      properties:
+        eventId:
+          type: string
+          description: Identificador único del evento en Resend (Svix `svix-id`).
+        eventType:
+          type: string
+          description: Tipo de evento de Resend (p. ej. `email.delivered`, `email.bounced`, `email.opened`, `email.clicked`).
+        createdAt:
+          type: string
+          format: date-time
+          description: Momento de creación del evento en Resend (timestamp del proveedor).
+        receivedAt:
+          type: string
+          format: date-time
+          description: Momento de recepción y persistencia en el backend.
+    ResendNotificationsData:
+      type: object
+      description: Respuesta de la consulta de notificaciones por `requestId`.
+      required: [requestId, notifications]
+      properties:
+        requestId:
+          type: string
+          description: Identificador de la solicitud de consignación consultada.
+        notifications:
+          type: array
+          description: Lista de notificaciones persistidas ordenadas por `receivedAt` ascendente; vacía si no hay vigentes.
+          items:
+            $ref: '#/components/schemas/ResendNotification'

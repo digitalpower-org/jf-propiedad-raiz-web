@@ -322,6 +322,8 @@ Los puertos se declaran en `application/ports/` (o en `domain/ports/` solo si un
 | `Clock` | Tiempo inyectable | `Date` |
 | `IdGenerator` | IDs | `crypto.randomUUID` |
 | `RateLimiter` | Límite de peticiones | Firestore / Cloud Armor |
+| `DeliveryWebhookVerifier` | Verificar firma Svix de webhook Resend | Resend SDK (`webhooks.verify`) |
+| `ConsignmentEmailNotificationRepository` | Persistir y consultar notificaciones de entrega (solo tag `admin`) | Firestore |
 
 Reglas:
 
@@ -376,7 +378,7 @@ export function buildUseCases(ports: ApplicationPorts): UseCases {
 - Express **no** sale de `presentation/`.
 
 ### 6.2. `appBuilder`
-
+ 
 ```ts
 // presentation/appBuilder.ts
 import express, { type Express } from 'express';
@@ -386,15 +388,21 @@ import { requestId } from './middlewares/request-id';
 import { makeErrorMiddleware } from './middlewares/error';
 import { notFoundMiddleware } from './middlewares/not-found';
 import { apiRouter } from './routes';
-
+ 
 export interface ApiDeps {
   readonly internalKey: string;
   readonly logger: Logger;
+  readonly deliveryWebhookVerifier: DeliveryWebhookVerifier; // para verificación de firma Svix
 }
-
+ 
 export function appBuilder(useCases: UseCases, deps: ApiDeps): Express {
   const app = express();
   app.disable('x-powered-by');
+  // Captura body crudo SOLO para la ruta del webhook de Resend (Svix necesita bytes originales)
+  app.use('/api/v1/webhooks/resend-delivery', express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => { req.rawBody = buf; }
+  }));
   app.use(express.json({ limit: '1mb' }));
   app.use(requestId);
   app.use(apiRouter(useCases, deps));
@@ -403,8 +411,19 @@ export function appBuilder(useCases: UseCases, deps: ApiDeps): Express {
   return app;
 }
 ```
-
-Orden obligatorio: `json` → `requestId` → rutas → `notFound` → `error`. El middleware de error va **último** y con cuatro argumentos.
+ 
+Orden obligatorio: `json` (con `verify` para webhook) → `json` general → `requestId` → rutas → `notFound` → `error`. El middleware de error va **último** y con cuatro argumentos.
+ 
+**Declaración de tipo para `req.rawBody`** (sin casts): en `presentation/types/express.d.ts` o al inicio de `appBuilder.ts`:
+```ts
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: Buffer;
+    }
+  }
+}
+```
 
 ### 6.3. Rutas declarativas
 
@@ -718,6 +737,8 @@ export const API_PATHS = {
   featuredProperties: '/api/v1/properties/featured' satisfies ExpressPath,
   property: '/api/v1/properties/:idOrSlug' satisfies ExpressPath,
   // ...
+  resendDeliveryWebhook: '/api/v1/webhooks/resend-delivery' satisfies ExpressPath,
+  consignmentEmailNotifications: '/api/v1/consignments/email-notifications' satisfies ExpressPath,
 } as const;
 ```
 
@@ -728,11 +749,24 @@ Reglas:
 - `/health` es operativa y **no** está en `openapi.backend.yaml`; vive en `OPS_PATHS` y no se valida contra el contrato. Si se quiere tipar, primero se añade a la spec.
 
 ### 6.10. Guards
-
+ 
 - Se ejecutan antes del handler (`internalKeyGuard`, rate limit, etc.).
 - No contienen lógica de negocio.
 - Fallan con `next(new ApiError(...))`, nunca con `res.status(...)` directo.
 - La comparación de secretos usa `timingSafeEqual` (Node `crypto`) o un `SecretComparator` inyectado desde Infrastructure.
+ 
+**Guard de firma del webhook Resend (`deliveryWebhookGuard`):**
+- Se ejecuta **antes** del handler en `POST /api/v1/webhooks/resend-delivery`.
+- Recibe `req.rawBody` (bytes originales) y headers `svix-id`, `svix-timestamp`, `svix-signature`.
+- Delega al puerto `DeliveryWebhookVerifier.verify({ rawBody, headers })`.
+- Firma inválida → `next(new ApiError('UNAUTHORIZED', 'Firma de webhook inválida'))` → 401.
+- Firma válida → adjunta evento validado (`eventId`, `eventType`, `createdAt`, `tags`) a `res.locals.resendEvent` y continúa.
+- No expone el SDK de Resend ni el payload crudo fuera del guard.
+ 
+**Rate limit del webhook (`rateResendWebhook`):**
+- Fail-open por IP de socket (`req.ip`).
+- Una firma inválida no debe agotar una cuota compartida con otras rutas.
+- Límite generoso (p. ej. 100 req/min por IP) para absorber reintentos legítimos de Resend.
 
 ### 6.11. `requestId`
 
@@ -787,12 +821,59 @@ export function createInfrastructure(
     authorizedUsers:
       overrides.authorizedUsers ??
       createFirestoreAuthorizedUsersRepository(adminApp.firestore()),
+    deliveryWebhookVerifier:
+      overrides.deliveryWebhookVerifier ??
+      createResendWebhookVerifier(config.resendWebhookSecret),
+    consignmentEmailNotifications:
+      overrides.consignmentEmailNotifications ??
+      createFirestoreConsignmentEmailNotificationRepository(adminApp.firestore(), config.consignmentNotificationTtlSeconds),
     // ...
   };
 }
 ```
 
 `overrides` permite inyectar fakes en tests sin tocar producción.
+ 
+### 7.5. Repositorio de notificaciones de correo y consulta interna
+ 
+**Puerto `ConsignmentEmailNotificationRepository`** (en `application/ports/`):
+```ts
+export interface ResendNotification {
+  readonly eventId: string;
+  readonly eventType: string;
+  readonly createdAt: Date;      // timestamp del proveedor
+  readonly receivedAt: Date;     // timestamp de recepción en backend
+}
+ 
+export interface ConsignmentEmailNotificationRepository {
+  // Idempotencia por svix-id (eventId): create() sobre ID; si existe, no-op.
+  appendIfAbsent(notification: ResendNotification & { readonly requestId: string; readonly expiresAt: Date }): Promise<void>;
+  // Consulta simple por requestId; excluye expirados (expiresAt <= now); ordena por receivedAt en memoria.
+  listByRequestId(requestId: string): Promise<readonly ResendNotification[]>;
+}
+```
+ 
+**Adaptador Firestore** (`infrastructure/persistence/firestore-consignment-email-notification-repository.ts`):
+- Colección: `consignment_email_notifications`.
+- Documento ID = `eventId` (`svix-id`).
+- Campos: `eventId`, `eventType`, `requestId`, `consignmentKind: 'admin'`, `createdAt`, `receivedAt`, `expiresAt`.
+- `appendIfAbsent`: `create()` sobre ID `eventId`; si ya existe (replay), no-op.
+- `listByRequestId`: consulta simple `where('requestId', '==', requestId).where('expiresAt', '>', now)`; ordena por `receivedAt` ascendente en memoria. Sin índices compuestos nuevos.
+- TTL de Firestore sobre `expiresAt` (configurable, default 24 h desde `createdAt`, no renovable).
+- **Sin PII**: no se guarda nombre, teléfono, email, mensaje, asunto, dirección, `email_id`, `message_id`, payload crudo.
+ 
+**Caso de uso de registro** (`application/use-cases/consignments/registrar-notificacion-resend.ts`):
+- Recibe evento validado del guard (`eventId`, `eventType`, `createdAt`, `tags`).
+- **Solo persiste si** `tags.consignmentKind === 'admin'` y `tags.consignmentRequestId` es string no vacío.
+- `client`, sin tag, tag desconocido → `200` sin escritura, log `debug` sin PII.
+- Calcula `expiresAt = createdAt + TTL` y llama `appendIfAbsent`.
+- **No deriva estado, severidad ni conclusión**; el backend no clasifica notificaciones.
+ 
+**Caso de uso de consulta** (`application/use-cases/consignments/obtener-notificaciones-resend.ts`):
+- Recibe `requestId` validado (Zod).
+- Llama `listByRequestId(requestId)`.
+- Devuelve `{ requestId, notifications: [...] }` (array puede ser vacío).
+- **No interpreta** `eventType`; no asigna éxito/espera/fallo; el BFF/client decide su regla.
 
 ### 7.3. Configuración
 
