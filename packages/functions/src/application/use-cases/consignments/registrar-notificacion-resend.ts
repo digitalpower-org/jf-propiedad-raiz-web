@@ -53,10 +53,6 @@ export class RegistrarNotificacionResendUseCase implements UseCase<
       return { persistida: false };
     }
 
-    const expiresAt = new Date(
-      new Date(command.createdAt).getTime() + this.ttlSeconds * 1000,
-    ).toISOString();
-
     await this.repository.appendIfAbsent({
       svixId: command.eventId,
       requestId,
@@ -66,9 +62,13 @@ export class RegistrarNotificacionResendUseCase implements UseCase<
         createdAt: command.createdAt,
         receivedAt: new Date().toISOString(),
       },
-      expiresAt,
+      expiresAt: calcularExpiracion(command.createdAt, this.ttlSeconds),
     });
 
     return { persistida: true };
   }
+}
+
+function calcularExpiracion(createdAt: string, ttlSeconds: number): string {
+  return new Date(new Date(createdAt).getTime() + ttlSeconds * 1000).toISOString();
 }

@@ -19,7 +19,7 @@ export interface DeliveryWebhookVerifier {
    */
   verify(input: {
     readonly rawBody: string | Buffer;
-    readonly headers: Record<string, string>;
+    readonly headers: Record<string, string | string[] | undefined>;
   }): Promise<{
     readonly eventId: string;
     readonly eventType: string;

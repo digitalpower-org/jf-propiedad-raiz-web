@@ -24,8 +24,7 @@ const NotificacionFirestoreSchema = z.object({
 
 type NotificacionPersistida = ResendNotification & { readonly expiresAt: string };
 
-function documentoANotificacion(snap: { id: string; data(): unknown }): NotificacionPersistida {
-  const data = snap.data() as Record<string, unknown>;
+function documentoANotificacion(data: unknown): NotificacionPersistida {
   const parsed = NotificacionFirestoreSchema.parse(data);
   return {
     eventId: parsed.eventId,
@@ -40,13 +39,12 @@ function esVigente(expiresAt: string, now: Date): boolean {
   return new Date(expiresAt) > now;
 }
 
+function tieneCodigo(error: unknown): error is { code: unknown } {
+  return error !== null && typeof error === 'object' && 'code' in error;
+}
+
 function esErrorDocumentoYaExiste(error: unknown): boolean {
-  return (
-    error !== null &&
-    typeof error === 'object' &&
-    'code' in error &&
-    (error as { readonly code: unknown }).code === 'already-exists'
-  );
+  return tieneCodigo(error) && error.code === 'already-exists';
 }
 
 export function createFirestoreConsignmentEmailNotificationRepository(
@@ -85,7 +83,7 @@ export function createFirestoreConsignmentEmailNotificationRepository(
     const ahora = obtenerAhora();
 
     return snap.docs
-      .map((doc) => documentoANotificacion(doc))
+      .map((doc) => documentoANotificacion(doc.data()))
       .filter((n) => esVigente(n.expiresAt, ahora))
       .sort((a, b) => (a.receivedAt < b.receivedAt ? -1 : a.receivedAt > b.receivedAt ? 1 : 0))
       .map(({ expiresAt: _expiresAt, ...n }) => n);

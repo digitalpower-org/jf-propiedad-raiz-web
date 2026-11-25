@@ -31,7 +31,7 @@ export class ResendEmailSender implements EmailSender {
       // exactOptionalPropertyTypes: no enviar `replyTo: undefined` ni `tags: undefined`.
       ...(replyTo !== undefined ? { replyTo } : {}),
       ...(tags !== undefined
-        ? { tags: Object.entries(tags).map(([name, value]) => ({ name, value })) as Tag[] }
+        ? { tags: Object.entries(tags).map(([name, value]) => ({ name, value }) as Tag) }
         : {}),
     });
 

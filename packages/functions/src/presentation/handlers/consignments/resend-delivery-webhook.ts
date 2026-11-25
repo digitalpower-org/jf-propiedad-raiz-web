@@ -26,19 +26,16 @@ export const makeResendDeliveryWebhookHandler =
       return;
     }
 
+    let eventId: string;
     let eventType: string;
     let createdAt: string;
     let tags: Readonly<Record<string, string>>;
-    let eventId: string;
     try {
-      const event = await verifier.verify({
-        rawBody,
-        headers: req.headers as Record<string, string>,
-      });
-      eventId = event.eventId;
-      eventType = event.eventType;
-      createdAt = event.createdAt;
-      tags = event.tags;
+      const evento = await verificarFirma(verifier, rawBody, req.headers);
+      eventId = evento.eventId;
+      eventType = evento.eventType;
+      createdAt = evento.createdAt;
+      tags = evento.tags;
     } catch {
       next(new ApiError(errorCode.unauthorized, 'Firma de webhook inválida'));
       return;
@@ -58,3 +55,16 @@ export const makeResendDeliveryWebhookHandler =
 
     res.status(200).end();
   };
+
+function verificarFirma(
+  verifier: DeliveryWebhookVerifier,
+  rawBody: string | Buffer,
+  headers: Request['headers'],
+): Promise<{
+  readonly eventId: string;
+  readonly eventType: string;
+  readonly createdAt: string;
+  readonly tags: Readonly<Record<string, string>>;
+}> {
+  return verifier.verify({ rawBody, headers });
+}

@@ -36,7 +36,7 @@ export class ResendWebhookVerifier implements DeliveryWebhookVerifier {
 
   async verify(input: {
     readonly rawBody: string | Buffer;
-    readonly headers: Record<string, string>;
+    readonly headers: Record<string, string | string[] | undefined>;
   }): Promise<{
     readonly eventId: string;
     readonly eventType: string;
@@ -47,25 +47,35 @@ export class ResendWebhookVerifier implements DeliveryWebhookVerifier {
 
     const payload = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8');
 
+    const obtenerCabecera = (nombre: string): string | undefined => {
+      const valor = headers[nombre];
+      return typeof valor === 'string' ? valor : Array.isArray(valor) ? valor[0] : undefined;
+    };
+
+    const svixId = obtenerCabecera('svix-id');
+    const svixTimestamp = obtenerCabecera('svix-timestamp');
+    const svixSignature = obtenerCabecera('svix-signature');
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      throw new Error('Cabeceras Svix incompletas');
+    }
+
     const event = this.resend.webhooks.verify({
       payload,
       headers: {
-        id: headers['svix-id'],
-        timestamp: headers['svix-timestamp'],
-        signature: headers['svix-signature'],
+        id: svixId,
+        timestamp: svixTimestamp,
+        signature: svixSignature,
       },
       webhookSecret: this.webhookSecret,
     });
 
     const parsed = WebhookEventSchema.parse(event);
 
-    const tags: Readonly<Record<string, string>> = parsed.data.tags;
-
     return {
-      eventId: headers['svix-id'],
+      eventId: svixId,
       eventType: parsed.type,
       createdAt: parsed.created_at,
-      tags,
+      tags: parsed.data.tags,
     };
   }
 }
