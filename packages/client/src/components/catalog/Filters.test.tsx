@@ -8,6 +8,7 @@ import { Filters, type PropertyFilters } from './Filters';
 // el usuario. Los nombres propios no se traducen: en es y en son los mismos.
 // Referencias estables: el router y los parámetros reales no cambian entre renders, y si el
 // simulacro devolviera objetos nuevos cada vez, un efecto que dependa de ellos entraría en bucle.
+const pushState = vi.fn();
 const navigation = vi.hoisted(() => ({
   router: {
     push: vi.fn(),
@@ -26,7 +27,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 beforeEach(() => {
-  navigation.router.push.mockClear();
+  pushState.mockClear();
+  vi.spyOn(window.history, 'pushState').mockImplementation(pushState);
 });
 
 afterEach(() => {
@@ -191,15 +193,15 @@ describe('Filters | tipo de inmueble (un solo valor)', () => {
     renderFilters('es');
     elegir(tipoInput(), 'Casa');
     fireEvent.click(botonAplicar());
-    expect(navigation.router.push).toHaveBeenCalledTimes(1);
-    expect(navigation.router.push.mock.calls[0]?.[0]).toContain('tipo=CASA');
+    expect(pushState).toHaveBeenCalledTimes(1);
+    expect(pushState.mock.calls[0]?.[2]).toContain('tipo=CASA');
   });
 
   it('«Aplicar» escribe también los filtros de frontend en la URL', () => {
     renderFilters('es');
     elegir(screen.getByPlaceholderText('Dormitorios mín.'), '2+');
     fireEvent.click(botonAplicar());
-    expect(navigation.router.push.mock.calls[0]?.[0]).toContain('dormitorios=2');
+    expect(pushState.mock.calls[0]?.[2]).toContain('dormitorios=2');
   });
 
   it.each([
@@ -256,7 +258,7 @@ describe('Filters | avisos que impiden combinaciones inválidas (AC2.2.3)', () =
     renderFilters('es');
     elegir(departamentoInput('es'), 'Antioquia');
     fireEvent.click(botonAplicar());
-    expect(navigation.router.push).not.toHaveBeenCalled();
+    expect(pushState).not.toHaveBeenCalled();
   });
 });
 
@@ -269,5 +271,13 @@ describe('Filters | limpiar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Limpiar', exact: true }));
     expect(dormitorios.value).toBe('');
+  });
+});
+
+describe('Filters | limpiar', () => {
+  it('«Limpiar» escribe la ruta sin filtros', () => {
+    renderFilters('es');
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
+    expect(pushState).toHaveBeenCalledWith(null, '', window.location.pathname);
   });
 });

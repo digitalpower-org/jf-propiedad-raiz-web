@@ -5,7 +5,9 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import '@mantine/core/styles.css';
+import '@mantine/nprogress/styles.css';
 import { ColorSchemeScript, MantineProvider, createTheme } from '@mantine/core';
+import { NavigationProgress } from '@mantine/nprogress';
 
 import '../globals.css';
 import { AuthProvider } from './AuthProvider';
@@ -83,6 +85,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <AuthProvider>
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Bogota">
             <MantineProvider theme={theme}>
+              <NavigationProgress color="#f9ea1b" aria-hidden="true" />
               <LayoutWrapper locale={locale}>{children}</LayoutWrapper>
             </MantineProvider>
           </NextIntlClientProvider>

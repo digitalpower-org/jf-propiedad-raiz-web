@@ -210,3 +210,115 @@ test.describe('US2.2 | filtros de frontend sobre lo ya cargado', () => {
     await expect(page.getByTestId('result-count')).toHaveText(contador(esperados));
   });
 });
+
+test.describe('US2.2 | filtros de frontend sin ir al servidor', () => {
+  test('AC2.2.5 | cambiar un filtro de frontend no pide la página al servidor', async ({
+    page,
+  }) => {
+    await simular(page);
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    await elegir(page, 'Dormitorios mín.', '3+');
+    await aplicar(page).click();
+    const con3 = TODAS.filter((c) => c.dormitorios >= 3).length;
+    await expect(page.getByTestId('result-count')).toHaveText(contador(con3));
+    await page.waitForTimeout(500);
+
+    const alServidor: string[] = [];
+    page.on('request', (peticion) => {
+      const cabeceras = peticion.headers();
+      const url = new URL(peticion.url());
+      if (cabeceras['rsc'] && !cabeceras['next-router-prefetch'] && url.pathname === '/es/venta') {
+        alServidor.push(url.search);
+      }
+    });
+
+    await elegir(page, 'Dormitorios mín.', '4+');
+    await aplicar(page).click();
+    const con4 = TODAS.filter((c) => c.dormitorios >= 4).length;
+    await expect(page.getByTestId('result-count')).toHaveText(contador(con4));
+    expect(consultaUrl(page).get('dormitorios')).toBe('4');
+    await page.waitForTimeout(500);
+    expect(alServidor).toEqual([]);
+  });
+});
+
+function vigilarServidor(page: Page) {
+  const peticiones: string[] = [];
+  page.on('request', (peticion) => {
+    const cabeceras = peticion.headers();
+    const url = new URL(peticion.url());
+    if (cabeceras['rsc'] && !cabeceras['next-router-prefetch'] && url.pathname === '/es/venta') {
+      peticiones.push(url.search);
+    }
+  });
+  return peticiones;
+}
+
+test.describe('US2.2 | la URL manda sin recargar desde el servidor', () => {
+  test('AC2.2.2 | atrás y adelante cambian los resultados y el campo', async ({ page }) => {
+    await simular(page);
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    const campo = page.getByPlaceholder('Dormitorios mín.', { exact: true });
+    const total = (n: number) => contador(TODAS.filter((c) => c.dormitorios >= n).length);
+
+    for (const n of [3, 4]) {
+      await elegir(page, 'Dormitorios mín.', `${n}+`);
+      await aplicar(page).click();
+      await expect(page.getByTestId('result-count')).toHaveText(total(n));
+    }
+
+    await page.goBack();
+    await expect(page.getByTestId('result-count')).toHaveText(total(3));
+    await expect(campo).toHaveValue('3+');
+
+    await page.goForward();
+    await expect(page.getByTestId('result-count')).toHaveText(total(4));
+    await expect(campo).toHaveValue('4+');
+  });
+
+  test('AC2.2.4 | un filtro de base de datos pide a la API, no la página al servidor', async ({
+    page,
+  }) => {
+    const consultas = await simular(page);
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    const alServidor = vigilarServidor(page);
+
+    await elegir(page, 'Tipo de inmueble', 'Casa');
+    await aplicar(page).click();
+
+    await expect.poll(() => consultas.some((q) => q.get('tipo') === 'CASA')).toBe(true);
+    await page.waitForTimeout(500);
+    expect(alServidor).toEqual([]);
+  });
+});
+
+test.describe('US2.2 | barra de progreso', () => {
+  test('AC2.2.4 | al filtrar muestra la barra amarilla y atenúa las tarjetas anteriores', async ({
+    page,
+  }) => {
+    await simular(page);
+    const retenida = compuerta();
+    await page.route(API, async (route) => {
+      if (new URL(route.request().url()).searchParams.has('tipo')) await retenida.espera;
+      await route.fallback();
+    });
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    await expect(cards(page).first()).toBeVisible();
+    const barra = page.getByRole('progressbar', { includeHidden: true });
+    const contenedor = barra.locator('..');
+    await expect(contenedor).toHaveCSS('opacity', '0');
+
+    await elegir(page, 'Tipo de inmueble', 'Casa');
+    await aplicar(page).click();
+
+    await expect(contenedor).toHaveCSS('opacity', '1');
+    await expect(barra).toHaveCSS('background-color', 'rgb(249, 234, 27)');
+    await expect(page.getByTestId('property-grid')).toHaveCSS('opacity', '0.5');
+
+    retenida.liberar();
+    await expect(contenedor).toHaveCSS('opacity', '0');
+    await expect(page.getByTestId('property-grid')).toHaveCSS('opacity', '1');
+    // Es decorativa: el estado de carga lo expone la rejilla con aria-busy.
+    await expect(contenedor).toHaveAttribute('aria-hidden', 'true');
+  });
+});

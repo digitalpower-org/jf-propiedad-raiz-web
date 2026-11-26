@@ -1,5 +1,5 @@
 'use client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Select, Input, Button, Group, Text, Grid, Divider } from '@mantine/core';
 import type { Operacion } from '@jf/shared-types';
@@ -26,7 +26,6 @@ interface FiltersProps {
  * la escribe, y quien consume los filtros (CatalogClient) los lee de ella.
  */
 export function Filters({ operacion: _operacion, locale, initialFilters }: FiltersProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Helper to parse searchParams into initial state
@@ -101,6 +100,8 @@ export function Filters({ operacion: _operacion, locale, initialFilters }: Filte
   });
   const hayErrores = tieneErrores(errores);
 
+  // La URL se escribe con la History API y no con router.push: así no se vuelve a pedir la página
+  // al servidor (AC2.2.5) y useSearchParams se actualiza igual.
   const updateUrl = () => {
     const params = new URLSearchParams();
     if (tipo) params.set('tipo', tipo);
@@ -115,7 +116,7 @@ export function Filters({ operacion: _operacion, locale, initialFilters }: Filte
 
     const currentPath = window.location.pathname;
     const newUrl = params.toString() ? `${currentPath}?${params.toString()}` : currentPath;
-    router.push(newUrl, { scroll: false });
+    window.history.pushState(null, '', newUrl);
   };
 
   const handleClear = () => {
@@ -128,7 +129,7 @@ export function Filters({ operacion: _operacion, locale, initialFilters }: Filte
     setBanos('');
     setAreaMin('');
     setEstrato('');
-    router.push(window.location.pathname, { scroll: false });
+    window.history.pushState(null, '', window.location.pathname);
   };
 
   const hasActiveFilters =

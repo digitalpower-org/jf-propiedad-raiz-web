@@ -22,6 +22,7 @@ import {
 } from './property-grid-hooks';
 import { useCargarTodo } from './useCargarTodo';
 import { useRetraso } from './useRetraso';
+import { useBarraProgreso } from './useBarraProgreso';
 import { resumirFiltros, urlWhatsAppSinResultados } from '@/lib/catalog-resumen';
 import { buildWhatsAppUrl, getWhatsAppNumber } from '@/lib/whatsapp';
 
@@ -43,7 +44,6 @@ export function PropertyGrid({
   frontendFilters,
   httpClient,
 }: PropertyGridProps) {
-  const [showDestacadas, setShowDestacadas] = React.useState(true);
   const t = useTranslations('common');
 
   // Highlighted-query params
@@ -51,8 +51,8 @@ export function PropertyGrid({
   const {
     data: featuredData,
     hasNextPage: hasFeaturedNextPage,
-    isFetchingNextPage: isFetchingFeatured,
     isLoading: isLoadingFeatured,
+    isPlaceholderData: filtroPendiente,
   } = usePropertiesQuery(featuredParams, httpClient);
 
   const featuredItems = React.useMemo(() => {
@@ -60,17 +60,18 @@ export function PropertyGrid({
     return featuredData.pages.flatMap((page) => (page.success ? page.data.items : []));
   }, [featuredData]);
 
-  // Auto-switch to non-destacadas when destacadas are exhausted (only after initial load completes)
-  const shouldSwitch =
-    showDestacadas && !isLoadingFeatured && !hasFeaturedNextPage && !isFetchingFeatured;
-  if (shouldSwitch) {
-    setShowDestacadas(false);
-  }
+  // La consulta activa son las destacadas mientras no estén agotadas. Se deriva (no es estado)
+  // para que al cambiar de filtro se recalcule con las destacadas del filtro nuevo.
+  const showDestacadas = isLoadingFeatured || filtroPendiente || hasFeaturedNextPage;
 
   // Active-query params (destacadas or not)
   const activeParams = buildQueryParams(operacion, showDestacadas, undefined, filters);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
-    usePropertiesQuery(activeParams, httpClient);
+  const activa = usePropertiesQuery(activeParams, httpClient);
+  const { fetchNextPage, hasNextPage, isFetchingNextPage, isError } = activa;
+  // AC2.2.4: los datos del filtro anterior se ven (atenuados) hasta que responden las destacadas
+  // nuevas. Después, el relleno de la consulta activa se ignora para no mezclar filtros.
+  const data = activa.isPlaceholderData && !filtroPendiente ? undefined : activa.data;
+  const cargando = activa.isLoading || activa.isPlaceholderData;
 
   const allItems = React.useMemo(() => {
     if (!data) return featuredItems;
@@ -92,7 +93,9 @@ export function PropertyGrid({
   const isNextPageError = data !== undefined && isError;
 
   // Quedan páginas por cargar (o la consulta activa aún no ha respondido).
-  const pendiente = isLoading || hasNextPage || isFetchingNextPage;
+  const pendiente = cargando || hasNextPage || isFetchingNextPage;
+
+  useBarraProgreso(filtroPendiente);
 
   const { ref } = useInfiniteScroll(
     hasNextPage,
@@ -111,7 +114,7 @@ export function PropertyGrid({
 
   // AC2.2.9: el skeleton solo aparece si la espera supera ~200 ms; antes se reserva el hueco.
   const esperando =
-    (isLoading && allItems.length === 0) ||
+    (cargando && allItems.length === 0) ||
     (!(isError && !data) &&
       visibleItems.length === 0 &&
       filtrosActivos &&
@@ -119,7 +122,7 @@ export function PropertyGrid({
       !isNextPageError);
   const mostrarEsqueleto = useRetraso(esperando);
 
-  if (isLoading && allItems.length === 0) {
+  if (cargando && allItems.length === 0) {
     return mostrarEsqueleto ? renderSkeletons() : renderReserva();
   }
 
@@ -148,7 +151,7 @@ export function PropertyGrid({
         {t('orderLabel')}
       </p>
 
-      <div className={styles.grid}>
+      <div className={styles.grid} data-testid="property-grid" aria-busy={filtroPendiente}>
         {visibleItems.map((property) => (
           <PropertyCardComponent key={property.id} property={property} locale={locale} />
         ))}
@@ -156,7 +159,7 @@ export function PropertyGrid({
 
       {renderLoadMore(hasNextPage, isFetchingNextPage, fetchNextPage, t, ref, isNextPageError)}
 
-      {!hasNextPage && !isFetchingNextPage && visibleItems.length > 0 && renderEndOfList(t)}
+      {!pendiente && visibleItems.length > 0 && renderEndOfList(t)}
     </>
   );
 }

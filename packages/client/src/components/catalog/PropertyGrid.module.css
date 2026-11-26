@@ -228,3 +228,8 @@
     0 0 0 2px var(--color-marfil-elegante),
     0 0 0 4px var(--color-verde-bosque);
 }
+
+/* AC2.2.4: tarjetas del filtro anterior mientras llega el nuevo */
+.grid[aria-busy='true'] {
+  opacity: 0.5;
+}
