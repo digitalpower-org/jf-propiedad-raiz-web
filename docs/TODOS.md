@@ -50,12 +50,12 @@
   - [x] US1.4 `[D1]` `POST /api/auth/logout` (BFF route handler)
   - [x] US1.5 `[D1+D2]` Front: ciclo de sesión, renovación, protección de `/admin`
     - Evidencia: `lib/firebase-client.ts`; `lib/auth-session.ts` (single-flight `renewSession`); `admin/login/page.tsx` (Google sign-in); `admin/(protected)/layout.tsx` (guard servidor); `auth-renew.ts` borrado; `package.json` +firebase; tipo esperado (tsc) por falta de install.
-    - [x] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`signInWithPopup`/`getIdToken`), renovación single-flight ante 401 y redirección al login (AC5.4.7)
+    - [ ] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`signInWithPopup`/`getIdToken`), renovación single-flight ante 401 y redirección al login (AC5.4.7) — reabierto 2026-11-25: AC1.5.7: `LogoutButton` no llama a `signOut` y redirige a `/es/admin/login` en lugar de `/`
     - [x] `[D1]` Endpoints BFF: `/api/auth/session`, `/api/auth/me`, `/api/auth/logout` + JWT `__session` + propagación `X-User-*`
-    - [x] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7) — completado; revertido `00ffbef` (redirect temporal a `/es/`) y verificado E2E `admin-guard` + `auth-session`
+    - [ ] `[D2]` UI/guard cliente: rutas `/admin/**`, layout/guard, Firebase Auth (`onAuthStateChanged`/`onIdTokenChanged`), renovación single-flight ante 401 y redirección al login (AC5.4.7) — completado; revertido `00ffbef` (redirect temporal a `/es/`) y verificado E2E `admin-guard` + `auth-session` — reabierto 2026-11-25: AC1.5.7: `LogoutButton` no llama a `signOut` y redirige a `/es/admin/login` en lugar de `/`
   - [x] US1.6 `[D1]` `GET /api/auth/me` (BFF route handler)
-- [x] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4
-  - [x] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError` (evidencia: `lib/api-error.ts` + `lib/http-client.ts`; duplicado corregido; `ErrorBoundary` stub creado)
+- [ ] **MT1.3** `[D2]` Fundamentos de front compartidos ← MT0.4 — reabierto 2026-11-25: contiene US5.4 reabierta
+  - [ ] US5.4 `[D2]` Cliente HTTP centralizado y `ApiError` (evidencia: `lib/api-error.ts` + `lib/http-client.ts`; duplicado corregido; `ErrorBoundary` stub creado) — reabierto 2026-11-25: AC5.4.6: `ErrorBoundary` es un stub (`<div>Error</div>`) sin botón «Reintentar»
 - [ ] **MT1.4** `[D1]` Revalidación y traducción ← MT1.1, MT0.3
   **GAP:** Revalidación cableada y probada en integración para las 5 escrituras de inmueble (crear, actualizar, activar, ocultar, borrado lógico). Traducción create/update de inmuebles, servicios y Nosotros cableada y probada con tests unitarios de handler y de integración HTTP (`translateContentFields` + revalidación). Pendiente para US0.5: UI del editor con indicador por campo, interruptor global y botón «Reintentar traducción» (AC0.5.6, AC4.1.4); la MT sigue abierta hasta esa UI y su E2E.
   - [x] US0.3 `[D1]` Revalidación bajo demanda
@@ -80,15 +80,15 @@
   - [x] US7.4 `[D1]` (backend) `PropertyCard` tipos en `shared-types` ya existen (AC7.4.1); compresión/caché son de infraestructura
 - [x] **MT2.4** `[D1]` Seed de catálogo ← MT2.1, MT2.2
   - [x] US6.1 `[D1]` (catálogo) Inmuebles, servicios y Nosotros; idempotente, traductor falso
-- [x] **MT2.3** `[D2]` Catálogo público (UI) ← MT2.2, MT2.4, MT1.3, MT0.4  ← MT2.2 bloquea MT2.3 — sin backend de consulta pública, el catálogo usa mocks  ← MT2.4 (seed de catálogo) es prerequisito para datos reales
+- [ ] **MT2.3** `[D2]` Catálogo público (UI) ← MT2.2, MT2.4, MT1.3, MT0.4  ← MT2.2 bloquea MT2.3 — sin backend de consulta pública, el catálogo usa mocks  ← MT2.4 (seed de catálogo) es prerequisito para datos reales — reabierto 2026-11-25: contiene US2.2 y US7.1 reabiertas
   - [x] **US2.1** `[D2]` Pestañas independientes
-  - [x] **US2.2** `[D2]` Buscador, skeletons y estados de carga
+  - [ ] **US2.2** `[D2]` Buscador, skeletons y estados de carga — reabierto 2026-11-25: faltan los filtros de área de lote, parqueaderos y amenidades (AC2.2.1, TASKS:393) y el skeleton no usa `Skeleton` de Mantine con proporciones 4:3 (AC2.2.8)
   - [x] **US2.3** `[D2]` Scroll infinito
   - [x] **US2.4** `[D2]` Ficha técnica con SEO y puntos de interés
   - [x] **US2.5** `[D2]` Botón de WhatsApp (usa `buildWhatsAppUrl`)
   - [x] **US2.6** `[D2]` Portada (Home)
   - [x] **US2.7** `[D2]` SEO técnico (parte inmuebles del sitemap)
-  - [x] **US7.1** `[D2]` Interfaz Mobile First
+  - [ ] **US7.1** `[D2]` Interfaz Mobile First — reabierto 2026-11-25: AC7.1.1: hay 17 `@media (max-width)` en 12 hojas de estilo; deben declararse con `min-width`
   - [x] **US7.3** `[D2]` Imágenes y multimedia bajo demanda
   - [x] **US7.4** `[D2]` (cliente) API y caché eficientes
 - [x] **MT3.2** `[D2]` Páginas legales (adelantadas a Ola 2) ← MT0.4, MT1.4
@@ -139,9 +139,9 @@
 ## OLA 5 — Contenido público y contacto
 
 - [x] **MT5.1** `[D1+D2]` Páginas públicas de contenido ← MT2.2, MT2.4, MT2.3, MT0.4
-  - [x] **US5.1** `[D2]` Índice y páginas de Servicios (UI)
+  - [ ] **US5.1** `[D2]` Índice y páginas de Servicios (UI) — reabierto 2026-11-25: AC5.1.1: `/servicios` muestra un texto fijo «Próximamente» en vez de una tarjeta por servicio ACTIVE
   - [x] **US5.2** `[D2]` Pie de página y Contacto (UI)
-  - [x] **US5.6** `[D2]` Página «Nosotros» (UI)
+  - [ ] **US5.6** `[D2]` Página «Nosotros» (UI) — reabierto 2026-11-25: AC5.6.5: la página lee `messages.about` (diccionarios) y no el backend; «Última actualización» es la fecha de hoy
   - [x] **US7.1** `[D2]` (contacto) Mobile First
   - [x] **US2.7** `[D1]` (cierre) Sitemap completo (Servicios, Nosotros y legales) (BFF/Functions)
 - [ ] **MT5.2** `[D1+D2]` Contacto editable `COULD` ← MT4.2
