@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { PropertyCard } from '@jf/shared-types';
 import { isNewProperty } from '@/lib/property';
@@ -78,9 +79,13 @@ export function PropertyCardComponent({ property, locale }: PropertyCardProps) {
         {renderSpecs(property)}
 
         <div className={styles.actions}>
-          <a href={`/${locale}/propiedad/${property.slug}`} className={styles.detailsLink}>
+          <Link
+            href={`/${locale}/propiedad/${property.slug}`}
+            className={styles.detailsLink}
+            prefetch={false}
+          >
             {t('details')}
-          </a>
+          </Link>
           <a
             href={whatsappUrl}
             className={styles.whatsappLink}
