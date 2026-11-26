@@ -241,3 +241,53 @@ test.describe('US2.2 | filtros de frontend sin ir al servidor', () => {
     expect(alServidor).toEqual([]);
   });
 });
+
+function vigilarServidor(page: Page) {
+  const peticiones: string[] = [];
+  page.on('request', (peticion) => {
+    const cabeceras = peticion.headers();
+    const url = new URL(peticion.url());
+    if (cabeceras['rsc'] && !cabeceras['next-router-prefetch'] && url.pathname === '/es/venta') {
+      peticiones.push(url.search);
+    }
+  });
+  return peticiones;
+}
+
+test.describe('US2.2 | la URL manda sin recargar desde el servidor', () => {
+  test('AC2.2.2 | atrás y adelante cambian los resultados y el campo', async ({ page }) => {
+    await simular(page);
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    const campo = page.getByPlaceholder('Dormitorios mín.', { exact: true });
+    const total = (n: number) => contador(TODAS.filter((c) => c.dormitorios >= n).length);
+
+    for (const n of [3, 4]) {
+      await elegir(page, 'Dormitorios mín.', `${n}+`);
+      await aplicar(page).click();
+      await expect(page.getByTestId('result-count')).toHaveText(total(n));
+    }
+
+    await page.goBack();
+    await expect(page.getByTestId('result-count')).toHaveText(total(3));
+    await expect(campo).toHaveValue('3+');
+
+    await page.goForward();
+    await expect(page.getByTestId('result-count')).toHaveText(total(4));
+    await expect(campo).toHaveValue('4+');
+  });
+
+  test('AC2.2.4 | un filtro de base de datos pide a la API, no la página al servidor', async ({
+    page,
+  }) => {
+    const consultas = await simular(page);
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    const alServidor = vigilarServidor(page);
+
+    await elegir(page, 'Tipo de inmueble', 'Casa');
+    await aplicar(page).click();
+
+    await expect.poll(() => consultas.some((q) => q.get('tipo') === 'CASA')).toBe(true);
+    await page.waitForTimeout(500);
+    expect(alServidor).toEqual([]);
+  });
+});
