@@ -210,3 +210,34 @@ test.describe('US2.2 | filtros de frontend sobre lo ya cargado', () => {
     await expect(page.getByTestId('result-count')).toHaveText(contador(esperados));
   });
 });
+
+test.describe('US2.2 | filtros de frontend sin ir al servidor', () => {
+  test('AC2.2.5 | cambiar un filtro de frontend no pide la página al servidor', async ({
+    page,
+  }) => {
+    await simular(page);
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    await elegir(page, 'Dormitorios mín.', '3+');
+    await aplicar(page).click();
+    const con3 = TODAS.filter((c) => c.dormitorios >= 3).length;
+    await expect(page.getByTestId('result-count')).toHaveText(contador(con3));
+    await page.waitForTimeout(500);
+
+    const alServidor: string[] = [];
+    page.on('request', (peticion) => {
+      const cabeceras = peticion.headers();
+      const url = new URL(peticion.url());
+      if (cabeceras['rsc'] && !cabeceras['next-router-prefetch'] && url.pathname === '/es/venta') {
+        alServidor.push(url.search);
+      }
+    });
+
+    await elegir(page, 'Dormitorios mín.', '4+');
+    await aplicar(page).click();
+    const con4 = TODAS.filter((c) => c.dormitorios >= 4).length;
+    await expect(page.getByTestId('result-count')).toHaveText(contador(con4));
+    expect(consultaUrl(page).get('dormitorios')).toBe('4');
+    await page.waitForTimeout(500);
+    expect(alServidor).toEqual([]);
+  });
+});
