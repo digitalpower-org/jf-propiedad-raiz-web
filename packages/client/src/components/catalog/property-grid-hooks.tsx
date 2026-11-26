@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
 import React, { type ReactElement } from 'react';
 import type { useTranslations } from 'next-intl';
@@ -47,6 +47,7 @@ export function usePropertiesQuery(params: PropertyListParams, httpClient?: IHtt
     initialPageParam: undefined as string | undefined,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
 }
 

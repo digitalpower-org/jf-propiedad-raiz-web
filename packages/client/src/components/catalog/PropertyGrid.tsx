@@ -51,6 +51,7 @@ export function PropertyGrid({
     data: featuredData,
     hasNextPage: hasFeaturedNextPage,
     isLoading: isLoadingFeatured,
+    isPlaceholderData: filtroPendiente,
   } = usePropertiesQuery(featuredParams, httpClient);
 
   const featuredItems = React.useMemo(() => {
@@ -60,12 +61,16 @@ export function PropertyGrid({
 
   // La consulta activa son las destacadas mientras no estén agotadas. Se deriva (no es estado)
   // para que al cambiar de filtro se recalcule con las destacadas del filtro nuevo.
-  const showDestacadas = isLoadingFeatured || hasFeaturedNextPage;
+  const showDestacadas = isLoadingFeatured || filtroPendiente || hasFeaturedNextPage;
 
   // Active-query params (destacadas or not)
   const activeParams = buildQueryParams(operacion, showDestacadas, undefined, filters);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
-    usePropertiesQuery(activeParams, httpClient);
+  const activa = usePropertiesQuery(activeParams, httpClient);
+  const { fetchNextPage, hasNextPage, isFetchingNextPage, isError } = activa;
+  // AC2.2.4: los datos del filtro anterior se ven (atenuados) hasta que responden las destacadas
+  // nuevas. Después, el relleno de la consulta activa se ignora para no mezclar filtros.
+  const data = activa.isPlaceholderData && !filtroPendiente ? undefined : activa.data;
+  const cargando = activa.isLoading || activa.isPlaceholderData;
 
   const allItems = React.useMemo(() => {
     if (!data) return featuredItems;
@@ -87,7 +92,7 @@ export function PropertyGrid({
   const isNextPageError = data !== undefined && isError;
 
   // Quedan páginas por cargar (o la consulta activa aún no ha respondido).
-  const pendiente = isLoading || hasNextPage || isFetchingNextPage;
+  const pendiente = cargando || hasNextPage || isFetchingNextPage;
 
   const { ref } = useInfiniteScroll(
     hasNextPage,
@@ -106,7 +111,7 @@ export function PropertyGrid({
 
   // AC2.2.9: el skeleton solo aparece si la espera supera ~200 ms; antes se reserva el hueco.
   const esperando =
-    (isLoading && allItems.length === 0) ||
+    (cargando && allItems.length === 0) ||
     (!(isError && !data) &&
       visibleItems.length === 0 &&
       filtrosActivos &&
@@ -114,7 +119,7 @@ export function PropertyGrid({
       !isNextPageError);
   const mostrarEsqueleto = useRetraso(esperando);
 
-  if (isLoading && allItems.length === 0) {
+  if (cargando && allItems.length === 0) {
     return mostrarEsqueleto ? renderSkeletons() : renderReserva();
   }
 
@@ -143,7 +148,7 @@ export function PropertyGrid({
         {t('orderLabel')}
       </p>
 
-      <div className={styles.grid}>
+      <div className={styles.grid} data-testid="property-grid" aria-busy={filtroPendiente}>
         {visibleItems.map((property) => (
           <PropertyCardComponent key={property.id} property={property} locale={locale} />
         ))}
@@ -151,7 +156,7 @@ export function PropertyGrid({
 
       {renderLoadMore(hasNextPage, isFetchingNextPage, fetchNextPage, t, ref, isNextPageError)}
 
-      {!hasNextPage && !isFetchingNextPage && visibleItems.length > 0 && renderEndOfList(t)}
+      {!pendiente && visibleItems.length > 0 && renderEndOfList(t)}
     </>
   );
 }
