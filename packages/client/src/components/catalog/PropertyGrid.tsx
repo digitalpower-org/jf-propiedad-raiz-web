@@ -22,6 +22,7 @@ import {
 } from './property-grid-hooks';
 import { useCargarTodo } from './useCargarTodo';
 import { useRetraso } from './useRetraso';
+import { useBarraProgreso } from './useBarraProgreso';
 import { resumirFiltros, urlWhatsAppSinResultados } from '@/lib/catalog-resumen';
 import { buildWhatsAppUrl, getWhatsAppNumber } from '@/lib/whatsapp';
 
@@ -93,6 +94,8 @@ export function PropertyGrid({
 
   // Quedan páginas por cargar (o la consulta activa aún no ha respondido).
   const pendiente = cargando || hasNextPage || isFetchingNextPage;
+
+  useBarraProgreso(filtroPendiente);
 
   const { ref } = useInfiniteScroll(
     hasNextPage,

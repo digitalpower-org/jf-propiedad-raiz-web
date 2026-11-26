@@ -291,3 +291,34 @@ test.describe('US2.2 | la URL manda sin recargar desde el servidor', () => {
     expect(alServidor).toEqual([]);
   });
 });
+
+test.describe('US2.2 | barra de progreso', () => {
+  test('AC2.2.4 | al filtrar muestra la barra amarilla y atenúa las tarjetas anteriores', async ({
+    page,
+  }) => {
+    await simular(page);
+    const retenida = compuerta();
+    await page.route(API, async (route) => {
+      if (new URL(route.request().url()).searchParams.has('tipo')) await retenida.espera;
+      await route.fallback();
+    });
+    await page.goto('/es/venta', { waitUntil: 'networkidle' });
+    await expect(cards(page).first()).toBeVisible();
+    const barra = page.getByRole('progressbar', { includeHidden: true });
+    const contenedor = barra.locator('..');
+    await expect(contenedor).toHaveCSS('opacity', '0');
+
+    await elegir(page, 'Tipo de inmueble', 'Casa');
+    await aplicar(page).click();
+
+    await expect(contenedor).toHaveCSS('opacity', '1');
+    await expect(barra).toHaveCSS('background-color', 'rgb(249, 234, 27)');
+    await expect(page.getByTestId('property-grid')).toHaveCSS('opacity', '0.5');
+
+    retenida.liberar();
+    await expect(contenedor).toHaveCSS('opacity', '0');
+    await expect(page.getByTestId('property-grid')).toHaveCSS('opacity', '1');
+    // Es decorativa: el estado de carga lo expone la rejilla con aria-busy.
+    await expect(contenedor).toHaveAttribute('aria-hidden', 'true');
+  });
+});

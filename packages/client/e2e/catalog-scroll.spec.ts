@@ -133,7 +133,12 @@ test.describe('US2.2 / US2.3 | catálogo: filtros y scroll infinito', () => {
     await expect(cards(page)).toHaveCount(PAGE_SIZE);
     await cargarMas(page);
     await expect(page.getByTestId('skeleton-card').first()).toBeVisible();
-    await expect(page.locator('[class*="spinner" i], [role="progressbar"]')).toHaveCount(0);
+    // getByRole ignora lo marcado aria-hidden (la barra de AC2.2.4, siempre en el DOM).
+    const spinners = page.locator('[class*="spinner" i], .mantine-Loader-root');
+    await expect(spinners.or(page.getByRole('progressbar'))).toHaveCount(0);
+    // «Cargar más» no activa la barra de progreso.
+    const barra = page.getByRole('progressbar', { includeHidden: true });
+    await expect(barra.locator('..')).toHaveCSS('opacity', '0');
     liberar();
     await expect(cards(page)).toHaveCount(PAGE_SIZE + 3);
     await expect(page.getByTestId('skeleton-card')).toHaveCount(0);
