@@ -47,7 +47,7 @@ const VALID_ENV: Record<EnvKey, string> = {
   R2_PUBLIC_BASE_URL: 'https://media.example.com',
 };
 
-const DEFAULT_DEV_CONSIGNMENT_TO_EMAIL = 'DesarrollosDigitalPower@gmail.com';
+const DEFAULT_DEV_CONSIGNMENT_TO_EMAIL = 'dpa.imprimir@gmail.com';
 
 const originalEnv: Record<EnvKey, string | undefined> = {} as Record<EnvKey, string | undefined>;
 

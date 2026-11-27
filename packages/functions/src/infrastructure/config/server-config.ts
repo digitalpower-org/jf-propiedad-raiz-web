@@ -51,7 +51,7 @@ export const env = parsed.data;
 const DEFAULT_BFF_URL = 'http://127.0.0.1:3000';
 const DEFAULT_FIREBASE_PROJECT_ID = 'jf-propiedad-raiz';
 const DEFAULT_CONSIGNMENT_TO_EMAIL = 'juanfer@jfpropiedadraiz.com';
-const DEFAULT_CONSIGNMENT_TO_EMAIL_DEV = 'DesarrollosDigitalPower@gmail.com';
+const DEFAULT_CONSIGNMENT_TO_EMAIL_DEV = 'dpa.imprimir@gmail.com';
 
 export const config = {
   nodeEnv: env.NODE_ENV,
