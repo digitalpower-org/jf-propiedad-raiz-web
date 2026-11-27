@@ -169,8 +169,8 @@ function fechaBogota(idioma: IdiomaCorreo): string {
 function cabecera(t: TextosCorreo, tipo: 'notificacion' | 'recibo'): string {
   const notificacion = tipo === 'notificacion';
   const logo = notificacion
-    ? 'width="76" height="76" style="display:block;margin:0 auto 18px auto;width:76px;height:76px;border-radius:16px;"'
-    : 'width="80" height="80" style="display:block;margin:0 auto 18px auto;width:80px;height:80px;border-radius:16px;"';
+    ? 'width="76" height="51" style="display:block;margin:0 auto 18px auto;width:76px;height:51px;border-radius:16px;"'
+    : 'width="80" height="53" style="display:block;margin:0 auto 18px auto;width:80px;height:53px;border-radius:16px;"';
   const padding = notificacion ? 'padding:36px 32px 30px 32px;' : 'padding:38px 32px 32px 32px;';
   const eyebrow = notificacion ? t.encabezadoNotificacion : t.encabezadoRecibo;
   const titulo = notificacion ? t.tituloNotificacion : t.reciboTitulo;
@@ -198,12 +198,13 @@ function cuerpoRecibo(input: ConsignmentInput, t: TextosCorreo): string {
   return `<tr><td class="mobile-pad" style="padding:40px 44px 36px 44px;background-color:#FAF8F3;"><p data-campo="saludo" style="margin:0 0 18px 0;font-family:${SERIF};font-size:20px;color:#042316;">Hola ${escapar(input.nombre)},</p><p style="margin:0 0 28px 0;font-family:${SANS};font-size:15px;line-height:1.7;color:#3D4A43;">${escapar(t.confirmacion)}</p>${tarjeta}<p data-seccion="siguiente" style="margin:0;font-family:${SANS};font-size:13px;line-height:1.6;color:#5E6A63;">${escapar(t.notaResponder)}</p></td></tr>`;
 }
 
-function pieNotificacion(t: TextosCorreo): string {
-  return `<tr data-seccion="pie"><td align="center" style="background-color:#F2EEE4;padding:20px 32px;border-top:1px solid #E6DEC8;"><p style="margin:0 0 4px 0;font-family:${SERIF};font-size:13px;color:#042316;">${escapar(t.pieNombre)}</p><p style="margin:0;font-family:${SANS};font-size:11px;color:#6E7A73;">${escapar(t.pieEmail)}</p></td></tr>`;
+function pieNotificacion(t: TextosCorreo, emailContacto: string): string {
+  return `<tr data-seccion="pie"><td align="center" style="background-color:#F2EEE4;padding:20px 32px;border-top:1px solid #E6DEC8;"><p style="margin:0 0 4px 0;font-family:${SERIF};font-size:13px;color:#042316;">${escapar(t.pieNombre)}</p><p style="margin:0;font-family:${SANS};font-size:11px;color:#6E7A73;">${escapar(emailContacto)}</p></td></tr>`;
 }
 
-function pieRecibo(t: TextosCorreo): string {
-  return `<tr data-seccion="pie"><td align="center" style="background-color:#042316;padding:22px 32px;border-top:1px solid #C9A24D;"><p style="margin:0 0 4px 0;font-family:${SERIF};font-size:14px;color:#E2C478;letter-spacing:0.5px;">${escapar(t.pieReciboNombre)}</p><p style="margin:0;font-family:${SANS};font-size:11px;color:#B4C2BA;">${escapar(t.pieReciboEmail)}</p></td></tr>`;
+function pieRecibo(t: TextosCorreo, emailContacto: string): string {
+  const pie = `${emailContacto} · ${t.pieReciboDetalle}`;
+  return `<tr data-seccion="pie"><td align="center" style="background-color:#042316;padding:22px 32px;border-top:1px solid #C9A24D;"><p style="margin:0 0 4px 0;font-family:${SERIF};font-size:14px;color:#E2C478;letter-spacing:0.5px;">${escapar(t.pieReciboNombre)}</p><p style="margin:0;font-family:${SANS};font-size:11px;color:#B4C2BA;">${escapar(pie)}</p></td></tr>`;
 }
 
 function envolver(
@@ -221,6 +222,7 @@ function envolver(
 
 export function construirHtmlNotificacion(
   input: ConsignmentInput,
+  emailContacto: string,
   idioma: IdiomaCorreo = 'es',
 ): string {
   const t = TEXTOS[idioma];
@@ -231,11 +233,15 @@ export function construirHtmlNotificacion(
     `${t.preheader} · ${fechaBogota(idioma)}`,
     cabecera(t, 'notificacion'),
     bandaValor(input.valor, t) + cuerpoNotificacion(input, t),
-    pieNotificacion(t),
+    pieNotificacion(t, emailContacto),
   );
 }
 
-export function construirHtmlRecibo(input: ConsignmentInput, idioma: IdiomaCorreo = 'es'): string {
+export function construirHtmlRecibo(
+  input: ConsignmentInput,
+  emailContacto: string,
+  idioma: IdiomaCorreo = 'es',
+): string {
   const t = TEXTOS[idioma];
   return envolver(
     'recibo',
@@ -244,6 +250,6 @@ export function construirHtmlRecibo(input: ConsignmentInput, idioma: IdiomaCorre
     t.preheader,
     cabecera(t, 'recibo'),
     cuerpoRecibo(input, t),
-    pieRecibo(t),
+    pieRecibo(t, emailContacto),
   );
 }

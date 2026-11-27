@@ -4,7 +4,7 @@
 
 export type IdiomaCorreo = 'es' | 'en';
 
-export const LOGO_URL = 'https://placehold.co/160x160/042316/C9A24D/png?text=JF';
+export const LOGO_URL = 'https://drive.google.com/uc?id=1bbD-MFaSaQ25OAqI3BGe9DkIXEcYyP4r';
 export const LOGO_ALT = 'JF Propiedad Raíz';
 
 export const TEXTOS = {
@@ -32,7 +32,7 @@ export const TEXTOS = {
     contactar: 'Contactar Propietario',
     contactarDetalle: 'Responde sin salir de tu bandeja o abre el chat directo.',
     pieNombre: 'JF Propiedad Raíz · División de Consignaciones',
-    pieEmail: 'consignaciones@jfpropiedadraiz.com',
+    pieReciboDetalle: 'Atención Exclusiva',
     hola: 'Hola',
     confirmacion:
       'Hemos recibido tu solicitud para consignar tu propiedad. Nuestro equipo especializado ya se encuentra revisando los detalles y nos comunicaremos contigo pronto para brindarte una atención personalizada.',
@@ -47,7 +47,6 @@ export const TEXTOS = {
     notaResponder:
       'Si deseas agregar información adicional o fotografías de tu inmueble, puedes responder directamente a este correo.',
     pieReciboNombre: 'JF Propiedad Raíz',
-    pieReciboEmail: 'consignaciones@jfpropiedadraiz.com · Atención Exclusiva',
   },
   en: {
     preheader: 'Consignment request received',
@@ -74,7 +73,7 @@ export const TEXTOS = {
     contactar: 'Contact Owner',
     contactarDetalle: 'Reply from your inbox or open the direct chat.',
     pieNombre: 'JF Propiedad Raíz · Consignment Division',
-    pieEmail: 'consignaciones@jfpropiedadraiz.com',
+    pieReciboDetalle: 'Exclusive Attention',
     hola: 'Hello',
     confirmacion:
       'We received your request to list your property. Our specialized team is already reviewing the details and will contact you shortly to provide you with personalized attention.',
@@ -89,7 +88,6 @@ export const TEXTOS = {
     notaResponder:
       'If you wish to add additional information or photographs of your property, you can reply directly to this email.',
     pieReciboNombre: 'JF Propiedad Raíz',
-    pieReciboEmail: 'consignaciones@jfpropiedadraiz.com · Exclusive Attention',
   },
 } as const;
 

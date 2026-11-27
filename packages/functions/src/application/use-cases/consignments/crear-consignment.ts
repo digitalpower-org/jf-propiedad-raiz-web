@@ -73,7 +73,7 @@ export class CrearConsignmentUseCase implements UseCase<
     };
 
     // AC3.2.1 / AC3.2.3 — Correo a Juan Fernando con los datos del solicitante.
-    const htmlNotificacion = construirHtmlNotificacion(input, idioma);
+    const htmlNotificacion = construirHtmlNotificacion(input, this.consignmentToEmail, idioma);
     try {
       await this.emailSender.send(
         this.consignmentToEmail,
@@ -91,9 +91,15 @@ export class CrearConsignmentUseCase implements UseCase<
     }
 
     // AC3.2.2 — Recibo al solicitante.
-    const htmlRecibo = construirHtmlRecibo(input, idioma);
+    const htmlRecibo = construirHtmlRecibo(input, this.consignmentToEmail, idioma);
     try {
-      await this.emailSender.send(input.email, ASUNTO_RECIBO, htmlRecibo, undefined, tagsClient);
+      await this.emailSender.send(
+        input.email,
+        ASUNTO_RECIBO,
+        htmlRecibo,
+        this.consignmentToEmail,
+        tagsClient,
+      );
     } catch (error) {
       // El recibo es degradado: si falla, la solicitud sigue siendo exitosa
       // y solo se advierte. El correo a Juan (AC3.2.1) sigue siendo fatal.

@@ -29,6 +29,7 @@ function makeSut(
   overrides: {
     emailSender?: Partial<EmailSender>;
     logger?: Partial<Logger>;
+    consignmentToEmail?: string;
   } = {},
 ) {
   const emailSender: EmailSender = {
@@ -43,8 +44,10 @@ function makeSut(
     ...overrides.logger,
   };
 
+  const consignmentToEmail = overrides.consignmentToEmail ?? 'juanfer@jfpropiedadraiz.com';
+
   return {
-    sut: new CrearConsignmentUseCase(emailSender, logger, 'juanfer@jfpropiedadraiz.com'),
+    sut: new CrearConsignmentUseCase(emailSender, logger, consignmentToEmail),
     emailSender,
     logger,
   };
@@ -74,12 +77,38 @@ describe('CrearConsignmentUseCase', () => {
       'cliente@ejemplo.com',
       'Recibo de tu solicitud de consignación',
       expect.any(String),
-      undefined,
+      'juanfer@jfpropiedadraiz.com',
       expect.objectContaining({
         [CONSIGNMENT_REQUEST_ID_TAG]: requestId,
         [CONSIGNMENT_KIND_TAG]: 'client',
       }),
     );
+  });
+
+  it('usa consignmentToEmail como replyTo del recibo y como contacto en el pie de ambos correos', async () => {
+    const emailContacto = 'consignaciones-reales@example.com';
+    const { sut, emailSender } = makeSut({ consignmentToEmail: emailContacto });
+
+    await sut.execute({ input: inputBase, requestId });
+
+    const llamadas = vi.mocked(emailSender.send).mock.calls;
+    const notificacion = llamadas[0]?.[2];
+    const recibo = llamadas[1]?.[2];
+    expect(llamadas[1]?.[3]).toBe(emailContacto);
+    expect(notificacion).toContain(`>${emailContacto}</p>`);
+    expect(recibo).toContain(`>${emailContacto} · Atención Exclusiva</p>`);
+    expect(notificacion).not.toContain('consignaciones@jfpropiedadraiz.com');
+    expect(recibo).not.toContain('consignaciones@jfpropiedadraiz.com');
+  });
+
+  it('mantiene el detalle del pie en inglés con el correo configurado', async () => {
+    const emailContacto = 'consignaciones-reales@example.com';
+    const { sut, emailSender } = makeSut({ consignmentToEmail: emailContacto });
+
+    await sut.execute({ input: { ...inputBase, idioma: 'en' }, requestId });
+
+    const recibo = vi.mocked(emailSender.send).mock.calls[1]?.[2];
+    expect(recibo).toContain(`>${emailContacto} · Exclusive Attention</p>`);
   });
 
   it('etiqueta el correo a Juan con admin y el acuse al visitante con client (T4)', async () => {
@@ -340,14 +369,16 @@ describe('CrearConsignmentUseCase', () => {
     );
   });
 
-  it('usa logo por URL placeholder en ambos correos (sin data URI ni wordmark)', async () => {
+  it('usa el logo de Drive en ambos correos (sin data URI ni wordmark)', async () => {
     const { notificacion, recibo } = await htmlsDe(inputBase);
 
     expect(notificacion).toContain(
-      '<img src="https://placehold.co/160x160/042316/C9A24D/png?text=JF"',
+      '<img src="https://drive.google.com/uc?id=1bbD-MFaSaQ25OAqI3BGe9DkIXEcYyP4r"',
     );
     expect(notificacion).toContain('alt="JF Propiedad Raíz"');
-    expect(recibo).toContain('<img src="https://placehold.co/160x160/042316/C9A24D/png?text=JF"');
+    expect(recibo).toContain(
+      '<img src="https://drive.google.com/uc?id=1bbD-MFaSaQ25OAqI3BGe9DkIXEcYyP4r"',
+    );
     expect(recibo).toContain('alt="JF Propiedad Raíz"');
     expect(notificacion).not.toContain('data:image');
     expect(recibo).not.toContain('data:image');
