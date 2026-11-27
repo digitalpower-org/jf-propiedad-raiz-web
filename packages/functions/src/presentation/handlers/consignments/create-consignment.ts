@@ -27,7 +27,7 @@ const bodySchema = z.object({
   areaConstruida: z.number().nonnegative().optional(),
   areaLote: z.number().nonnegative().optional(),
   mensaje: z.string().optional(),
-  consent: z.boolean().optional(),
+  consent: z.boolean(),
   sitio: z.string().optional(),
   idioma: z.enum(['es', 'en']).optional(),
 });
@@ -40,13 +40,28 @@ export const makeCreateConsignmentHandler =
   (crearConsignmentUseCase: CrearConsignmentUseCase): AsyncHandler =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const input = bodySchema.parse(req.body);
+      // safeParse por decisión de negocio: distinguir consentimiento ausente
+      // (CONSENT_REQUIRED) de un cuerpo malformed (422 VALIDATION_ERROR del middleware central).
+      const parsed = bodySchema.safeParse(req.body);
+      if (!parsed.success) {
+        const [issue] = parsed.error.issues;
+        const soloConsentFaltante =
+          parsed.error.issues.length === 1 &&
+          issue?.path[0] === 'consent' &&
+          issue.code === 'invalid_type' &&
+          req.body?.consent === undefined;
+        if (soloConsentFaltante) {
+          throw new ApiError(errorCode.consentRequired, 'Se requiere consentimiento para enviar');
+        }
+        throw parsed.error;
+      }
+      const input = parsed.data;
       if (input.consent !== true) {
         throw new ApiError(errorCode.consentRequired, 'Se requiere consentimiento para enviar');
       }
-
       const resultado = await crearConsignmentUseCase.execute({
         input: { ...input, consent: true },
+        requestId: res.locals.requestId,
       });
       writeSuccess(res, resultado, 'Solicitud de consignación registrada');
     } catch (error) {

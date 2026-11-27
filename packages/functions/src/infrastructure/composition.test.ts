@@ -21,6 +21,8 @@ vi.mock('./config/server-config', () => ({
     firebaseProjectId: 'project-1',
     useFakeTranslator: true,
     resendApiKey: 're_resend_key',
+    resendWebhookSecret: 're_webhook_secret_ejemplo',
+    consignmentNotificationTtlSeconds: 86400,
     consignmentToEmail: 'juanfer@jfpropiedadraiz.com',
     firebaseAuthEmulatorHost: undefined,
     r2: {
@@ -68,6 +70,8 @@ const config: ServerConfig = {
   useFakeTranslator: true,
   resendApiKey: 're_resend_key',
   resendFromEmail: 'consignaciones@jfpropiedadraiz.com',
+  resendWebhookSecret: 're_webhook_secret_ejemplo',
+  consignmentNotificationTtlSeconds: 86400,
   consignmentToEmail: 'juanfer@jfpropiedadraiz.com',
   firebaseAuthEmulatorHost: undefined,
   r2: {

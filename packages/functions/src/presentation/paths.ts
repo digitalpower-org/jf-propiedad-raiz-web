@@ -18,6 +18,8 @@ export const API_PATHS = {
   presignedMediaUrl: '/api/v1/media/presigned-url' satisfies ExpressPath,
   confirmMedia: '/api/v1/media/confirm' satisfies ExpressPath,
   consignments: '/api/v1/consignments' satisfies ExpressPath,
+  resendDeliveryWebhook: '/api/v1/webhooks/resend-delivery' satisfies ExpressPath,
+  consignmentEmailNotifications: '/api/v1/consignments/email-notifications' satisfies ExpressPath,
   services: '/api/v1/services' satisfies ExpressPath,
   service: '/api/v1/services/:idOrSlug' satisfies ExpressPath,
   activateService: '/api/v1/services/:idOrSlug/activate' satisfies ExpressPath,

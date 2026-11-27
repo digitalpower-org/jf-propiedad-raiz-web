@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { ApplicationPorts } from './ports';
 import type { AboutDto } from './ports/about-repository';
+import type { ConsignmentEmailNotificationRepository } from './ports/consignment-email-notification-repository';
+import type { DeliveryWebhookVerifier } from './ports/delivery-webhook-verifier';
 import { RevalidateContent } from './revalidation/revalidate-content';
 import { TranslationService } from './translation/translation-service';
 import { buildUseCases } from './buildUseCases';
@@ -70,6 +72,13 @@ function makePorts(): ApplicationPorts {
       generarDerivados: vi.fn(),
     },
     emailSender: { send: vi.fn() },
+    consignmentEmailNotificationRepository: {
+      appendIfAbsent: vi.fn(),
+      listByRequestId: vi.fn(),
+    } as ConsignmentEmailNotificationRepository,
+    deliveryWebhookVerifier: {
+      verify: vi.fn(),
+    } as DeliveryWebhookVerifier,
     rateLimiter: { check: vi.fn() },
     videoValidator: { validate: vi.fn() },
   };
@@ -80,6 +89,7 @@ describe('buildUseCases', () => {
     const useCases = buildUseCases(makePorts(), {
       consignmentToEmail: 'test@example.com',
       aboutSeed,
+      consignmentNotificationTtlSeconds: 86400,
     });
 
     expect(useCases.verifyInternalSession).toBeInstanceOf(VerifyInternalSessionUseCase);
@@ -93,5 +103,7 @@ describe('buildUseCases', () => {
     expect(useCases.ocultarService).toBeInstanceOf(OcultarServiceUseCase);
     expect(useCases.reordenarService).toBeInstanceOf(ReordenarServiceUseCase);
     expect(useCases.obtenerService).toBeInstanceOf(ObtenerServiceUseCase);
+    expect(useCases.registrarNotificacionResend).toBeDefined();
+    expect(useCases.deliveryWebhookVerifier).toBeDefined();
   });
 });

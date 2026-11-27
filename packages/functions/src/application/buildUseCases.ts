@@ -1,4 +1,5 @@
 import type { ApplicationPorts } from './ports';
+import type { DeliveryWebhookVerifier } from './ports/delivery-webhook-verifier';
 import type { AboutDto } from './ports/about-repository';
 import { RevalidateContent } from './revalidation/revalidate-content';
 import { TranslationService } from './translation/translation-service';
@@ -12,6 +13,8 @@ import { ListarPropertiesUseCase } from './use-cases/properties/listar-propertie
 import { ObtenerPropertyUseCase } from './use-cases/properties/obtener-property';
 import { OcultarPropertyUseCase } from './use-cases/properties/ocultar-property';
 import { CrearConsignmentUseCase } from './use-cases/consignments/crear-consignment';
+import { ObtenerNotificacionesResendUseCase } from './use-cases/consignments/obtener-notificaciones-resend';
+import { RegistrarNotificacionResendUseCase } from './use-cases/consignments/registrar-notificacion-resend';
 import { ListarServicesUseCase } from './use-cases/services/listar-services';
 import { CrearServiceUseCase } from './use-cases/services/crear-services';
 import { ActualizarServiceUseCase } from './use-cases/services/actualizar-services';
@@ -51,13 +54,20 @@ export interface UseCases {
   readonly presignMediaUpload: PresignMediaUploadUseCase;
   readonly confirmarMediaUpload: ConfirmarMediaUploadUseCase;
   readonly crearConsignment: CrearConsignmentUseCase;
+  readonly obtenerEmailNotifications: ObtenerNotificacionesResendUseCase;
+  readonly registrarNotificacionResend: RegistrarNotificacionResendUseCase;
+  readonly deliveryWebhookVerifier: DeliveryWebhookVerifier;
   readonly rateLimiter: RateLimiter;
 }
 
 /** Único lugar donde se construyen los casos de uso. */
 export function buildUseCases(
   ports: ApplicationPorts,
-  config: { consignmentToEmail: string; aboutSeed: AboutDto },
+  config: {
+    consignmentToEmail: string;
+    aboutSeed: AboutDto;
+    consignmentNotificationTtlSeconds: number;
+  },
 ): UseCases {
   const revalidateContent = new RevalidateContent({
     gateway: ports.revalidationGateway,
@@ -160,6 +170,16 @@ export function buildUseCases(
       ports.logger,
       config.consignmentToEmail,
     ),
+    obtenerEmailNotifications: new ObtenerNotificacionesResendUseCase(
+      ports.consignmentEmailNotificationRepository,
+      ports.logger,
+    ),
+    registrarNotificacionResend: new RegistrarNotificacionResendUseCase(
+      ports.consignmentEmailNotificationRepository,
+      ports.logger,
+      config.consignmentNotificationTtlSeconds,
+    ),
+    deliveryWebhookVerifier: ports.deliveryWebhookVerifier,
     rateLimiter: ports.rateLimiter,
   };
 }

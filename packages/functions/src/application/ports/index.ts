@@ -1,4 +1,6 @@
 import type { AuthorizedUsersRepository } from './authorized-users-repository';
+import type { ConsignmentEmailNotificationRepository } from './consignment-email-notification-repository';
+import type { DeliveryWebhookVerifier } from './delivery-webhook-verifier';
 import type { EmailSender } from './email-sender';
 import type { IdentityVerifier } from './identity-verifier';
 import type { ImageProcessor } from './image-processor';
@@ -14,6 +16,8 @@ import type { Translator } from './translator';
 import type { VideoValidator } from './video-validator';
 
 export type { AuthorizedUser, AuthorizedUsersRepository } from './authorized-users-repository';
+export type { ConsignmentEmailNotificationRepository } from './consignment-email-notification-repository';
+export type { DeliveryWebhookVerifier } from './delivery-webhook-verifier';
 export type { EmailSender } from './email-sender';
 export type { IdentityVerifier, VerifiedToken } from './identity-verifier';
 export type { ImageProcessor } from './image-processor';
@@ -53,6 +57,8 @@ export interface ApplicationPorts {
   readonly mediaStorage: MediaStorage;
   readonly imageProcessor: ImageProcessor;
   readonly emailSender: EmailSender;
+  readonly consignmentEmailNotificationRepository: ConsignmentEmailNotificationRepository;
+  readonly deliveryWebhookVerifier: DeliveryWebhookVerifier;
   readonly rateLimiter: RateLimiter;
   readonly videoValidator: VideoValidator;
 }

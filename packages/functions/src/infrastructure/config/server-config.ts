@@ -20,6 +20,11 @@ const EnvSchema = z.object({
   TRANSLATOR_FAKE: z.string().optional(),
   RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY es obligatorio'),
   RESEND_FROM_EMAIL: z.email('RESEND_FROM_EMAIL debe ser un correo válido').optional(),
+  RESEND_WEBHOOK_SECRET: z.string().min(1, 'RESEND_WEBHOOK_SECRET es obligatorio'),
+  CONSIGNMENT_NOTIFICATION_TTL_SECONDS: z
+    .string()
+    .optional()
+    .transform((value) => (value === undefined ? 86400 : Number(value))),
   CONSIGNMENT_TO_EMAIL: z.email('CONSIGNMENT_TO_EMAIL debe ser un correo válido').optional(),
   FIREBASE_AUTH_EMULATOR_HOST: z.string().optional(),
   R2_ENDPOINT: z.url('R2_ENDPOINT debe ser una URL válida'),
@@ -46,6 +51,7 @@ export const env = parsed.data;
 const DEFAULT_BFF_URL = 'http://127.0.0.1:3000';
 const DEFAULT_FIREBASE_PROJECT_ID = 'jf-propiedad-raiz';
 const DEFAULT_CONSIGNMENT_TO_EMAIL = 'juanfer@jfpropiedadraiz.com';
+const DEFAULT_CONSIGNMENT_TO_EMAIL_DEV = 'dpa.imprimir@gmail.com';
 
 export const config = {
   nodeEnv: env.NODE_ENV,
@@ -58,7 +64,12 @@ export const config = {
   useFakeTranslator: env.TRANSLATOR_FAKE === '1',
   resendApiKey: env.RESEND_API_KEY,
   resendFromEmail: env.RESEND_FROM_EMAIL ?? 'consignaciones@jfpropiedadraiz.com',
-  consignmentToEmail: env.CONSIGNMENT_TO_EMAIL ?? DEFAULT_CONSIGNMENT_TO_EMAIL,
+  resendWebhookSecret: env.RESEND_WEBHOOK_SECRET,
+  consignmentNotificationTtlSeconds: env.CONSIGNMENT_NOTIFICATION_TTL_SECONDS,
+  consignmentToEmail:
+    env.NODE_ENV === 'development'
+      ? DEFAULT_CONSIGNMENT_TO_EMAIL_DEV
+      : (env.CONSIGNMENT_TO_EMAIL ?? DEFAULT_CONSIGNMENT_TO_EMAIL),
   firebaseAuthEmulatorHost: env.FIREBASE_AUTH_EMULATOR_HOST,
   r2: {
     endpoint: env.R2_ENDPOINT,

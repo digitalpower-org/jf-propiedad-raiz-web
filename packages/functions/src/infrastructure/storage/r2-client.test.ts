@@ -18,6 +18,7 @@ vi.mock('server-only', () => ({}));
 const ENV_KEYS = [
   'BFF_INTERNAL_KEY',
   'RESEND_API_KEY',
+  'RESEND_WEBHOOK_SECRET',
   'R2_ENDPOINT',
   'R2_REGION',
   'R2_ACCESS_KEY_ID',
@@ -31,6 +32,7 @@ type EnvKey = (typeof ENV_KEYS)[number];
 const VALID_ENV: Record<EnvKey, string> = {
   BFF_INTERNAL_KEY: 'x'.repeat(32),
   RESEND_API_KEY: 're_resend_key',
+  RESEND_WEBHOOK_SECRET: 're_webhook_secret_ejemplo',
   R2_ENDPOINT: 'https://account-id.r2.cloudflarestorage.com',
   R2_REGION: 'auto',
   R2_ACCESS_KEY_ID: 'access-key-id',

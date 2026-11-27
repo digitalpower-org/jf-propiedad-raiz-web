@@ -19,7 +19,9 @@ import { createFirestoreAboutRepository } from './about/firestore-about-reposito
 import { createR2MediaStorage } from './media/r2-media-storage';
 import { createSharpImageProcessor } from './media/sharp-image-processor';
 import { ResendEmailSender } from './email/resend-email-sender';
+import { ResendWebhookVerifier } from './email/resend-webhook-verifier';
 import { createFirestoreRateLimiter } from './rate-limiter/firestore-rate-limiter';
+import { createFirestoreConsignmentEmailNotificationRepository } from './consignments/firestore-consignment-email-notification-repository';
 import { YouTubeOEmbedValidator } from './video/youtube-oembed-validator';
 
 export interface Infrastructure extends ApplicationPorts {
@@ -67,6 +69,12 @@ export function createInfrastructure(overrides: Partial<Infrastructure> = {}): I
     emailSender:
       overrides.emailSender ??
       new ResendEmailSender(configValue.resendApiKey, configValue.resendFromEmail),
+    deliveryWebhookVerifier:
+      overrides.deliveryWebhookVerifier ??
+      new ResendWebhookVerifier(configValue.resendApiKey, configValue.resendWebhookSecret),
+    consignmentEmailNotificationRepository:
+      overrides.consignmentEmailNotificationRepository ??
+      createFirestoreConsignmentEmailNotificationRepository(createFirestore(requireAdminApp())),
     rateLimiter:
       overrides.rateLimiter ?? createFirestoreRateLimiter(createFirestore(requireAdminApp())),
     videoValidator: overrides.videoValidator ?? new YouTubeOEmbedValidator(logger),

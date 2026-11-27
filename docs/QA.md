@@ -122,7 +122,7 @@ npm run lint -w @jf/functions
 - **Sin secretos ni PII en logs** (T2, AC1.1.7, AC3.2.7): grep de tokens/secretos en código y snapshots de logs.
 
 ### 2.3 Qué se prueba (mapa mínimo AC → suite)
-
+ 
 | Suite | Cubre | Tipo |
 |---|---|---|
 | `domain/` | invariantes: precio COP entero >0, estados, código JF-XXXX, reglas Translatable | unitario puro |
@@ -130,6 +130,23 @@ npm run lint -w @jf/functions
 | `presentation/` | mapeo de errores al catálogo, validación 422, `X-Internal-Key` 401, `X-User-Role` 403 | unitario/integración |
 | integración (emuladores) | CRUD + consulta pública con índices, cursor `{createdAt,id}` (AC1.10.2), rate-limit (US3.4), tarea «Nuevo» idempotente (AC1.11.3) | integración |
 | contrato | requests contra `openapi.backend.yaml` y `openapi.bff.yaml` (tipos generados en `@jf/shared-types`) | integración |
+ 
+**Nuevas suites para webhook de entrega y consulta de notificaciones (T1–T8 del plan Resend):**
+ 
+| Suite | Cubre | Tipo |
+|---|---|---|
+| `application/use-cases/consignments/registrar-notificacion-resend.test.ts` | Filtro por tag `admin` vs `client`/sin tag; persistencia solo admin; idempotencia por `svix-id`; no deriva estado | unitario (puertos falsos) |
+| `application/use-cases/consignments/obtener-notificaciones-resend.test.ts` | Consulta por `requestId`; excluye expirados por `expiresAt`; ordena por `receivedAt`; sin interpretación de `eventType` | unitario (puerto falso) |
+| `infrastructure/email/resend-webhook-verifier.test.ts` | Firma Svix válida → evento parseado; firma inválida → error; headers requeridos; payload validado con Zod | unitario (SDK mockeado) |
+| `infrastructure/consignments/firestore-consignment-email-notification-repository.test.ts` | `appendIfAbsent` idempotente; `listByRequestId` filtra expirados y ordena en memoria; sin PII en documento | integración (emulador Firestore) |
+| `presentation/handlers/consignments/resend-delivery-webhook.test.ts` | Guard de firma: 401 inválida, 200 válida; rate limit fail-open; raw body capturado | integración (supertest) |
+| `presentation/handlers/consignments/get-email-notifications.test.ts` | `X-Internal-Key` 401; query `requestId` 422; 200 con lista (vacía o con datos); sin PII | integración (supertest) |
+| `presentation/routes.test.ts` | 25 rutas declaradas; orden exacto de guards: webhook sin `guardInternal` + `rateResendWebhook` + `deliveryWebhookGuard`; consulta con `guardInternal` | integración (supertest) |
+ 
+**Mutación requerida (verificación de efectividad de tests):**
+- Romper el filtro de tag `admin` en `registrar-notificacion-resend.ts` → al menos un test debe fallar.
+- Romper la verificación de firma en `resend-webhook-verifier.ts` → al menos un test debe fallar.
+- Restaurar y confirmar green.
 
 ### 2.4 Cobertura de operaciones del contrato por MT
 
@@ -225,13 +242,14 @@ Todo AC marcado `[agente]` en `TASKS.md` debe quedar demostrado con uno de estos
 - Los `\[Debe NOT\]` se verifican igual (grep/evaluación negativa), no solo la vía feliz.
 
 ### 4.2 Criterios `[manual]`: checklist de inspección humana
-
+ 
 Marcar con **quién** y **cuándo** (exige DoD §2.1):
-
+ 
 - [ ] **Drag-and-drop de fotos** en el editor: reordenar con mouse y con botones «mover antes/después» en táctil (AC4.2.3/AC4.2.5); portada correcta tras recargar.
 - [ ] **Visor Pannellum 360°**: carga solo al pulsar «Ver en 360°»; 3 panorámicas como máximo; comportamiento en móvil real.
 - [ ] **Upload en red lenta/móvil real**: 2 en paralelo, barra de progreso, reintento por foto sin bloquear el formulario (AC7.5.3/4).
 - [x] **Credenciales/dominio Resend**: remitente con SPF/DKIM válidos (AC3.2.6). Verificado por Daniel Pacheco el 2026-11-23T18:44:10Z; Resend muestra DNS y dominio verificados el 12 nov 2026, con captura en `docs/reports/resend-evidencia.png`. `GET /domains/{domain_id}` devuelve `jfpropiedadraiz.com` con `status=verified`, DKIM `resend._domainkey` TXT `verified`, SPF `rsend` y `send` CNAME `verified`. Correo recibido por admin con `SPF_PASS`, `DKIM_VALID_AU`, `DKIM_VALID` y `d=jfpropiedadraiz.com`.
+- [ ] **Configuración del webhook en Resend (verificación manual post-tests)**: en el dashboard de Resend → Webhooks, crear/verificar endpoint `POST https://<dominio>/api/v1/webhooks/resend-delivery` con eventos `email.delivered`, `email.bounced`, `email.opened`, `email.clicked`, `email.complained`; secreto copiado a `RESEND_WEBHOOK_SECRET` en Secret Manager; enviar evento de prueba desde Resend → respuesta `200` y notificación persistida en `consignment_email_notifications` con `consignmentKind: 'admin'`. Verificar que eventos `client` no persisten. Registrar quién y cuándo.
 - [ ] **Alerta de presupuesto** de Firebase creada (AC6.2.1).
 - [ ] **Revisión jurídica** de páginas legales y retiro del aviso de «borrador» (AC5.3.4).
 - [ ] **Dispositivo Android real** de gama media: listado con filtros, ficha, consignación, carga de foto en panel (AC7.6.6).

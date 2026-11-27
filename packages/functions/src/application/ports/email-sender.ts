@@ -12,7 +12,15 @@ export interface EmailSender {
    * @param to - Correo del destinatario.
    * @param subject - Asunto del correo.
    * @param html - Cuerpo HTML del correo.
-   * @throws Cuando el proveedor de correo falla (se traduce a `EMAIL_DELIVERY_FAILED`).
+   * @param replyTo - Correo al que se debe responder (opcional). Cuando se omite, se usa el remitente por defecto.
+   * @param tags - Etiquetas para correlacionar el envío (opcional). Cuando se omite, no se envían tags.
+   * @throws Cuando el proveedor de correo falla. El llamante decide qué fallos son fatales.
    */
-  send(to: string, subject: string, html: string): Promise<void>;
+  send(
+    to: string,
+    subject: string,
+    html: string,
+    replyTo?: string,
+    tags?: Readonly<Record<string, string>>,
+  ): Promise<void>;
 }
