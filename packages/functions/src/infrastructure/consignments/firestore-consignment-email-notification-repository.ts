@@ -44,7 +44,11 @@ function tieneCodigo(error: unknown): error is { code: unknown } {
 }
 
 function esErrorDocumentoYaExiste(error: unknown): boolean {
-  return tieneCodigo(error) && error.code === 'already-exists';
+  // Firestore emulado devuelve el código numérico gRPC 6 (ALREADY_EXISTS) en
+  // lugar del string 'already-exists'. Ambos significan "documento ya existe",
+  // por lo que un replay del webhook con el mismo svix-id es un no-op intencional
+  // y no debe propagar un 500 ni crear una notificación duplicada.
+  return tieneCodigo(error) && (error.code === 'already-exists' || error.code === 6);
 }
 
 export function createFirestoreConsignmentEmailNotificationRepository(

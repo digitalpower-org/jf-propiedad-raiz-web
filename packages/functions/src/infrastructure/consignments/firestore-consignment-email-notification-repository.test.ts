@@ -109,6 +109,58 @@ describe('createFirestoreConsignmentEmailNotificationRepository', () => {
     expect(db._docs.size).toBe(1);
   });
 
+  it('appendIfAbsent trata el código gRPC 6 (ALREADY_EXISTS) como duplicado: replay no duplica ni falla', async () => {
+    const docs = new Map<string, Record<string, unknown>>();
+    const collectionName = 'consignment_email_notifications';
+
+    const createDocRef = (path: string) => ({
+      path,
+      create: vi.fn().mockImplementation(async (_data: Record<string, unknown>) => {
+        if (docs.has(path)) {
+          const error: unknown = new Error('Document already exists');
+          (error as { code?: number }).code = 6;
+          throw error;
+        }
+        docs.set(path, { ..._data });
+      }),
+    });
+
+    const collectionRef = {
+      doc: vi
+        .fn()
+        .mockImplementation((documentId: string) =>
+          createDocRef(`${collectionName}/${documentId}`),
+        ),
+      where: vi.fn().mockImplementation((_field: string, _op: string, value: unknown) => {
+        const results = Array.from(docs.entries()).filter(
+          ([_path, data]) => data.requestId === value,
+        );
+        return {
+          get: vi.fn().mockImplementation(async () => ({
+            docs: results.map(([path, data]) => ({
+              id: path.split('/').pop()!,
+              data: () => data,
+            })),
+          })),
+        };
+      }),
+    };
+
+    const db: MockFirestore = {
+      collection: vi.fn().mockReturnValue(collectionRef),
+      _docs: docs,
+    };
+    const repo = createFirestoreConsignmentEmailNotificationRepository(db as unknown as Firestore);
+    const input = entrada();
+
+    await repo.appendIfAbsent(input);
+    await repo.appendIfAbsent(input); // replay del webhook: código 6 → no-op idempotente
+
+    const docsParaRequestId = await repo.listByRequestId(input.requestId);
+    expect(docsParaRequestId).toHaveLength(1);
+    expect(db._docs.size).toBe(1);
+  });
+
   it('listByRequestId devuelve notificaciones del requestId dado', async () => {
     const db = makeMockFirestore();
     const repo = createFirestoreConsignmentEmailNotificationRepository(db as unknown as Firestore);
