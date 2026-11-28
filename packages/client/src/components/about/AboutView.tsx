@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
-import type { Translatable } from '@jf/shared-types';
 import type { Locale } from '@/i18n/config';
 import type { AboutData } from '@/server/about';
+import { pickTranslatable } from '@/lib/translatable';
 import styles from './AboutView.module.css';
 
 interface AboutViewProps {
@@ -11,10 +11,6 @@ interface AboutViewProps {
   /** El backend falló: se avisa con un estado propio y no se confunde con «vacío». */
   readonly noDisponible?: boolean;
 }
-
-/** Texto en el idioma de la página; si falta la traducción, el español (AC0.4.5). */
-const elegir = (valor: Translatable | undefined, locale: Locale): string =>
-  valor?.[locale]?.trim() || valor?.es?.trim() || '';
 
 /** Un párrafo por cada bloque separado por una línea en blanco. Siempre como texto (AC5.6.5). */
 const aParrafos = (cuerpo: string): string[] =>
@@ -36,12 +32,12 @@ const iniciales = (nombre: string): string =>
 export function AboutView({ about, locale, noDisponible = false }: AboutViewProps) {
   const t = useTranslations('about');
 
-  const titulo = elegir(about?.titulo, locale) || t('title');
+  const titulo = pickTranslatable(about?.titulo, locale) || t('title');
   const secciones = (about?.secciones ?? [])
     .map((seccion) => ({
       id: seccion.id,
-      titulo: elegir(seccion.titulo, locale),
-      parrafos: aParrafos(elegir(seccion.cuerpo, locale)),
+      titulo: pickTranslatable(seccion.titulo, locale),
+      parrafos: aParrafos(pickTranslatable(seccion.cuerpo, locale)),
     }))
     .filter((seccion) => seccion.titulo || seccion.parrafos.length > 0);
   const equipo = (about?.equipo ?? []).filter((integrante) => integrante.nombre.trim());
@@ -88,8 +84,8 @@ export function AboutView({ about, locale, noDisponible = false }: AboutViewProp
             <h2 className={styles.teamTitle}>{t('teamTitle')}</h2>
             <div className={styles.teamGrid}>
               {equipo.map((integrante) => {
-                const cargo = elegir(integrante.cargo, locale);
-                const descripcion = elegir(integrante.descripcion, locale);
+                const cargo = pickTranslatable(integrante.cargo, locale);
+                const descripcion = pickTranslatable(integrante.descripcion, locale);
                 return (
                   <article key={integrante.id} className={styles.teamCard}>
                     <div className={styles.avatar} aria-hidden="true">
