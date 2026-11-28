@@ -360,44 +360,6 @@
   },
   "about": {
     "title": "Nosotros",
-    "extracto": "JF PROPIEDAD RAÍZ SAS es una empresa fundada en 2018 en Rionegro, Antioquia, dedicada a brindar soluciones integrales en el sector inmobiliario y de ingeniería. Nos distinguimos por ofrecer un servicio basado en la calidad humana, la ética, la transparencia y la atención personalizada, construyendo relaciones de confianza y acompañando a nuestros clientes en cada etapa de sus proyectos.",
-    "sections": [
-      {
-        "id": "quienes-somos",
-        "titulo": "¿Quiénes somos?",
-        "cuerpo": "JF PROPIEDAD RAÍZ SAS es una empresa fundada en 2018 en Rionegro, Antioquia, dedicada a brindar soluciones integrales en el sector inmobiliario y de ingeniería. Nos especializamos en la venta y alquiler de todo tipo de propiedades, así como en la prestación de servicios técnicos y profesionales relacionados con la construcción, arquitectura e ingeniería.\n\nNos distinguimos por ofrecer un servicio basado en la calidad humana, la ética, la transparencia y la atención personalizada, construyendo relaciones de confianza y acompañando a nuestros clientes en cada etapa de sus proyectos.\n\nNuestro compromiso es brindar soluciones eficientes, seguras y de calidad, trabajando siempre con responsabilidad, profesionalismo y pasión por lo que hacemos."
-      },
-      {
-        "id": "mision",
-        "titulo": "Misión",
-        "cuerpo": "Brindar soluciones integrales en el sector inmobiliario y de ingeniería, ofreciendo servicios de venta, alquiler, construcción y asesoría técnica, con altos estándares de calidad, ética y responsabilidad.\n\nTrabajamos para satisfacer las necesidades de nuestros clientes mediante una atención cercana y personalizada, basada en la confianza, el respeto y el compromiso, contribuyendo al desarrollo y bienestar de las personas y de nuestra región."
-      },
-      {
-        "id": "vision",
-        "titulo": "Visión",
-        "cuerpo": "Para el año 2030, ser una empresa reconocida y posicionada en el Oriente Antioqueño y a nivel regional por su excelencia en servicios inmobiliarios y de ingeniería, destacándonos por nuestra calidad humana, transparencia, innovación y compromiso con nuestros clientes.\n\nBuscamos crecer de manera sostenible, ampliar nuestro portafolio de servicios y consolidarnos como una empresa referente, donde la confianza, la ética y la satisfacción de nuestros clientes sean siempre nuestra mayor prioridad."
-      },
-      {
-        "id": "valores",
-        "titulo": "Nuestros valores corporativos",
-        "cuerpo": "Calidad humana: Nos caracterizamos por tratar a cada cliente con respeto, empatía, amabilidad y calidez.\n\nÉtica y transparencia: Actuamos con honestidad, integridad y responsabilidad en cada negociación y proyecto.\n\nServicio al cliente: Escuchamos y comprendemos las necesidades de nuestros clientes para brindar soluciones oportunas y personalizadas.\n\nCalidad y excelencia: Trabajamos con profesionalismo y dedicación para garantizar resultados que superen las expectativas.\n\nCompromiso y confianza: Construimos relaciones duraderas, cumpliendo nuestras responsabilidades y respaldando a nuestros clientes."
-      },
-      {
-        "id": "compromiso",
-        "titulo": "Nuestro compromiso",
-        "cuerpo": "En JF PROPIEDAD RAÍZ SAS creemos que detrás de cada inmueble, construcción o proyecto existe un sueño, una necesidad y una historia. Por eso, más que ofrecer servicios inmobiliarios y de ingeniería, ofrecemos acompañamiento, confianza y soluciones integrales.\n\n¡Trabajamos con responsabilidad, construimos confianza y hacemos realidad tus proyectos."
-      }
-    ],
-    "equipo": [
-      {
-        "id": "fundador",
-        "nombre": "Juan Fernando",
-        "cargo": "Fundador y Gerente General",
-        "descripcion": "Con más de 15 años de experiencia en el sector inmobiliario y de construcción, lidera la visión estratégica y el desarrollo de proyectos integrales.",
-        "foto": null
-      }
-    ],
-    "lastUpdated": "Última actualización: {date}",
     "teamTitle": "Nuestro equipo",
     "emptyTitle": "Esta página aún no tiene contenido",
     "emptyHint": "Vuelve más tarde.",
