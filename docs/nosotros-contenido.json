@@ -1,0 +1,81 @@
+{
+  "titulo": {
+    "es": "Nosotros",
+    "en": "About Us"
+  },
+  "extracto": {
+    "es": "JF PROPIEDAD RAÍZ SAS es una empresa fundada en 2018 en Rionegro, Antioquia, dedicada a brindar soluciones integrales en el sector inmobiliario y de ingeniería. Nos distinguimos por ofrecer un servicio basado en la calidad humana, la ética, la transparencia y la atención personalizada, construyendo relaciones de confianza y acompañando a nuestros clientes en cada etapa de sus proyectos.",
+    "en": "JF PROPIEDAD RAÍZ SAS is a company founded in 2018 in Rionegro, Antioquia, dedicated to providing comprehensive solutions in the real estate and engineering sectors. We stand out for offering a service based on human quality, ethics, transparency, and personalized attention, building trust relationships and accompanying our clients at every stage of their projects."
+  },
+  "secciones": [
+    {
+      "id": "quienes-somos",
+      "titulo": {
+        "es": "¿Quiénes somos?",
+        "en": "Who We Are"
+      },
+      "cuerpo": {
+        "es": "JF PROPIEDAD RAÍZ SAS es una empresa fundada en 2018 en Rionegro, Antioquia, dedicada a brindar soluciones integrales en el sector inmobiliario y de ingeniería. Nos especializamos en la venta y alquiler de todo tipo de propiedades, así como en la prestación de servicios técnicos y profesionales relacionados con la construcción, arquitectura e ingeniería.\n\nNos distinguimos por ofrecer un servicio basado en la calidad humana, la ética, la transparencia y la atención personalizada, construyendo relaciones de confianza y acompañando a nuestros clientes en cada etapa de sus proyectos.\n\nNuestro compromiso es brindar soluciones eficientes, seguras y de calidad, trabajando siempre con responsabilidad, profesionalismo y pasión por lo que hacemos.",
+        "en": "JF PROPIEDAD RAÍZ SAS is a company founded in 2018 in Rionegro, Antioquia, dedicated to providing comprehensive solutions in the real estate and engineering sectors. We specialize in the sale and rental of all types of properties, as well as the provision of technical and professional services related to construction, architecture, and engineering.\n\nWe distinguish ourselves by offering a service based on human quality, ethics, transparency, and personalized attention, building trust relationships and accompanying our clients at every stage of their projects.\n\nOur commitment is to provide efficient, safe, and quality solutions, always working with responsibility, professionalism, and passion for what we do."
+      }
+    },
+    {
+      "id": "mision",
+      "titulo": {
+        "es": "Misión",
+        "en": "Mission"
+      },
+      "cuerpo": {
+        "es": "Brindar soluciones integrales en el sector inmobiliario y de ingeniería, ofreciendo servicios de venta, alquiler, construcción y asesoría técnica, con altos estándares de calidad, ética y responsabilidad.\n\nTrabajamos para satisfacer las necesidades de nuestros clientes mediante una atención cercana y personalizada, basada en la confianza, el respeto y el compromiso, contribuyendo al desarrollo y bienestar de las personas y de nuestra región.",
+        "en": "To provide comprehensive solutions in the real estate and engineering sectors, offering sales, rental, construction, and technical advisory services with high standards of quality, ethics, and responsibility.\n\nWe work to satisfy our clients' needs through close, personalized attention based on trust, respect, and commitment, contributing to the development and well-being of people and our region."
+      }
+    },
+    {
+      "id": "vision",
+      "titulo": {
+        "es": "Visión",
+        "en": "Vision"
+      },
+      "cuerpo": {
+        "es": "Para el año 2030, ser una empresa reconocida y posicionada en el Oriente Antioqueño y a nivel regional por su excelencia en servicios inmobiliarios y de ingeniería, destacándonos por nuestra calidad humana, transparencia, innovación y compromiso con nuestros clientes.\n\nBuscamos crecer de manera sostenible, ampliar nuestro portafolio de servicios y consolidarnos como una empresa referente, donde la confianza, la ética y la satisfacción de nuestros clientes sean siempre nuestra mayor prioridad.",
+        "en": "By 2030, to be a recognized and positioned company in Eastern Antioquia and at the regional level for its excellence in real estate and engineering services, standing out for our human quality, transparency, innovation, and commitment to our clients.\n\nWe seek to grow sustainably, expand our service portfolio, and consolidate ourselves as a benchmark company, where trust, ethics, and client satisfaction are always our top priority."
+      }
+    },
+    {
+      "id": "valores",
+      "titulo": {
+        "es": "Nuestros valores corporativos",
+        "en": "Our Corporate Values"
+      },
+      "cuerpo": {
+        "es": "Calidad humana: Nos caracterizamos por tratar a cada cliente con respeto, empatía, amabilidad y calidez.\n\nÉtica y transparencia: Actuamos con honestidad, integridad y responsabilidad en cada negociación y proyecto.\n\nServicio al cliente: Escuchamos y comprendemos las necesidades de nuestros clientes para brindar soluciones oportunas y personalizadas.\n\nCalidad y excelencia: Trabajamos con profesionalismo y dedicación para garantizar resultados que superen las expectativas.\n\nCompromiso y confianza: Construimos relaciones duraderas, cumpliendo nuestras responsabilidades y respaldando a nuestros clientes.",
+        "en": "Human Quality: We are characterized by treating each client with respect, empathy, kindness, and warmth.\n\nEthics and Transparency: We act with honesty, integrity, and responsibility in every negotiation and project.\n\nCustomer Service: We listen to and understand our clients' needs to provide timely and personalized solutions.\n\nQuality and Excellence: We work with professionalism and dedication to guarantee results that exceed expectations.\n\nCommitment and Trust: We build lasting relationships, fulfilling our responsibilities and backing our clients."
+      }
+    },
+    {
+      "id": "compromiso",
+      "titulo": {
+        "es": "Nuestro compromiso",
+        "en": "Our Commitment"
+      },
+      "cuerpo": {
+        "es": "En JF PROPIEDAD RAÍZ SAS creemos que detrás de cada inmueble, construcción o proyecto existe un sueño, una necesidad y una historia. Por eso, más que ofrecer servicios inmobiliarios y de ingeniería, ofrecemos acompañamiento, confianza y soluciones integrales.\n\n¡Trabajamos con responsabilidad, construimos confianza y hacemos realidad tus proyectos.",
+        "en": "At JF PROPIEDAD RAÍZ SAS we believe that behind every property, construction, or project there is a dream, a need, and a story. That is why, more than offering real estate and engineering services, we offer accompaniment, trust, and comprehensive solutions.\n\nWe work with responsibility, we build trust, and we make your projects a reality."
+      }
+    }
+  ],
+  "equipo": [
+    {
+      "id": "fundador",
+      "nombre": "Juan Fernando",
+      "cargo": {
+        "es": "Fundador y Gerente General",
+        "en": "Founder and General Manager"
+      },
+      "descripcion": {
+        "es": "Con más de 15 años de experiencia en el sector inmobiliario y de construcción, lidera la visión estratégica y el desarrollo de proyectos integrales.",
+        "en": "With over 15 years of experience in the real estate and construction sectors, he leads the strategic vision and development of comprehensive projects."
+      }
+    }
+  ]
+}

@@ -360,44 +360,11 @@
   },
   "about": {
     "title": "About Us",
-    "extracto": "JF PROPIEDAD RAÍZ SAS is a company founded in 2018 in Rionegro, Antioquia, dedicated to providing comprehensive solutions in the real estate and engineering sectors. We stand out for offering a service based on human quality, ethics, transparency, and personalized attention, building trust relationships and accompanying our clients at every stage of their projects.",
-    "sections": [
-      {
-        "id": "who-we-are",
-        "titulo": "Who We Are",
-        "cuerpo": "JF PROPIEDAD RAÍZ SAS is a company founded in 2018 in Rionegro, Antioquia, dedicated to providing comprehensive solutions in the real estate and engineering sectors. We specialize in the sale and rental of all types of properties, as well as the provision of technical and professional services related to construction, architecture, and engineering.\n\nWe distinguish ourselves by offering a service based on human quality, ethics, transparency, and personalized attention, building trust relationships and accompanying our clients at every stage of their projects.\n\nOur commitment is to provide efficient, safe, and quality solutions, always working with responsibility, professionalism, and passion for what we do."
-      },
-      {
-        "id": "mission",
-        "titulo": "Mission",
-        "cuerpo": "To provide comprehensive solutions in the real estate and engineering sectors, offering sales, rental, construction, and technical advisory services with high standards of quality, ethics, and responsibility.\n\nWe work to satisfy our clients' needs through close, personalized attention based on trust, respect, and commitment, contributing to the development and well-being of people and our region."
-      },
-      {
-        "id": "vision",
-        "titulo": "Vision",
-        "cuerpo": "By 2030, to be a recognized and positioned company in Eastern Antioquia and at the regional level for its excellence in real estate and engineering services, standing out for our human quality, transparency, innovation, and commitment to our clients.\n\nWe seek to grow sustainably, expand our service portfolio, and consolidate ourselves as a benchmark company, where trust, ethics, and client satisfaction are always our top priority."
-      },
-      {
-        "id": "values",
-        "titulo": "Our Corporate Values",
-        "cuerpo": "Human Quality: We are characterized by treating each client with respect, empathy, kindness, and warmth.\n\nEthics and Transparency: We act with honesty, integrity, and responsibility in every negotiation and project.\n\nCustomer Service: We listen to and understand our clients' needs to provide timely and personalized solutions.\n\nQuality and Excellence: We work with professionalism and dedication to guarantee results that exceed expectations.\n\nCommitment and Trust: We build lasting relationships, fulfilling our responsibilities and backing our clients."
-      },
-      {
-        "id": "commitment",
-        "titulo": "Our Commitment",
-        "cuerpo": "At JF PROPIEDAD RAÍZ SAS we believe that behind every property, construction, or project there is a dream, a need, and a story. That is why, more than offering real estate and engineering services, we offer accompaniment, trust, and comprehensive solutions.\n\nWe work with responsibility, we build trust, and we make your projects a reality."
-      }
-    ],
-    "equipo": [
-      {
-        "id": "founder",
-        "nombre": "Juan Fernando",
-        "cargo": "Founder and General Manager",
-        "descripcion": "With over 15 years of experience in the real estate and construction sectors, he leads the strategic vision and development of comprehensive projects.",
-        "foto": null
-      }
-    ],
-    "lastUpdated": "Last updated: {date}"
+    "teamTitle": "Our team",
+    "emptyTitle": "This page has no content yet",
+    "emptyHint": "Please check back later.",
+    "unavailableTitle": "We couldn't load this information",
+    "unavailableHint": "Please try again in a few minutes."
   },
   "admin": {
     "login": {

@@ -1,81 +1,50 @@
+import { cache } from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { loadMessages } from '@/i18n/messages';
+import { AboutView } from '@/components/about/AboutView';
 import { isLocale } from '@/i18n/config';
-
-import styles from './page.module.css';
+import { buildAboutMetadata } from '@/lib/about-seo';
+import { fetchAboutServer, type AboutData } from '@/server/about';
 
 type NosotrosPageProps = {
   params: Promise<{ locale: string }>;
 };
 
+/**
+ * Lee el documento una sola vez por petición (los metadatos y la página lo comparten). Si falla, el
+ * error se registra y se avisa con un estado propio; no se confunde con «sin contenido».
+ */
+const leerAbout = cache(async (): Promise<{ about: AboutData | null; noDisponible: boolean }> => {
+  try {
+    return { about: await fetchAboutServer(), noDisponible: false };
+  } catch (error) {
+    console.error('[nosotros] No se pudo cargar el documento:', error);
+    return { about: null, noDisponible: true };
+  }
+});
+
+export async function generateMetadata({ params }: NosotrosPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+
+  // El contenido sale del backend en cada visita: la página es dinámica a propósito.
+  await connection();
+  const [t, { about }] = await Promise.all([
+    getTranslations({ locale, namespace: 'about' }),
+    leerAbout(),
+  ]);
+  return buildAboutMetadata({ about, locale, tituloRespaldo: t('title') });
+}
+
 export default async function NosotrosPage({ params }: NosotrosPageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-
   setRequestLocale(locale);
-  const t = await getTranslations('about');
-  const messages = await loadMessages(locale);
-  const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CO' : 'en-US');
 
-  const sections = messages.about.sections as Array<{ id: string; titulo: string; cuerpo: string }>;
-  const equipo = messages.about.equipo as Array<{
-    id: string;
-    nombre: string;
-    cargo: string;
-    descripcion?: string;
-    foto?: string | null;
-  }>;
+  await connection();
+  const { about, noDisponible } = await leerAbout();
 
-  return (
-    <div className={styles.page}>
-      <div className={styles.content}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>{t('title')}</h1>
-          <p className={styles.lastUpdated}>{t('lastUpdated', { date: today })}</p>
-        </div>
-
-        <section className={styles.extractSection}>
-          <p className={styles.extractText}>{t('extracto')}</p>
-        </section>
-
-        {sections.map((section) => (
-          <section key={section.id} className={styles.section}>
-            <h2 className={styles.sectionTitle}>{section.titulo}</h2>
-            <div className={styles.sectionBody}>{section.cuerpo}</div>
-          </section>
-        ))}
-
-        {equipo.length > 0 && (
-          <section className={styles.teamSection}>
-            <h2 className={styles.sectionTitle}>
-              {locale === 'es' ? 'Nuestro Equipo' : 'Our Team'}
-            </h2>
-            <div className={styles.teamGrid}>
-              {equipo.map((member) => (
-                <article key={member.id} className={styles.teamCard}>
-                  {member.foto && (
-                    <div className={styles.memberPhoto}>
-                      <img
-                        src={member.foto}
-                        alt={member.nombre}
-                        className={styles.memberPhotoImg}
-                      />
-                    </div>
-                  )}
-                  <div className={styles.memberContent}>
-                    <h3 className={styles.memberName}>{member.nombre}</h3>
-                    <p className={styles.memberRole}>{member.cargo}</p>
-                    {member.descripcion && (
-                      <p className={styles.memberDesc}>{member.descripcion}</p>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-    </div>
-  );
+  return <AboutView about={about} locale={locale} noDisponible={noDisponible} />;
 }

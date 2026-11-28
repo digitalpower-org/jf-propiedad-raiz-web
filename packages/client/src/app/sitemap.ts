@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getRoute, type RouteKey } from '@/i18n/routes';
+import { fetchAboutServer } from '@/server/about';
 import { backendUrl } from '@/server/backend-url';
 import { fetchAllPublicProperties } from '@/server/public-properties';
 import { env } from '@/server/config/server-config';
@@ -18,7 +19,6 @@ export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
     { route: 'rent' as RouteKey, changeFrequency: 'daily' as const, priority: 0.9 },
     { route: 'projects' as RouteKey, changeFrequency: 'daily' as const, priority: 0.9 },
     { route: 'services' as RouteKey, changeFrequency: 'weekly' as const, priority: 0.8 },
-    { route: 'about' as RouteKey, changeFrequency: 'monthly' as const, priority: 0.7 },
     { route: 'contact' as RouteKey, changeFrequency: 'monthly' as const, priority: 0.6 },
     { route: 'privacy' as RouteKey, changeFrequency: 'yearly' as const, priority: 0.3 },
     { route: 'dataPolicy' as RouteKey, changeFrequency: 'yearly' as const, priority: 0.3 },
@@ -49,6 +49,33 @@ export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       });
     }
+  }
+
+  // 1b. Nosotros (AC2.7.3, AC0.4.5): solo si hay documento; el inglés, solo con el título traducido.
+  try {
+    const about = await fetchAboutServer();
+    if (about) {
+      const alternateEs = `${baseUrl}${getRoute('about', 'es')}`;
+      const alternateEn = `${baseUrl}${getRoute('about', 'en')}`;
+      const hasEnglish = !!about.titulo.en?.trim();
+
+      for (const locale of locales) {
+        if (locale === 'en' && !hasEnglish) continue;
+
+        urls.push({
+          url: locale === 'es' ? alternateEs : alternateEn,
+          lastModified: new Date(),
+          changeFrequency: 'monthly',
+          priority: 0.7,
+          alternates: {
+            languages: { 'es-CO': alternateEs, en: alternateEn, 'x-default': alternateEs },
+          },
+        });
+      }
+    }
+  } catch (error) {
+    // Sin poder leer el documento la página no se indexa (noindex), así que tampoco se lista.
+    console.error('Sitemap: no se pudo leer Nosotros', error);
   }
 
   // 2. Servicios activos

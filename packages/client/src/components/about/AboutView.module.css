@@ -291,3 +291,29 @@
     margin: 0 auto;
   }
 }
+
+/* US5.6: avatar con iniciales para el integrante sin foto (AC5.6.2) y estado vacío (AC5.6.3). */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #495057;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.vacio {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.vacioTitulo {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
