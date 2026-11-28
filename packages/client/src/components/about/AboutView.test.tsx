@@ -101,6 +101,22 @@ describe('AboutView | no pinta lo que no existe', () => {
   });
 });
 
+describe('AboutView | estado vacío con contenido parcial', () => {
+  it('control: con solo equipo (sin secciones) no muestra el estado vacío', () => {
+    render(<AboutView about={{ ...documento, secciones: [] }} locale="es" />);
+
+    expect(screen.queryByTestId('about-vacio')).toBeNull();
+    expect(screen.getByTestId('about-equipo')).toBeInTheDocument();
+  });
+
+  it('control: con solo secciones (sin equipo) no muestra el estado vacío', () => {
+    render(<AboutView about={{ ...documento, equipo: [] }} locale="es" />);
+
+    expect(screen.queryByTestId('about-vacio')).toBeNull();
+    expect(screen.getByTestId('about-secciones')).toBeInTheDocument();
+  });
+});
+
 describe('AboutView | estado vacío (AC5.6.3)', () => {
   it('sin documento muestra el estado vacío y mantiene el título de la página', () => {
     render(<AboutView about={null} locale="es" />);
