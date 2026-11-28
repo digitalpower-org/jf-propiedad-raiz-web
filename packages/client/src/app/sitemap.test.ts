@@ -9,8 +9,12 @@ import { getRoute } from '@/i18n/routes';
 vi.mock('server-only', () => ({ default: undefined }));
 
 const fetchAllMock = vi.hoisted(() => vi.fn());
+const fetchAboutMock = vi.hoisted(() => vi.fn());
 vi.mock('@/server/public-properties', () => ({
   fetchAllPublicProperties: () => fetchAllMock(),
+}));
+vi.mock('@/server/about', () => ({
+  fetchAboutServer: () => fetchAboutMock(),
 }));
 vi.mock('@/server/backend-url', () => ({
   backendUrl: (path: string) => `http://backend.test${path}`,
@@ -23,6 +27,12 @@ import Sitemap from './sitemap';
 
 const BASE = 'https://example.test';
 const CREATED = '2026-11-01T10:00:00.000Z';
+const aboutCompleto = {
+  titulo: { es: 'Nosotros', en: 'About' },
+  extracto: { es: 'Extracto' },
+  secciones: [],
+  equipo: [],
+};
 
 const card = (over: Record<string, unknown> = {}) => ({
   id: 'p1',
@@ -40,6 +50,7 @@ beforeAll(() => {
 beforeEach(() => {
   fetchAllMock.mockReset();
   fetchAllMock.mockResolvedValue([]);
+  fetchAboutMock.mockResolvedValue(aboutCompleto);
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response(JSON.stringify({ success: true, data: { items: [] } }))),
@@ -151,5 +162,41 @@ describe('sitemap principal: hreflang de propiedades y servicios', () => {
       `${BASE}${getRoute('serviceDetail', 'en', { slug: 'asesoria-legal' })}`,
     ]);
     expect(entradas.every((u) => u.priority === 0.8)).toBe(true);
+  });
+});
+
+describe('sitemap | Nosotros (AC2.7.3, AC0.4.5)', () => {
+  const es = () => `${BASE}${getRoute('about', 'es')}`;
+  const en = () => `${BASE}${getRoute('about', 'en')}`;
+  const urls = async () => (await Sitemap()).map((u) => u.url);
+
+  it('con documento y título en inglés lista Nosotros en español e inglés', async () => {
+    expect(await urls()).toEqual(expect.arrayContaining([es(), en()]));
+  });
+
+  it('sin título en inglés lista solo el español', async () => {
+    fetchAboutMock.mockResolvedValue({ ...aboutCompleto, titulo: { es: 'Nosotros' } });
+    const lista = await urls();
+
+    expect(lista).toContain(es());
+    expect(lista).not.toContain(en());
+  });
+
+  it('sin documento no lista Nosotros en ningún idioma', async () => {
+    fetchAboutMock.mockResolvedValue(null);
+    const lista = await urls();
+
+    expect(lista).not.toContain(es());
+    expect(lista).not.toContain(en());
+  });
+
+  it('si no se puede leer, no lista Nosotros y el resto del sitemap sigue', async () => {
+    fetchAboutMock.mockRejectedValue(new Error('backend caído'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const lista = await urls();
+
+    expect(lista).not.toContain(es());
+    expect(lista).not.toContain(en());
+    expect(lista).toContain(`${BASE}${getRoute('home', 'es')}`);
   });
 });
