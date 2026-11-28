@@ -397,7 +397,12 @@
         "foto": null
       }
     ],
-    "lastUpdated": "Última actualización: {date}"
+    "lastUpdated": "Última actualización: {date}",
+    "teamTitle": "Nuestro equipo",
+    "emptyTitle": "Esta página aún no tiene contenido",
+    "emptyHint": "Vuelve más tarde.",
+    "unavailableTitle": "No pudimos cargar esta información",
+    "unavailableHint": "Inténtalo de nuevo en unos minutos."
   },
   "admin": {
     "login": {
