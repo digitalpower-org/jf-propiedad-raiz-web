@@ -182,6 +182,14 @@ describe('sitemap | Nosotros (AC2.7.3, AC0.4.5)', () => {
     expect(lista).not.toContain(en());
   });
 
+  it('un título en inglés en blanco cuenta como sin traducir: lista solo el español', async () => {
+    fetchAboutMock.mockResolvedValue({ ...aboutCompleto, titulo: { es: 'Nosotros', en: '   ' } });
+    const lista = await urls();
+
+    expect(lista).toContain(es());
+    expect(lista).not.toContain(en());
+  });
+
   it('sin documento no lista Nosotros en ningún idioma', async () => {
     fetchAboutMock.mockResolvedValue(null);
     const lista = await urls();

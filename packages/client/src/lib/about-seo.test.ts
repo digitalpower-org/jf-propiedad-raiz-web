@@ -98,6 +98,13 @@ describe('buildAboutMetadata | indexación (AC0.4.5)', () => {
     expect(robots(construir(sinIngles, 'es')).index).toBe(true);
   });
 
+  it('un título en inglés en blanco cuenta como sin traducir: noindex en inglés, el español sigue indexado', () => {
+    const enBlanco = { ...documento, titulo: { es: 'Nosotros SAS', en: '   ' } };
+
+    expect(robots(construir(enBlanco, 'en')).index).toBe(false);
+    expect(robots(construir(enBlanco, 'es')).index).toBe(true);
+  });
+
   it('sin documento no se indexa ningún idioma', () => {
     expect(robots(construir(null, 'es')).index).toBe(false);
     expect(robots(construir(null, 'en')).index).toBe(false);
